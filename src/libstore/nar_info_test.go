@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zimbatm/go-nix/libstore"
+	"github.com/zimbatm/go-nix/src/libstore"
 )
 
 const narinfoSample = `
