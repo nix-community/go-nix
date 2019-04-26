@@ -1,11 +1,11 @@
-package store_test
+package libstore_test
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zimbatm/go-nix/store"
+	"github.com/zimbatm/go-nix/libstore"
 )
 
 const narinfoSample = `
@@ -25,12 +25,12 @@ Sig: hydra.da-int.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7a
 func TestNarInfoParser(t *testing.T) {
 	r := strings.NewReader(narinfoSample)
 
-	n, err := store.ParseNarInfo(r)
+	n, err := libstore.ParseNarInfo(r)
 
 	assert.NoError(t, err)
 
 	// Test the parsing happy path
-	assert.Equal(t, &store.NarInfo{
+	assert.Equal(t, &libstore.NarInfo{
 		StorePath:   "/nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432",
 		URL:         "nar/1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar.xz",
 		Compression: "xz",
