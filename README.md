@@ -1,8 +1,10 @@
-# go-nix - go library for Nix 
+# go-nix - Nix experiments written in go
 
 *STATUS*: experimental
 
-This library is re-usable but only implements subsets of the Nix
-infrastructure. Mainly to do things around networking since Go is so nice for
-concurrency.
+This repository holds a bunch of experiments written in Go.
+
+* src/nar - a Nix ARchive (NAR) file parser that mimics archive/tar from the
+  stdlib
+* src/libstore - a narinfo parser 
 
