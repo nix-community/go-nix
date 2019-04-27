@@ -47,6 +47,5 @@ func TestNarInfoParser(t *testing.T) {
 	}, n)
 
 	// Test to string
-	assert.Equal(t, narinfoSample, "\n" + n.String())
+	assert.Equal(t, narinfoSample, "\n"+n.String())
 }
-

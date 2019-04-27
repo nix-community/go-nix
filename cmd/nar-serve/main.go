@@ -2,17 +2,17 @@ package main
 
 import (
 	"compress/bzip2"
+	"fmt"
 	"io"
-	"path/filepath"
 	"mime"
+	"net/http"
+	"path/filepath"
 	"strings"
-  "fmt"
-  "net/http"
 
 	"github.com/ulikunitz/xz"
-	"github.com/zimbatm/go-nix/src/nar"
+	"github.com/urfave/negroni"
 	"github.com/zimbatm/go-nix/src/libstore"
-  "github.com/urfave/negroni"
+	"github.com/zimbatm/go-nix/src/nar"
 )
 
 const nixCache = "https://cache.nixos.org"
@@ -68,10 +68,10 @@ func serveNAR(w http.ResponseWriter, req *http.Request) {
 	switch narinfo.Compression {
 	case "xz":
 		r, err = xz.NewReader(r)
-    if err != nil {
+		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
-    }
+		}
 	case "bzip2":
 		r = bzip2.NewReader(r)
 	default:
@@ -126,7 +126,7 @@ func serveNAR(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-  n := negroni.Classic() // Includes some default middlewares
+	n := negroni.Classic() // Includes some default middlewares
 	n.UseHandler(http.HandlerFunc(serveNAR))
 
 	addr := ":3000"
