@@ -122,6 +122,9 @@ func serveNAR(w http.ResponseWriter, req *http.Request) {
 			}
 			return
 		}
+
+		// TODO: since the nar entries are sorted it's possible to abort early by
+		//       comparing the paths
 	}
 }
 
