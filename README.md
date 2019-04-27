@@ -8,3 +8,5 @@ This repository holds a bunch of experiments written in Go.
   stdlib
 * src/libstore - a narinfo parser 
 
+
+* cmd/nar-serve - HTTP proxy that unpacks NAR files on the fly
