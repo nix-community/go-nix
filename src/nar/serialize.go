@@ -30,7 +30,7 @@ func readString(r io.Reader) (string, error) {
 		return "", err
 	}
 
-	fmt.Println("STR", string(bs))
+	//fmt.Println("STR", string(bs))
 
 	return string(bs), nil
 }
@@ -87,4 +87,18 @@ func readLongLong(r io.Reader) (int64, error) {
 	}
 
 	return int64(num), err
+}
+
+func expectString(r io.Reader, expected string) error {
+	s, err := readString(r)
+	if err != nil {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+		return err
+	}
+	if s != expected {
+		return fmt.Errorf("expected '%s' got '%s'", expected, s)
+	}
+	return nil
 }

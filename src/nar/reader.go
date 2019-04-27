@@ -7,6 +7,11 @@ import (
 	"path"
 )
 
+const (
+	Node  = "node"
+	Entry = "entry"
+)
+
 // Reader providers sequential access to the contents of a NAR archive.
 // Reader.Next advances to the next file in the archive (including the first),
 // and then Reader can be treated as an io.Reader to access the file's data.
@@ -14,12 +19,12 @@ type Reader struct {
 	r io.Reader
 
 	magic bool
-	level int
+	level []string
 
 	path string // Tracks the current path
 
-	pad  int64       // Amount of padding (ignored) after current file entry
-	curr *fileReader // Reader for current file entry
+	pad  int64      // Amount of padding (ignored) after current file entry
+	curr fileReader // Reader for current file entry
 
 	// err is a perssitent error.
 	// Is it the responsibility of every exported method of Reader to ensure
@@ -29,7 +34,7 @@ type Reader struct {
 
 // NewReader creates a new Reader reading from r.
 func NewReader(r io.Reader) *Reader {
-	return &Reader{r: r, curr: &fileReader{r, 0}}
+	return &Reader{r: r, curr: &nullFileReader{}}
 }
 
 // Next advances tot he next entry in the NAR archive. The Header.Size
@@ -47,6 +52,26 @@ func (nar *Reader) Next() (*Header, error) {
 	return hdr, err
 }
 
+func pop(stack []string) ([]string, string, error) {
+	if len(stack) == 0 {
+		return nil, "", fmt.Errorf("cannot pop an empty stack")
+	}
+	item := stack[len(stack)-1]
+	newStack := stack[:len(stack)-1]
+	return newStack, item, nil
+}
+
+func pop2(stack []string, expected string) ([]string, error) {
+	newStack, item, err := pop(stack)
+	if err != nil {
+		return nil, err
+	}
+	if item != expected {
+		return nil, fmt.Errorf("expect %s but got %s", expected, item)
+	}
+	return newStack, nil
+}
+
 func (nar *Reader) next() (*Header, error) {
 	// Parse the magic header first
 	if !nar.magic {
@@ -60,14 +85,33 @@ func (nar *Reader) next() (*Header, error) {
 		if s != narVersionMagic1 {
 			return nil, fmt.Errorf("expected '%s', got '%s'", narVersionMagic1, s)
 		}
+
+		err = expectString(nar.r, "(")
+		if err != nil {
+			return nil, err
+		}
+
+		nar.level = append(nar.level, Node)
 	}
 
-	// Discard the remainder of the file and any padding.
-	if err := discard(nar.r, nar.curr.PhysicalRemaining()+nar.pad); err != nil {
-		return nil, err
+	if _, ok := nar.curr.(*resFileReader); ok {
+		// Discard the remainder of the file and any padding.
+		if err := discard(nar.r, nar.curr.PhysicalRemaining()+nar.pad); err != nil {
+			return nil, err
+		}
+		nar.pad = 0
+		nar.curr = &nullFileReader{}
+
+		err := expectString(nar.r, ")")
+		if err != nil {
+			return nil, err
+		}
+
+		nar.level, err = pop2(nar.level, Node)
+		if err != nil {
+			return nil, err
+		}
 	}
-	nar.pad = 0
-	nar.curr = &fileReader{nar.r, 0}
 
 	h := &Header{}
 
@@ -78,22 +122,30 @@ func (nar *Reader) next() (*Header, error) {
 		}
 
 		switch s {
-		case "(":
-			nar.level++
 		case ")":
-			nar.level--
-			nar.path = path.Dir(nar.path)
+			var item string
+			nar.level, item, err = pop(nar.level)
+
+			switch item {
+			case Node:
+				// nothing to do, node from a directory
+			case Entry:
+				nar.path = path.Dir(nar.path)
+				if nar.path == "." {
+					nar.path = ""
+				}
+			default:
+				err = fmt.Errorf("BUG: unknown item type %s", item)
+			}
+
 			// end of file
-			if nar.level == 0 {
+			if len(nar.level) == 0 {
 				s, err := readString(nar.r)
 				if err == nil {
 					return nil, fmt.Errorf("expected end of file, got %s", s)
 				}
 				// should return io.EOF
 				return nil, err
-			}
-			if nar.level < 0 {
-				return nil, fmt.Errorf("BUG, level < 0")
 			}
 		case "type":
 			if h.Type != TypeUnknown {
@@ -110,8 +162,26 @@ func (nar *Reader) next() (*Header, error) {
 				h.Type = TypeRegular
 			case "directory":
 				h.Type = TypeDirectory
+				return h, nil
 			case "symlink":
 				h.Type = TypeSymlink
+
+				if err = expectString(nar.r, "target"); err != nil {
+					return nil, err
+				}
+				s, err := readString(nar.r)
+				if err != nil {
+					return nil, err
+				}
+				h.Linkname = s
+				if err = expectString(nar.r, ")"); err != nil {
+					return nil, err
+				}
+				nar.level, err = pop2(nar.level, Node)
+				if err != nil {
+					return nil, err
+				}
+				return h, nil
 			default:
 				return nil, fmt.Errorf("unknown file type %s", s)
 			}
@@ -126,10 +196,9 @@ func (nar *Reader) next() (*Header, error) {
 			}
 
 			nar.pad = blockPadding(h.Size)
-			nar.curr = &fileReader{nar.r, h.Size}
-			fmt.Println("pad", nar.pad)
+			nar.curr = &resFileReader{nar.r, h.Size}
+			//fmt.Println("pad", nar.pad)
 
-			// TODO: make sure to read the content before starting a new entry
 			return h, nil
 		case "executable":
 			if h.Type != TypeRegular {
@@ -145,32 +214,23 @@ func (nar *Reader) next() (*Header, error) {
 			h.Executable = true
 		case "entry":
 			/*
-			if h.Type != TypeDirectory {
-				return nil, fmt.Errorf("entry for a non-directory")
-			}
+				if h.Type != TypeDirectory {
+					return nil, fmt.Errorf("entry for a non-directory")
+				}
 			*/
-			s, err = readString(nar.r)
+			err = expectString(nar.r, "(")
 			if err != nil {
 				return nil, err
 			}
-			if s != "(" {
-				return nil, fmt.Errorf("expected open tag for directory")
-			}
-			nar.level++
+			nar.level = append(nar.level, Entry)
 			// TODO: read the directory
-			return h, nil
-		case "target":
-			s, err := readString(nar.r)
-			if err != nil {
-				return nil, err
-			}
-			h.Linkname = s
-			return h, nil
+			//return h, nil
 		case "name":
 			name, err := readString(nar.r)
 			if err != nil {
 				return nil, err
 			}
+
 			if name == "." || name == ".." {
 				return nil, fmt.Errorf("NAR contains invalid file name '%s", name)
 			}
@@ -179,19 +239,25 @@ func (nar *Reader) next() (*Header, error) {
 					return nil, fmt.Errorf("NAR contains invalid file name '%s", name)
 				}
 			}
+
 			if nar.path == "" {
 				h.Name = name
 			} else {
 				h.Name = nar.path + "/" + name
 			}
+			nar.path = h.Name
 		case "node":
 			if h.Name == "" {
 				return nil, fmt.Errorf("entry name missing")
 			}
-			nar.path = h.Name
+			err = expectString(nar.r, "(")
+			if err != nil {
+				return nil, err
+			}
+			nar.level = append(nar.level, Node)
 			// recurse
 		default:
-			return nil, fmt.Errorf("unknown field '%s'", s)
+			return nil, fmt.Errorf("unexpected field '%s'", s)
 		}
 	}
 }
@@ -214,12 +280,32 @@ func (nar *Reader) Read(b []byte) (int, error) {
 	return n, err
 }
 
-type fileReader struct {
+type fileReader interface {
+	Read(b []byte) (n int, err error)
+	WriteTo(w io.Writer) (int64, error)
+	PhysicalRemaining() int64
+}
+
+type nullFileReader struct{}
+
+func (fr *nullFileReader) Read(b []byte) (n int, err error) {
+	return 0, io.EOF
+}
+
+func (fr *nullFileReader) WriteTo(w io.Writer) (int64, error) {
+	return 0, io.EOF
+}
+
+func (fr nullFileReader) PhysicalRemaining() int64 {
+	return int64(0)
+}
+
+type resFileReader struct {
 	r  io.Reader // Underlying Reader
 	nb int64     // Number of remaining bytes to read
 }
 
-func (fr *fileReader) Read(b []byte) (n int, err error) {
+func (fr *resFileReader) Read(b []byte) (n int, err error) {
 	if int64(len(b)) > fr.nb {
 		b = b[:fr.nb]
 	}
@@ -239,11 +325,11 @@ func (fr *fileReader) Read(b []byte) (n int, err error) {
 	}
 }
 
-func (fr *fileReader) WriteTo(w io.Writer) (int64, error) {
+func (fr *resFileReader) WriteTo(w io.Writer) (int64, error) {
 	return io.Copy(w, struct{ io.Reader }{fr})
 }
 
-func (fr fileReader) PhysicalRemaining() int64 {
+func (fr resFileReader) PhysicalRemaining() int64 {
 	return fr.nb
 }
 
