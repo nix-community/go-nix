@@ -1,0 +1,10 @@
+{
+    "version": 2,
+    "name": "nar-serve",
+    "builds": [
+        { "src": "/cmd/nar-serve/*.go", "use": "@now/go" }
+    ],
+    "routes": [
+      { "src": "/.*", "dest": "/cmd/nar-serve/index.go" }
+    ]
+}
