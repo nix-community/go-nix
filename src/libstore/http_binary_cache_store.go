@@ -22,7 +22,7 @@ func (c *HTTPBinaryCacheStore) UpsertFile(path, data, mimeType string) error {}
 */
 
 func (c *HTTPBinaryCacheStore) GetFile(path string) (io.ReadCloser, error) {
-	resp, err := http.Get(c.CacheURI + path)
+	resp, err := http.Get(c.CacheURI + "/" + path)
 	if err != nil {
 		return nil, err
 	}
