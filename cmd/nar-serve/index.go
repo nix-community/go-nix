@@ -14,21 +14,19 @@ import (
 	"github.com/zimbatm/go-nix/src/nar"
 )
 
-const nixCache = "https://cache.nixos.org"
+// TODO: make that configurable
+var nixCache = libstore.DefaultCache
 
-// TODO: make upstream configurable
 // TODO: consider keeping a LRU cache
 func getNarInfo(key string) (*libstore.NarInfo, error) {
-	url := fmt.Sprintf("%s/%s.narinfo", nixCache, key)
-	fmt.Println("Fetching the narinfo:", url)
-	resp, err := http.Get(url)
+	path := fmt.Sprintf("%s.narinfo", key)
+	fmt.Println("Fetching the narinfo:", path)
+	r, err := nixCache.GetFile(path)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("expected status 200, got %s", resp.Status)
-	}
-	return libstore.ParseNarInfo(resp.Body)
+	defer r.Close()
+	return libstore.ParseNarInfo(r)
 }
 
 // Handler is the entry-point for @now/go as well as the stub main.go net/http
@@ -53,16 +51,17 @@ func Handler(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("narinfo", narinfo)
 
 	// TODO: consider keeping a LRU cache
-	narURL := fmt.Sprintf("%s/%s", nixCache, narinfo.URL)
-	fmt.Println("fetching the NAR:", narURL)
-	resp, err := http.Get(narURL)
+	narPATH := narinfo.URL
+	fmt.Println("fetching the NAR:", narPATH)
+	file, err := nixCache.GetFile(narPATH)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+	defer file.Close()
 
 	var r io.Reader
-	r = resp.Body
+	r = file
 
 	// decompress on the fly
 	switch narinfo.Compression {
