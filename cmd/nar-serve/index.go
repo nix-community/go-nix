@@ -31,19 +31,20 @@ func getNarInfo(key string) (*libstore.NarInfo, error) {
 
 // Handler is the entry-point for @now/go as well as the stub main.go net/http
 func Handler(w http.ResponseWriter, req *http.Request) {
-	components := strings.Split(req.URL.Path, "/")
-	if len(components) <= 1 {
+	path := strings.Trim(req.URL.Path, "/")
+	path = strings.TrimPrefix(path, "nix/store/") // allow to paste from the filesystem
+	components := strings.Split(path, "/")
+	if len(components) < 2 {
 		// TODO: serve index page
 		http.Error(w, "need a NAR path", 400)
 		return
 	}
-	if components[0] != "" {
-		http.Error(w, "expected first component to be empty", 500)
-		return
-	}
+	fmt.Println(len(components), components)
+
+	narName := strings.Split(components[0], "-")[0]
 
 	// Get the NAR info to find the NAR
-	narinfo, err := getNarInfo(components[1])
+	narinfo, err := getNarInfo(narName)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -79,7 +80,7 @@ func Handler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	narReader := nar.NewReader(r)
-	newPath := strings.Join(components[2:], "/")
+	newPath := strings.Join(components[1:], "/")
 
 	fmt.Println("newPath", newPath)
 
