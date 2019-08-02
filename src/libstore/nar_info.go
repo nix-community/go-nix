@@ -29,11 +29,18 @@ var reNarInfoLine = regexp.MustCompile("([\\w]+): (.*)")
 
 // ParseNarInfo parses the buffer
 //
-// FIXME: add more checks to see if the NarInfo is valid
+// TODO: parse the FileHash and NarHash to make sure they are valid
+// TODO: validate that the StorePath is valid
+// TODO: validate the references to be valid store paths after being appended
+// to store.storeDir
+// TODO: validate the same for the deriver
 func ParseNarInfo(r io.Reader) (*NarInfo, error) {
 	buf := bufio.NewReader(r)
 
-	n := &NarInfo{}
+	n := &NarInfo{
+		// Default compression to bzip2
+		Compression: "bzip2",
+	}
 
 	for {
 		line, err := buf.ReadString('\n')
