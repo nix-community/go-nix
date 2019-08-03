@@ -7,7 +7,7 @@ import (
 )
 
 // DefaultCache is our beloved cache.nixos.org
-var DefaultCache = HTTPBinaryCacheStore{ "https://cache.nixos.org" }
+var DefaultCache = HTTPBinaryCacheStore{"https://cache.nixos.org"}
 
 // HTTPBinaryCacheStore ...
 type HTTPBinaryCacheStore struct {
