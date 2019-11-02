@@ -149,7 +149,7 @@ func (nar *Reader) next() (*Header, error) {
 			}
 		case "type":
 			if h.Type != TypeUnknown {
-				return nil, fmt.Errorf("mutliple type fields")
+				return nil, fmt.Errorf("multiple type fields")
 			}
 
 			s, err = readString(nar.r)
