@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/numtide/go-nix/src/libstore"
 	"github.com/stretchr/testify/assert"
-	"github.com/zimbatm/go-nix/src/libstore"
 )
 
 const narinfoSample = `

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/numtide/go-nix/src/nar"
 	"github.com/stretchr/testify/assert"
-	"github.com/zimbatm/go-nix/src/nar"
 )
 
 const fixture = `
