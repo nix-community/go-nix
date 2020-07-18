@@ -16,7 +16,7 @@ type HTTPBinaryCacheStore struct {
 
 // FileExists returns true if the file is already in the store.
 // err is used for transient issues like networking errors.
-func (c *HTTPBinaryCacheStore) FileExists(path string) (bool, error) {
+func (c HTTPBinaryCacheStore) FileExists(path string) (bool, error) {
 	resp, err := http.Head(c.CacheURI + "/" + path)
 	if err != nil {
 		return false, err
@@ -29,7 +29,7 @@ func (c *HTTPBinaryCacheStore) UpsertFile(path, data, mimeType string) error {}
 */
 
 // GetFile returns a file stream from the store if the file exists
-func (c *HTTPBinaryCacheStore) GetFile(path string) (io.ReadCloser, error) {
+func (c HTTPBinaryCacheStore) GetFile(path string) (io.ReadCloser, error) {
 	resp, err := http.Get(c.CacheURI + "/" + path)
 	if err != nil {
 		return nil, err
