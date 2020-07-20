@@ -10,6 +10,7 @@ import (
 type BinaryCacheReader interface {
 	FileExists(path string) (bool, error)
 	GetFile(path string) (io.ReadCloser, error)
+	URI() string
 }
 
 // NewBinaryCacheReader parses the storeURL and returns the proper store

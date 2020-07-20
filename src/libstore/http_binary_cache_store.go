@@ -39,3 +39,8 @@ func (c HTTPBinaryCacheStore) GetFile(path string) (io.ReadCloser, error) {
 	}
 	return resp.Body, nil
 }
+
+// URI returns the store URI
+func (c HTTPBinaryCacheStore) URI() string {
+	return c.CacheURI
+}
