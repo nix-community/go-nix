@@ -1,6 +1,7 @@
 package libstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -20,24 +21,21 @@ type S3Store struct {
 	Client     *s3.S3
 }
 
-func (s *S3Store) FileExists(path string) (bool, error) {
-
-	_, err := s.GetFile(path)
+func (s *S3Store) FileExists(ctx context.Context, path string) (bool, error) {
+	_, err := s.GetFile(ctx, path)
 	if err != nil {
 		return false, nil
 	}
-
 	return true, err
-
 }
 
-func (s *S3Store) GetFile(path string) (io.ReadCloser, error) {
+func (s *S3Store) GetFile(ctx context.Context, path string) (io.ReadCloser, error) {
 	input := &s3.GetObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key: aws.String(path),
 	}
 
-	obj, err := s.Client.GetObject(input)
+	obj, err := s.Client.GetObjectWithContext(ctx, input)
 	if err != nil {
     if aerr, ok := err.(awserr.Error); ok {
         switch aerr.Code() {
