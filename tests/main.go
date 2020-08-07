@@ -9,7 +9,8 @@ import (
 func main() {
 	ctx := context.Background()
 
-	r, err := libstore.NewStoreReader("s3://nar?region=eu-west-1&endpoint=http://127.0.0.1:9000&scheme=http")
+	// S3 binary cache storage
+	r, err := libstore.NewBinaryCacheReader(ctx, "s3://nar?region=eu-west-1&endpoint=http://127.0.0.1:9000&scheme=http")
 	if err != nil {
 		panic(err)
 	}
