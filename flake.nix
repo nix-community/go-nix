@@ -12,25 +12,25 @@
     //
     (
       flake-utils.lib.eachDefaultSystem (system:
-        let
-          pkgs = import nixpkgs {
-            inherit system;
-			overlays = [
-			  devshell.overlay
-              self.overlay
-            ];
-          };
-        in
-        rec {
-          packages.go-nix = pkgs.go-nix.lib;
-		  defaultPackage = pkgs.go-nix.lib;
-		  apps.go-nix = flake-utils.lib.mkApp { drv = pkgs.go-nix.lib; };
-		  defaultApp = apps.go-nix.lib;
-		  devShell = pkgs.mkDevShell.fromTOML ./devshell.toml;
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [
+            devshell.overlay
+            self.overlay
+          ];
+        };
+      in
+      rec {
+        packages.go-nix = pkgs.go-nix.lib;
+        defaultPackage = pkgs.go-nix.lib;
+        apps.go-nix = flake-utils.lib.mkApp { drv = pkgs.go-nix.lib; };
+        defaultApp = apps.go-nix.lib;
+        devShell = pkgs.mkDevShell.fromTOML ./devshell.toml;
 
-          # Additional checks on top of the packages
-          checks = { };
-        }
+        # Additional checks on top of the packages
+        checks = { };
+      }
       )
     );
 }
