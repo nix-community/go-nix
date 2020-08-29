@@ -7,7 +7,7 @@
   outputs =
     { self, nixpkgs, flake-utils, devshell }:
     {
-      overlay = import ./overlay.nix { };
+      overlay = import ./overlay.nix;
     }
     //
     (
@@ -21,15 +21,12 @@
           ];
         };
       in
-      rec {
-        packages.go-nix = pkgs.go-nix.lib;
-        defaultPackage = pkgs.go-nix.lib;
-        apps.go-nix = flake-utils.lib.mkApp { drv = pkgs.go-nix.lib; };
-        defaultApp = apps.go-nix.lib;
+      {
+        packages = pkgs.go-nix;
         devShell = pkgs.mkDevShell.fromTOML ./devshell.toml;
-
-        # Additional checks on top of the packages
-        checks = { };
+        # devShell = pkgs.mkShell {
+        #   buildInputs = [ pkgs.go ];
+        # };
       }
       )
     );

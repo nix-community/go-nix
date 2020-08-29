@@ -4,5 +4,5 @@ pkgs.buildGoModule {
   pname = "go-nix";
   version = "latest";
   src = pkgs.lib.cleanSource ./.;
-  vendorSha256 = "1wihwj2rqv18vzn4kwnqwmpx03yiv2ib9yy317nwy6392zyczv8m";
+  vendorSha256 = "0knmyqls62i9y8h6h8p1h9m768ni58anfdiw5ljwc3n40l20hk2z";
 }
