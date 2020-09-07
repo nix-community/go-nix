@@ -1,7 +1,7 @@
 # with the minio package
 ```
-mkdir data
-minio server ./data
+mkdir nar
+minio server ./nar
 ```
 
 # with the pkgs.minio-client package
