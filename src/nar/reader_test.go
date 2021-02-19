@@ -142,7 +142,7 @@ func TestReader(t *testing.T) {
 		},
 		{
 			Type: nar.TypeDirectory,
-			Name: "share/man/man5", // FIXME:  "share/man/man5"
+			Name: "share/man/man5",
 		},
 		{
 			Type: nar.TypeRegular,
