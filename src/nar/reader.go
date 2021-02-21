@@ -197,7 +197,6 @@ func (nar *Reader) next() (*Header, error) {
 
 			nar.pad = blockPadding(h.Size)
 			nar.curr = &resFileReader{nar.r, h.Size}
-			//fmt.Println("pad", nar.pad)
 
 			return h, nil
 		case "executable":
