@@ -26,8 +26,8 @@ type Reader struct {
 	pad  int64      // Amount of padding (ignored) after current file entry
 	curr fileReader // Reader for current file entry
 
-	// err is a perssitent error.
-	// Is it the responsibility of every exported method of Reader to ensure
+	// err is a persistent error.
+	// It is the responsibility of every exported method of Reader to ensure
 	// that this error is sticky.
 	err error
 }
@@ -37,7 +37,7 @@ func NewReader(r io.Reader) *Reader {
 	return &Reader{r: r, curr: &nullFileReader{}}
 }
 
-// Next advances tot he next entry in the NAR archive. The Header.Size
+// Next advances to the next entry in the NAR archive. The Header.Size
 // determines how many bytes can be read for the next file. Any remaining data
 // in the current file is automatically discarded.
 //
