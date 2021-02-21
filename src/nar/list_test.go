@@ -1,7 +1,6 @@
 package nar_test
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -35,5 +34,25 @@ func TestLS(t *testing.T) {
 	r := strings.NewReader(fixture)
 	root, err := nar.ParseLS(r)
 	assert.NoError(t, err)
-	fmt.Println(root)
+
+	expected_root := &nar.LSRoot{
+		Version: 1,
+		Root: nar.LSEntry{
+			Type: nar.TypeDirectory,
+			Entries: map[string]nar.LSEntry{
+				"bin": nar.LSEntry{
+					Type: nar.TypeDirectory,
+					Entries: map[string]nar.LSEntry{
+						"curl": nar.LSEntry{
+							Type:       nar.TypeRegular,
+							Size:       182520,
+							Executable: true,
+							NAROffset:  400,
+						},
+					},
+				},
+			},
+		},
+	}
+	assert.Equal(t, expected_root, root)
 }
