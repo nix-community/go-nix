@@ -12,7 +12,7 @@ type LSRoot struct {
 	Root    LSEntry
 }
 
-// LSEntry is one of the entr
+// LSEntry represents one of the entries in a .ls file
 type LSEntry struct {
 	Type       EntryType          `json:"type"`
 	Entries    map[string]LSEntry `json:"entries"`
