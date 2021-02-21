@@ -63,15 +63,9 @@ const maxInt64 = 1<<63 - 1
 func readLongLong(r io.Reader) (int64, error) {
 	var num uint64
 	bs := make([]byte, 8, 8)
-	n, err := r.Read(bs)
-	if err != nil {
+	if _, err := io.ReadFull(r, bs); err != nil {
 		return 0, err
 	}
-	// FIXME: I think that io.Reader guarantees that
-	if n != 8 {
-		return 0, fmt.Errorf("expected to read 8 bytes, not %d", n)
-	}
-
 	num =
 		uint64(bs[0]) |
 			uint64(bs[1])<<8 |
@@ -86,7 +80,7 @@ func readLongLong(r io.Reader) (int64, error) {
 		return 0, fmt.Errorf("number is too big: %d > %d", num, maxInt64)
 	}
 
-	return int64(num), err
+	return int64(num), nil
 }
 
 func expectString(r io.Reader, expected string) error {
