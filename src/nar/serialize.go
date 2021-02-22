@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"math"
 )
 
 func readString(r io.Reader) (string, error) {
@@ -59,8 +60,6 @@ func readPadding(r io.Reader, l int64) error {
 	return nil
 }
 
-const maxInt64 = 1<<63 - 1
-
 func readLongLong(r io.Reader) (int64, error) {
 	bs := make([]byte, 8, 8)
 	if _, err := io.ReadFull(r, bs); err != nil {
@@ -70,8 +69,8 @@ func readLongLong(r io.Reader) (int64, error) {
 	// this is uint64, little endian
 	// we use int64 later, so error out if it's larger than what we're able to represent.
 	num := binary.LittleEndian.Uint64(bs)
-	if num > maxInt64 {
-		return 0, fmt.Errorf("number is too big: %d > %d", num, maxInt64)
+	if num > math.MaxInt64 {
+		return 0, fmt.Errorf("number is too big: %d > %d", num, math.MaxInt64)
 	}
 
 	return int64(num), nil
