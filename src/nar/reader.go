@@ -4,12 +4,25 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"path"
+
+	"github.com/numtide/go-nix/src/wire"
 )
 
 const (
 	Node  = "node"
 	Entry = "entry"
+
+	// for small tokens,
+	// we use this to limit how large an invalid token we'll read
+	tokenLenMax = 32
+	// maximum length for a single path element
+	// NAME_MAX is 255 on Linux
+	nameLenMax = 255
+	// maximum length for a relative path
+	// PATH_MAX is 4096 on Linux, but that includes a null byte
+	pathLenMax = 4096 - 1
 )
 
 // Reader providers sequential access to the contents of a NAR archive.
@@ -72,12 +85,28 @@ func pop2(stack []string, expected string) ([]string, error) {
 	return newStack, nil
 }
 
+// expectString reads a string field from a reader, expecting a certain result,
+// and errors out if the reader ends unexpected, or didn't read the expected.
+func expectString(r io.Reader, expected string) error {
+	s, err := wire.ReadString(r, uint64(len(expected)))
+	if err != nil {
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+		return err
+	}
+	if s != expected {
+		return fmt.Errorf("expected '%s' got '%s'", expected, s)
+	}
+	return nil
+}
+
 func (nar *Reader) next() (*Header, error) {
 	// Parse the magic header first
 	if !nar.magic {
 		nar.magic = true
 
-		s, err := readString(nar.r)
+		s, err := wire.ReadString(nar.r, tokenLenMax)
 		if err != nil {
 			return nil, err
 		}
@@ -116,7 +145,7 @@ func (nar *Reader) next() (*Header, error) {
 	h := &Header{}
 
 	for {
-		s, err := readString(nar.r)
+		s, err := wire.ReadString(nar.r, tokenLenMax)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +169,7 @@ func (nar *Reader) next() (*Header, error) {
 
 			// end of file
 			if len(nar.level) == 0 {
-				s, err := readString(nar.r)
+				s, err := wire.ReadString(nar.r, 1)
 				if err == nil {
 					return nil, fmt.Errorf("expected end of file, got %s", s)
 				}
@@ -152,7 +181,7 @@ func (nar *Reader) next() (*Header, error) {
 				return nil, fmt.Errorf("multiple type fields")
 			}
 
-			s, err = readString(nar.r)
+			s, err = wire.ReadString(nar.r, tokenLenMax)
 			if err != nil {
 				return nil, err
 			}
@@ -169,7 +198,7 @@ func (nar *Reader) next() (*Header, error) {
 				if err = expectString(nar.r, "target"); err != nil {
 					return nil, err
 				}
-				s, err := readString(nar.r)
+				s, err := wire.ReadString(nar.r, nameLenMax)
 				if err != nil {
 					return nil, err
 				}
@@ -190,10 +219,16 @@ func (nar *Reader) next() (*Header, error) {
 				return nil, fmt.Errorf("contents for a non-regular file")
 			}
 
-			h.Size, err = readLongLong(nar.r)
+			size, err := wire.ReadUint64(nar.r)
 			if err != nil {
 				return nil, err
 			}
+			// wire can store uint64, but Header (which filles os.FileInfo later) can
+			// only use int64. Let's check if it fits, and err out if it doesn't.
+			if size > math.MaxInt64 {
+				return nil, fmt.Errorf("content size exceeds max(int64)")
+			}
+			h.Size = int64(size)
 
 			nar.pad = blockPadding(h.Size)
 			nar.curr = &resFileReader{nar.r, h.Size}
@@ -203,7 +238,8 @@ func (nar *Reader) next() (*Header, error) {
 			if h.Type != TypeRegular {
 				return nil, fmt.Errorf("executable marker for a non-regular file")
 			}
-			s, err = readString(nar.r)
+			// TODO: what do we read here?
+			s, err = wire.ReadString(nar.r, math.MaxInt32)
 			if err != nil {
 				return nil, err
 			}
@@ -225,7 +261,7 @@ func (nar *Reader) next() (*Header, error) {
 			// TODO: read the directory
 			//return h, nil
 		case "name":
-			name, err := readString(nar.r)
+			name, err := wire.ReadString(nar.r, nameLenMax)
 			if err != nil {
 				return nil, err
 			}
