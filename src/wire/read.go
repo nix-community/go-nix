@@ -56,6 +56,10 @@ func ReadBytes(r io.Reader, max uint64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	// early exit if no content needs to be read
+	if contentLength == 0 {
+		return []byte{}, nil
+	}
 	if contentLength > max {
 		return nil, fmt.Errorf("content length of %v bytes exceeds maximum of %v bytes", contentLength, max)
 	}
