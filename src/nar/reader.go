@@ -238,14 +238,7 @@ func (nar *Reader) next() (*Header, error) {
 			if h.Type != TypeRegular {
 				return nil, fmt.Errorf("executable marker for a non-regular file")
 			}
-			// TODO: what do we read here?
-			s, err = wire.ReadString(nar.r, math.MaxInt32)
-			if err != nil {
-				return nil, err
-			}
-			if s != "" {
-				return nil, fmt.Errorf("executable marker has non-empty value")
-			}
+			expectString(nar.r, "")
 			h.Executable = true
 		case "entry":
 			/*
