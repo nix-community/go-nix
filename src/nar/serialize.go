@@ -30,8 +30,6 @@ func readString(r io.Reader) (string, error) {
 		return "", err
 	}
 
-	//fmt.Println("STR", string(bs))
-
 	return string(bs), nil
 }
 
