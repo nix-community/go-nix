@@ -14,6 +14,18 @@ func ReadUint64(r io.Reader) (n uint64, err error) {
 	return byteOrder.Uint64(buf[:]), nil
 }
 
+// ReadBool consumes a boolean in nix wire format
+func ReadBool(r io.Reader) (v bool, err error) {
+	n, err := ReadUint64(r)
+	if err != nil {
+		return false, err
+	}
+	if n != 0 && n != 1 {
+		return false, fmt.Errorf("Invalid value for boolean: %v", n)
+	}
+	return n == 1, nil
+}
+
 // readPadding consumes the remaining padding, if any, and errors out if it's not null bytes.
 // In nix archive format, byte packets are padded to 8 byte blocks each.
 func readPadding(r io.Reader, contentLength uint64) error {
