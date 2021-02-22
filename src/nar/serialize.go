@@ -1,8 +1,10 @@
 package nar
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io"
+	"math"
 )
 
 func readString(r io.Reader) (string, error) {
@@ -56,35 +58,20 @@ func readPadding(r io.Reader, l int64) error {
 	return nil
 }
 
-const maxInt64 = 1<<63 - 1
-
 func readLongLong(r io.Reader) (int64, error) {
-	var num uint64
 	bs := make([]byte, 8, 8)
-	n, err := r.Read(bs)
-	if err != nil {
+	if _, err := io.ReadFull(r, bs); err != nil {
 		return 0, err
 	}
-	// FIXME: I think that io.Reader guarantees that
-	if n != 8 {
-		return 0, fmt.Errorf("expected to read 8 bytes, not %d", n)
+
+	// this is uint64, little endian
+	// we use int64 later, so error out if it's larger than what we're able to represent.
+	num := binary.LittleEndian.Uint64(bs)
+	if num > math.MaxInt64 {
+		return 0, fmt.Errorf("number is too big: %d > %d", num, math.MaxInt64)
 	}
 
-	num =
-		uint64(bs[0]) |
-			uint64(bs[1])<<8 |
-			uint64(bs[2])<<16 |
-			uint64(bs[3])<<24 |
-			uint64(bs[4])<<32 |
-			uint64(bs[5])<<40 |
-			uint64(bs[6])<<48 |
-			uint64(bs[7])<<56
-
-	if num > maxInt64 {
-		return 0, fmt.Errorf("number is too big: %d > %d", num, maxInt64)
-	}
-
-	return int64(num), err
+	return int64(num), nil
 }
 
 func expectString(r io.Reader, expected string) error {
