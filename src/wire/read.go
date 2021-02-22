@@ -14,9 +14,9 @@ func ReadUint64(r io.Reader) (n uint64, err error) {
 	return byteOrder.Uint64(buf[:]), nil
 }
 
-// ReadPadding consumes the remaining padding, if any, and errors out if it's not null bytes.
+// readPadding consumes the remaining padding, if any, and errors out if it's not null bytes.
 // In nix archive format, byte packets are padded to 8 byte blocks each.
-func ReadPadding(r io.Reader, contentLength uint64) error {
+func readPadding(r io.Reader, contentLength uint64) error {
 	// n marks the position inside the last block
 	n := contentLength % 8
 	if n == 0 {
@@ -53,7 +53,7 @@ func ReadBytes(r io.Reader, max uint64) ([]byte, error) {
 		return nil, err
 	}
 	// consume padding
-	if err := ReadPadding(r, contentLength); err != nil {
+	if err := readPadding(r, contentLength); err != nil {
 		return nil, err
 	}
 	return buf, nil

@@ -30,7 +30,7 @@ func WriteBytes(w io.Writer, buf []byte) error {
 	if _, err := w.Write(buf); err != nil {
 		return err
 	}
-	return WritePadding(w, n)
+	return writePadding(w, n)
 }
 
 // WriteString writes a bytes packet
@@ -42,13 +42,13 @@ func WriteString(w io.Writer, s string) error {
 	if _, err := io.WriteString(w, s); err != nil {
 		return err
 	}
-	return WritePadding(w, n)
+	return writePadding(w, n)
 }
 
 var padding [8]byte
 
-// WritePadding writes the appropriate amount of padding.
-func WritePadding(w io.Writer, contentLength uint64) error {
+// writePadding writes the appropriate amount of padding.
+func writePadding(w io.Writer, contentLength uint64) error {
 	if m := contentLength % 8; m != 0 {
 		_, err := w.Write(padding[m:])
 		return err
