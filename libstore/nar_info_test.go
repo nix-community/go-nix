@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/numtide/go-nix/src/libstore"
+	"github.com/numtide/go-nix/libstore"
 	"github.com/stretchr/testify/assert"
 )
 
