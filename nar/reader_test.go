@@ -10,7 +10,7 @@ import (
 )
 
 func TestReader(t *testing.T) {
-	f, err := os.Open("fixtures/nar_1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar")
+	f, err := os.Open("../test/testdata/nar_1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar")
 	if !assert.NoError(t, err) {
 		return
 	}
