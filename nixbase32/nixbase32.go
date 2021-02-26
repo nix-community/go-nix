@@ -22,18 +22,24 @@ func DecodedLen(n int) int {
 // EncodeToString returns the nixbase32 encoding of src.
 func EncodeToString(src []byte) string {
 	l := EncodedLen(len(src))
-	s := ""
+
+	var dst strings.Builder
+	dst.Grow(l)
+
 	for n := l - 1; n >= 0; n-- {
 		b := uint(n * 5)
 		i := uint(b / 8)
 		j := uint(b % 8)
+
 		c := src[i] >> j
+
 		if i+1 < uint(len(src)) {
 			c |= src[i+1] << (8 - j)
 		}
-		s += string(alphabet[c&0x1f])
+
+		dst.WriteByte(alphabet[c&0x1f])
 	}
-	return s
+	return dst.String()
 }
 
 // DecodeString returns the bytes represented by the nixbase32 string s.
