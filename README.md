@@ -4,10 +4,6 @@
 
 This repository holds a bunch of experiments written in Go.
 
-* src/nar - a Nix ARchive (NAR) file parser that mimics archive/tar from the
+* nar - a Nix ARchive (NAR) file parser that mimics archive/tar from the
   stdlib
-* src/libstore - a narinfo parser 
-
-## Hacking
-
-Use the `nix-shell` to load the developer environment.
+* libstore - a narinfo parser
