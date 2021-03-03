@@ -10,6 +10,9 @@ const alphabet = "0123456789abcdfghijklmnpqrsvwxyz"
 // EncodedLen returns the length in bytes of the base32 encoding of an input
 // buffer of length n.
 func EncodedLen(n int) int {
+	if n == 0 {
+		return 0
+	}
 	return (n*8-1)/5 + 1
 }
 
