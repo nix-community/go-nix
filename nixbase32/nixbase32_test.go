@@ -35,8 +35,16 @@ func TestDecode(t *testing.T) {
 }
 
 func TestDecodeInvalid(t *testing.T) {
-	// this is invalid encoding, because it encodes 10 1-bytes, so the carry
-	// would be 2 1-bytes
-	_, err := DecodeString("zz")
-	assert.Error(t, err)
+	invalidEncodings := []string{
+		// this is invalid encoding, because it encodes 10 1-bytes, so the carry
+		// would be 2 1-bytes
+		"zz",
+		// this is an even more specific example - it'd decode as 00000000 11
+		"c0",
+	}
+
+	for _, c := range invalidEncodings {
+		_, err := DecodeString(c)
+		assert.Error(t, err)
+	}
 }
