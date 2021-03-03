@@ -33,3 +33,10 @@ func TestDecode(t *testing.T) {
 		}
 	}
 }
+
+func TestDecodeInvalid(t *testing.T) {
+	// this is invalid encoding, because it encodes 10 1-bytes, so the carry
+	// would be 2 1-bytes
+	_, err := DecodeString("zz")
+	assert.Error(t, err)
+}
