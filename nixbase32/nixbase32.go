@@ -13,8 +13,10 @@ func EncodedLen(n int) int {
 	return (n*8-1)/5 + 1
 }
 
-// DecodedLen returns the maximum length in bytes of the decoded data
+// DecodedLen returns the length in bytes of the decoded data
 // corresponding to n bytes of base32-encoded data.
+// If we have bits that don't fit into here, they are padding and must
+// be 0.
 func DecodedLen(n int) int {
 	return (n * 5) / 8
 }
@@ -51,14 +53,25 @@ func DecodeString(s string) ([]byte, error) {
 		if digit == -1 {
 			return nil, fmt.Errorf("character %v not in alphabet!", c)
 		}
+
 		b := uint(n * 5)
 		i := uint(b / 8)
 		j := uint(b % 8)
+
+		// OR the main pattern
 		dst[i] |= byte(digit) << j
-		if i+1 < uint(len(dst)) {
-			dst[i+1] |= byte(digit) >> (8 - j)
-		} else if digit>>(8-j) != 0 {
-			return nil, fmt.Errorf("TODO")
+
+		// calculate the "carry pattern"
+		carry := byte(digit) >> (8 - j)
+
+		// if we're at the end of dst…
+		if i == uint(len(dst)-1) {
+			// but have a nonzero carry, the encoding is invalid.
+			if carry != 0 {
+				return nil, fmt.Errorf("invalid encoding")
+			}
+		} else {
+			dst[i+1] |= carry
 		}
 	}
 	return dst, nil
