@@ -1,9 +1,11 @@
-package nar
+package ls
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
+
+	"github.com/numtide/go-nix/nar"
 )
 
 // LSRoot represents the .ls file root entry
@@ -14,7 +16,7 @@ type LSRoot struct {
 
 // LSEntry represents one of the entries in a .ls file
 type LSEntry struct {
-	Type       EntryType          `json:"type"`
+	Type       nar.EntryType      `json:"type"`
 	Entries    map[string]LSEntry `json:"entries"`
 	Size       int64              `json:"size"`
 	Target     string             `json:"target"`
@@ -22,7 +24,8 @@ type LSEntry struct {
 	NAROffset  int64              `json:"narOffset"`
 }
 
-// ParseLS parses the NAR .ls file format
+// ParseLS parses the NAR .ls file format.
+// It returns a tree-like structure for all the entries.
 func ParseLS(r io.Reader) (*LSRoot, error) {
 	root := LSRoot{}
 
