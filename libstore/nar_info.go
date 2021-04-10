@@ -2,32 +2,48 @@ package libstore
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
-	"regexp"
 	"strconv"
 	"strings"
 )
 
-// NarInfo represent the nar-info format, packed as a struct
+// NarInfo represent the nar-info format
 type NarInfo struct {
-	StorePath   string
-	URL         string
-	Compression string
-	FileHash    string
-	FileSize    int
-	NarHash     string
-	NarSize     int
-	References  []string
-	Deriver     string
-	System      string
-	Signatures  []string
-	CA          string
+	StorePath string // The full nix store path (/nix/store/…-name-version)
+
+	URL         string // The relative location to the .nar[.xz,…] file. Usually nar/$fileHash.nar[.xz]
+	Compression string // The compression method file at URL is compressed with (none,xz,…)
+
+	FileHash string // The hash of the file at URL (sha256:52charsofbase32goeshere52charsofbase32goeshere52char)
+	FileSize int    // The size of the file at URL, in bytes
+
+	// The hash of the .nar file, after possible decompression (sha256:52charsofbase32goeshere52charsofbase32goeshere52char).
+	// Identical to FileHash if no compression is used.
+	NarHash string
+	// The size of the .nar file, after possible decompression, in bytes.
+	// Identical to FileSize if no compression is used.
+	NarSize int
+
+	// References to other store paths, contained in the .nar file
+	References []string
+
+	// Path of the .drv for this store path
+	Deriver string
+
+	// This doesn't seem to be used at all?
+	System string
+
+	// Signatures, if any.
+	Signatures []string
+
+	// TODO: Figure out the meaning of this
+	CA string
 }
 
-var reNarInfoLine = regexp.MustCompile("([\\w]+): (.*)")
-
-// ParseNarInfo parses the buffer
+// ParseNarInfo reads a .narinfo file content
+// and returns a NarInfo struct with the parsed data
 //
 // TODO: parse the FileHash and NarHash to make sure they are valid
 // TODO: validate that the StorePath is valid
@@ -35,103 +51,121 @@ var reNarInfoLine = regexp.MustCompile("([\\w]+): (.*)")
 // to store.storeDir
 // TODO: validate the same for the deriver
 func ParseNarInfo(r io.Reader) (*NarInfo, error) {
-	buf := bufio.NewReader(r)
+	narInfo := &NarInfo{}
+	scanner := bufio.NewScanner(r)
 
-	n := &NarInfo{
-		// Default compression to bzip2
-		Compression: "bzip2",
-	}
+	for scanner.Scan() {
+		var err error
 
-	for {
-		line, err := buf.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				break
-			} else {
-				return nil, err
-			}
-		}
+		line := scanner.Text()
 
-		if line == "\n" {
+		// skip empty lines (like, an empty line at EOF)
+		if line == "" {
 			continue
 		}
+		parts := strings.Split(line, ": ")
 
-		matches := reNarInfoLine.FindStringSubmatch(line)
-		if len(matches) != 3 {
-			return nil, fmt.Errorf("line '%s' didn't match", line)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("Unable to split line %v", line)
 		}
-		key := matches[1]
-		value := matches[2]
 
-		switch key {
+		k := parts[0]
+		v := parts[1]
+
+		switch k {
 		case "StorePath":
-			n.StorePath = value
+			narInfo.StorePath = v
 		case "URL":
-			n.URL = value
+			narInfo.URL = v
 		case "Compression":
-			n.Compression = value
+			narInfo.Compression = v
 		case "FileHash":
-			n.FileHash = value
+			narInfo.FileHash = v
 		case "FileSize":
-			n.FileSize, err = strconv.Atoi(value)
+			narInfo.FileSize, err = strconv.Atoi(v)
 			if err != nil {
 				return nil, err
 			}
 		case "NarHash":
-			n.NarHash = value
+			narInfo.NarHash = v
 		case "NarSize":
-			n.NarSize, err = strconv.Atoi(value)
+			narInfo.NarSize, err = strconv.Atoi(v)
 			if err != nil {
 				return nil, err
 			}
 		case "References":
-			n.References = strings.Split(value, " ")
+			if v == "" {
+				continue
+			}
+			narInfo.References = append(narInfo.References, strings.Split(v, " ")...)
 		case "Deriver":
-			n.Deriver = value
+			narInfo.Deriver = v
 		case "System":
-			n.System = value
+			narInfo.System = v
 		case "Sig":
-			n.Signatures = append(n.Signatures, value)
+			narInfo.Signatures = append(narInfo.Signatures, v)
 		case "CA":
-			n.CA = value
+			narInfo.CA = v
 		default:
-			return nil, fmt.Errorf("unknown key %s", key)
+			return nil, fmt.Errorf("unknown key %v", k)
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("Unable to parse line %v", line)
 		}
 	}
 
-	return n, nil
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	// An empty/non-existrent compression field is considered to mean bzip2
+	if narInfo.Compression == "" {
+		narInfo.Compression = "bzip2"
+	}
+
+	return narInfo, nil
 }
 
-func (n NarInfo) String() string {
-	out := ""
-	//assert(n.Compression != "")
-	//assert(n.FileHashgg
-	out += "StorePath: " + n.StorePath + "\n"
-	out += "URL: " + n.URL + "\n"
-	out += "Compression: " + n.Compression + "\n"
-	out += "FileHash: " + n.FileHash + "\n"
-	out += fmt.Sprintf("FileSize: %d\n", n.FileSize)
-	out += "NarHash: " + n.NarHash + "\n"
-	out += fmt.Sprintf("NarSize: %d\n", n.NarSize)
-	out += "References: " + strings.Join(n.References, " ") + "\n"
+func (n *NarInfo) String() string {
+	var buf bytes.Buffer
+
+	fmt.Fprintf(&buf, "StorePath: %v\n", n.StorePath)
+	fmt.Fprintf(&buf, "URL: %v\n", n.URL)
+	fmt.Fprintf(&buf, "Compression: %v\n", n.Compression)
+	fmt.Fprintf(&buf, "FileHash: %v\n", n.FileHash)
+	fmt.Fprintf(&buf, "FileSize: %d\n", n.FileSize)
+	fmt.Fprintf(&buf, "NarHash: %v\n", n.NarHash)
+	fmt.Fprintf(&buf, "NarSize: %d\n", n.NarSize)
+
+	buf.WriteString("References:")
+	if len(n.References) == 0 {
+		buf.WriteByte(' ')
+	} else {
+		for _, r := range n.References {
+			buf.WriteByte(' ')
+			buf.WriteString(r)
+		}
+	}
+	buf.WriteByte('\n')
 
 	if n.Deriver != "" {
-		out += "Deriver: " + n.Deriver + "\n"
+		fmt.Fprintf(&buf, "Deriver: %v\n", n.Deriver)
 	}
 
 	if n.System != "" {
-		out += "System: " + n.System + "\n"
+		fmt.Fprintf(&buf, "System: %v\n", n.System)
 	}
 
-	for _, sig := range n.Signatures {
-		out += "Sig: " + sig + "\n"
+	for _, s := range n.Signatures {
+		fmt.Fprintf(&buf, "Sig: %v\n", s)
 	}
 
 	if n.CA != "" {
-		out += "CA: " + n.CA + "\n"
+		fmt.Fprintf(&buf, "CA: %v\n", n.CA)
 	}
 
-	return out
+	return buf.String()
 }
 
 // ContentType returns the mime content type of the object
