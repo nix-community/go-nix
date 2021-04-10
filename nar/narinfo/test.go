@@ -1,10 +1,9 @@
-package libstore_test
+package narinfo
 
 import (
 	"strings"
 	"testing"
 
-	"github.com/numtide/go-nix/libstore"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,12 +24,12 @@ Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7ac
 func TestNarInfoParser(t *testing.T) {
 	r := strings.NewReader(narinfoSample)
 
-	n, err := libstore.ParseNarInfo(r)
+	n, err := Parse(r)
 
 	assert.NoError(t, err)
 
 	// Test the parsing happy path
-	assert.Equal(t, &libstore.NarInfo{
+	assert.Equal(t, &NarInfo{
 		StorePath:   "/nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432",
 		URL:         "nar/1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar.xz",
 		Compression: "xz",
