@@ -69,7 +69,11 @@ func Parse(r io.Reader) (*NarInfo, error) {
 		case "System":
 			narInfo.System = v
 		case "Sig":
-			narInfo.Signatures = append(narInfo.Signatures, v)
+			signature, err := ParseSignatureLine(v)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse signature line %v: %v", v, err)
+			}
+			narInfo.Signatures = append(narInfo.Signatures, signature)
 		case "CA":
 			narInfo.CA = v
 		default:

@@ -32,7 +32,7 @@ type NarInfo struct {
 	System string
 
 	// Signatures, if any.
-	Signatures []string
+	Signatures []*Signature
 
 	// TODO: Figure out the meaning of this
 	CA string
