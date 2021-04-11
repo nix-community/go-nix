@@ -3,6 +3,7 @@ package narinfo
 import (
 	"bufio"
 	"fmt"
+	"github.com/numtide/go-nix/hash"
 	"io"
 	"strconv"
 	"strings"
@@ -46,14 +47,20 @@ func Parse(r io.Reader) (*NarInfo, error) {
 		case "Compression":
 			narInfo.Compression = v
 		case "FileHash":
-			narInfo.FileHash = v
+			narInfo.FileHash, err = hash.ParseNixBase32(v)
+			if err != nil {
+				return nil, err
+			}
 		case "FileSize":
 			narInfo.FileSize, err = strconv.Atoi(v)
 			if err != nil {
 				return nil, err
 			}
 		case "NarHash":
-			narInfo.NarHash = v
+			narInfo.NarHash, err = hash.ParseNixBase32(v)
+			if err != nil {
+				return nil, err
+			}
 		case "NarSize":
 			narInfo.NarSize, err = strconv.Atoi(v)
 			if err != nil {
