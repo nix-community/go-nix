@@ -1,4 +1,4 @@
-package nar_test
+package ls
 
 import (
 	"strings"
@@ -32,18 +32,18 @@ const fixture = `
 
 func TestLS(t *testing.T) {
 	r := strings.NewReader(fixture)
-	root, err := nar.ParseLS(r)
+	root, err := ParseLS(r)
 	assert.NoError(t, err)
 
-	expected_root := &nar.LSRoot{
+	expected_root := &LSRoot{
 		Version: 1,
-		Root: nar.LSEntry{
+		Root: LSEntry{
 			Type: nar.TypeDirectory,
-			Entries: map[string]nar.LSEntry{
-				"bin": nar.LSEntry{
+			Entries: map[string]LSEntry{
+				"bin": LSEntry{
 					Type: nar.TypeDirectory,
-					Entries: map[string]nar.LSEntry{
-						"curl": nar.LSEntry{
+					Entries: map[string]LSEntry{
+						"curl": LSEntry{
 							Type:       nar.TypeRegular,
 							Size:       182520,
 							Executable: true,

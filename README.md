@@ -6,4 +6,6 @@ This repository holds a bunch of experiments written in Go.
 
 * nar - a Nix ARchive (NAR) file parser that mimics archive/tar from the
   stdlib
-* libstore - a narinfo parser
+* nar/ls - a parser for .ls files (providing an index for .nar files)
+* nar/narinfo - a parser for .narinfo files
+* libstore - some store implementations
