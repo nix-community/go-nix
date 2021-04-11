@@ -11,12 +11,6 @@ import (
 
 // Parse reads a .narinfo file content
 // and returns a NarInfo struct with the parsed data
-//
-// TODO: parse the FileHash and NarHash to make sure they are valid
-// TODO: validate that the StorePath is valid
-// TODO: validate the references to be valid store paths after being appended
-// to store.storeDir
-// TODO: validate the same for the deriver
 func Parse(r io.Reader) (*NarInfo, error) {
 	narInfo := &NarInfo{}
 	scanner := bufio.NewScanner(r)

@@ -74,6 +74,8 @@ func TestNarInfoParser(t *testing.T) {
 		},
 	}, n)
 
+	assert.NoError(t, n.Check())
+
 	// Test to string
 	assert.Equal(t, narinfoSample, "\n"+n.String())
 }
