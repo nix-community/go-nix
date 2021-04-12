@@ -5,7 +5,6 @@ import (
 	"github.com/numtide/go-nix/nixbase32"
 	"path"
 	"regexp"
-	"strings"
 )
 
 const (
@@ -13,21 +12,13 @@ const (
 	PathHashSize = 20
 )
 
-// middle strips the ^ and $ from a regexp
-func middle(re *regexp.Regexp) string {
-	s := re.String()
-	s = strings.TrimPrefix(s, "^")
-	s = strings.TrimSuffix(s, "$")
-	return regexp.MustCompile(s).String()
-}
-
 var (
-	nameRe = regexp.MustCompile(`^[a-zA-Z0-9+\-_?=][.a-zA-Z0-9+\-_?=]*$`)
+	nameRe = regexp.MustCompile(`[a-zA-Z0-9+\-_?=][.a-zA-Z0-9+\-_?=]*`)
 	pathRe = regexp.MustCompile(fmt.Sprintf(
 		`^%v/([0-9a-z]{%d})-(%v)$`,
 		regexp.QuoteMeta(StoreDir),
 		nixbase32.EncodedLen(PathHashSize),
-		middle(nameRe),
+		nameRe,
 	))
 )
 
