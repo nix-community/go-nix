@@ -3,6 +3,8 @@ package narinfo
 import (
 	"bytes"
 	"fmt"
+
+	"github.com/numtide/go-nix/hash"
 )
 
 // NarInfo represents a parsed .narinfo file
@@ -12,12 +14,12 @@ type NarInfo struct {
 	URL         string // The relative location to the .nar[.xz,…] file. Usually nar/$fileHash.nar[.xz]
 	Compression string // The compression method file at URL is compressed with (none,xz,…)
 
-	FileHash string // The hash of the file at URL (sha256:52charsofbase32goeshere52charsofbase32goeshere52char)
-	FileSize int    // The size of the file at URL, in bytes
+	FileHash *hash.Hash // The hash of the file at URL
+	FileSize int        // The size of the file at URL, in bytes
 
-	// The hash of the .nar file, after possible decompression (sha256:52charsofbase32goeshere52charsofbase32goeshere52char).
+	// The hash of the .nar file, after possible decompression
 	// Identical to FileHash if no compression is used.
-	NarHash string
+	NarHash *hash.Hash
 	// The size of the .nar file, after possible decompression, in bytes.
 	// Identical to FileSize if no compression is used.
 	NarSize int
@@ -32,7 +34,7 @@ type NarInfo struct {
 	System string
 
 	// Signatures, if any.
-	Signatures []string
+	Signatures []*Signature
 
 	// TODO: Figure out the meaning of this
 	CA string

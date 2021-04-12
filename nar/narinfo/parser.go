@@ -3,6 +3,7 @@ package narinfo
 import (
 	"bufio"
 	"fmt"
+	"github.com/numtide/go-nix/hash"
 	"io"
 	"strconv"
 	"strings"
@@ -10,12 +11,6 @@ import (
 
 // Parse reads a .narinfo file content
 // and returns a NarInfo struct with the parsed data
-//
-// TODO: parse the FileHash and NarHash to make sure they are valid
-// TODO: validate that the StorePath is valid
-// TODO: validate the references to be valid store paths after being appended
-// to store.storeDir
-// TODO: validate the same for the deriver
 func Parse(r io.Reader) (*NarInfo, error) {
 	narInfo := &NarInfo{}
 	scanner := bufio.NewScanner(r)
@@ -46,14 +41,20 @@ func Parse(r io.Reader) (*NarInfo, error) {
 		case "Compression":
 			narInfo.Compression = v
 		case "FileHash":
-			narInfo.FileHash = v
+			narInfo.FileHash, err = hash.ParseNixBase32(v)
+			if err != nil {
+				return nil, err
+			}
 		case "FileSize":
 			narInfo.FileSize, err = strconv.Atoi(v)
 			if err != nil {
 				return nil, err
 			}
 		case "NarHash":
-			narInfo.NarHash = v
+			narInfo.NarHash, err = hash.ParseNixBase32(v)
+			if err != nil {
+				return nil, err
+			}
 		case "NarSize":
 			narInfo.NarSize, err = strconv.Atoi(v)
 			if err != nil {
@@ -69,7 +70,11 @@ func Parse(r io.Reader) (*NarInfo, error) {
 		case "System":
 			narInfo.System = v
 		case "Sig":
-			narInfo.Signatures = append(narInfo.Signatures, v)
+			signature, err := ParseSignatureLine(v)
+			if err != nil {
+				return nil, fmt.Errorf("unable to parse signature line %v: %v", v, err)
+			}
+			narInfo.Signatures = append(narInfo.Signatures, signature)
 		case "CA":
 			narInfo.CA = v
 		default:
