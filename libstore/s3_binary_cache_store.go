@@ -13,7 +13,7 @@ import (
 )
 
 type S3BinaryCacheStore struct {
-	url    *url.URL
+	url        *url.URL
 	BucketName string
 	Client     *s3.S3
 }
@@ -50,7 +50,7 @@ func NewS3BinaryCacheStore(u *url.URL) (*S3BinaryCacheStore, error) {
 
 	svc := s3.New(sess)
 	return &S3BinaryCacheStore{
-		url: u,
+		url:        u,
 		BucketName: bucketName,
 		Client:     svc,
 	}, nil

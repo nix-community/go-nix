@@ -40,10 +40,10 @@ func TestLS(t *testing.T) {
 		Root: LSEntry{
 			Type: nar.TypeDirectory,
 			Entries: map[string]LSEntry{
-				"bin": LSEntry{
+				"bin": {
 					Type: nar.TypeDirectory,
 					Entries: map[string]LSEntry{
-						"curl": LSEntry{
+						"curl": {
 							Type:       nar.TypeRegular,
 							Size:       182520,
 							Executable: true,
