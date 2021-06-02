@@ -35,6 +35,8 @@ func NewBinaryCacheReader(ctx context.Context, storeURL string) (BinaryCacheRead
 		return NewGCSBinaryCacheStore(ctx, u)
 	case "s3":
 		return NewS3BinaryCacheStore(u)
+	case "file":
+		return NewFileBinaryCacheStore(u), nil
 	default:
 		return nil, fmt.Errorf("scheme %s is not supported", u.Scheme)
 	}
