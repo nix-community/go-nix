@@ -38,6 +38,15 @@ func ParseSignatureLine(signatureLine string) (*Signature, error) {
 	}, nil
 }
 
+// MustParseSignatureLine parses a signature line and returns a Signature struct, or panics on error.
+func MustParseSignatureLine(signatureLine string) *Signature {
+	s, err := ParseSignatureLine(signatureLine)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
 // String returns the string representation of a signature, which is the KeyName:base
 func (s *Signature) String() string {
 	return fmt.Sprintf("%v:%v", s.KeyName, base64.StdEncoding.EncodeToString(s.Digest))
