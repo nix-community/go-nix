@@ -1,8 +1,9 @@
 package hash
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDigest(t *testing.T) {
@@ -73,16 +74,27 @@ func TestDigest(t *testing.T) {
 					return // there is no valid string representation to parse
 				}
 
-				hash, err := ParseNixBase32(c.EncodedHash)
+				t.Run("ParseNixBase32", func(t *testing.T) {
+					hash, err := ParseNixBase32(c.EncodedHash)
 
-				if c.Hash != nil {
-					if assert.NoError(t, err, "shouldn't error") {
-						assert.Equal(t, c.Hash, hash)
+					if c.Hash != nil {
+						if assert.NoError(t, err, "shouldn't error") {
+							assert.Equal(t, c.Hash, hash)
+						}
+					} else {
+						assert.Error(t, err, "should error")
 					}
-				} else {
-					assert.Error(t, err, "should error")
-				}
+				})
 
+				t.Run("MustParseNixBase32", func(t *testing.T) {
+					if c.Hash != nil {
+						assert.Equal(t, c.Hash, MustParseNixBase32(c.EncodedHash))
+					} else {
+						assert.Panics(t, func() {
+							MustParseNixBase32(c.EncodedHash)
+						})
+					}
+				})
 			})
 		}
 	})
