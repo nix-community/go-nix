@@ -1,8 +1,9 @@
 package nixbase32
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var tt = []struct {
@@ -35,6 +36,13 @@ func TestDecode(t *testing.T) {
 	}
 }
 
+func TestMustDecodeString(t *testing.T) {
+	for i := range tt {
+		b := MustDecodeString(tt[i].enc)
+		assert.Equal(t, tt[i].dec, b)
+	}
+}
+
 func TestDecodeInvalid(t *testing.T) {
 	invalidEncodings := []string{
 		// this is invalid encoding, because it encodes 10 1-bytes, so the carry
@@ -47,5 +55,9 @@ func TestDecodeInvalid(t *testing.T) {
 	for _, c := range invalidEncodings {
 		_, err := DecodeString(c)
 		assert.Error(t, err)
+
+		assert.Panics(t, func() {
+			_ = MustDecodeString(c)
+		})
 	}
 }
