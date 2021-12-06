@@ -34,7 +34,7 @@ func hashFunc(hashType HashType) crypto.Hash {
 	}
 }
 
-// ParseNixBase32 returns a new Hash struct, by parsing a hashtype:nixbase32 string
+// ParseNixBase32 returns a new Hash struct, by parsing a hashtype:nixbase32 string, or an error
 func ParseNixBase32(s string) (*Hash, error) {
 	i := strings.IndexByte(s, ':')
 	if i <= 0 {
@@ -72,6 +72,15 @@ func ParseNixBase32(s string) (*Hash, error) {
 		HashType: hashType,
 		Digest:   digest,
 	}, nil
+}
+
+// MustParseNixBase32 returns a new Hash struct, by parsing a hashtype:nixbase32 string, or panics on error.
+func MustParseNixBase32(s string) *Hash {
+	h, err := ParseNixBase32(s)
+	if err != nil {
+		panic(err)
+	}
+	return h
 }
 
 // String returns the string representation of a given hash
