@@ -15,7 +15,7 @@ func Parse(r io.Reader) (*NarInfo, error) {
 	narInfo := &NarInfo{}
 	scanner := bufio.NewScanner(r)
 
-	// increase the buffer size.
+	// Increase the buffer size.
 	// Some .narinfo files have a lot of entries in References,
 	// and bufio.Scanner will error bufio.ErrTooLong otherwise.
 	const maxCapacity = 1048576
