@@ -1,6 +1,7 @@
 package narinfo
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -78,4 +79,15 @@ func TestNarInfoParser(t *testing.T) {
 
 	// Test to string
 	assert.Equal(t, narinfoSample, "\n"+n.String())
+}
+
+func TestBigNarinfo(t *testing.T) {
+	f, err := os.Open("../../test/testdata/big.narinfo")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	_, err = Parse(f)
+	assert.NoError(t, err, "Parsing big .narinfo files shouldn't fail")
 }
