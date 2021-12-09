@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Alphabet contains the list of valid characters for the Nix base32 alphabet.
 const Alphabet = "0123456789abcdfghijklmnpqrsvwxyz"
 
 // EncodedLen returns the length in bytes of the base32 encoding of an input
