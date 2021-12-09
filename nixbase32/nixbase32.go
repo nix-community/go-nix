@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-const alphabet = "0123456789abcdfghijklmnpqrsvwxyz"
+const Alphabet = "0123456789abcdfghijklmnpqrsvwxyz"
 
 // EncodedLen returns the length in bytes of the base32 encoding of an input
 // buffer of length n.
@@ -42,7 +42,7 @@ func EncodeToString(src []byte) string {
 			c |= src[i+1] << (8 - j)
 		}
 
-		dst.WriteByte(alphabet[c&0x1f])
+		dst.WriteByte(Alphabet[c&0x1f])
 	}
 	return dst.String()
 }
@@ -52,7 +52,7 @@ func DecodeString(s string) ([]byte, error) {
 	dst := make([]byte, DecodedLen(len(s)))
 	for n := 0; n < len(s); n++ {
 		c := s[len(s)-n-1]
-		digit := strings.IndexByte(alphabet, c)
+		digit := strings.IndexByte(Alphabet, c)
 		if digit == -1 {
 			return nil, fmt.Errorf("character %v not in alphabet!", c)
 		}
