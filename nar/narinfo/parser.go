@@ -3,10 +3,11 @@ package narinfo
 import (
 	"bufio"
 	"fmt"
-	"github.com/numtide/go-nix/hash"
 	"io"
 	"strconv"
 	"strings"
+
+	"github.com/numtide/go-nix/hash"
 )
 
 // Parse reads a .narinfo file content
@@ -53,7 +54,7 @@ func Parse(r io.Reader) (*NarInfo, error) {
 				return nil, err
 			}
 		case "FileSize":
-			narInfo.FileSize, err = strconv.Atoi(v)
+			narInfo.FileSize, err = strconv.ParseUint(v, 10, 0)
 			if err != nil {
 				return nil, err
 			}
@@ -63,7 +64,7 @@ func Parse(r io.Reader) (*NarInfo, error) {
 				return nil, err
 			}
 		case "NarSize":
-			narInfo.NarSize, err = strconv.Atoi(v)
+			narInfo.NarSize, err = strconv.ParseUint(v, 10, 0)
 			if err != nil {
 				return nil, err
 			}

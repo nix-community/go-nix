@@ -15,14 +15,14 @@ type NarInfo struct {
 	Compression string // The compression method file at URL is compressed with (none,xz,…)
 
 	FileHash *hash.Hash // The hash of the file at URL
-	FileSize int        // The size of the file at URL, in bytes
+	FileSize uint64     // The size of the file at URL, in bytes
 
 	// The hash of the .nar file, after possible decompression
 	// Identical to FileHash if no compression is used.
 	NarHash *hash.Hash
 	// The size of the .nar file, after possible decompression, in bytes.
 	// Identical to FileSize if no compression is used.
-	NarSize int
+	NarSize uint64
 
 	// References to other store paths, contained in the .nar file
 	References []string
