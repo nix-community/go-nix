@@ -9,7 +9,7 @@ import (
 
 // NarInfo represents a parsed .narinfo file
 type NarInfo struct {
-	StorePath string // The full nix store path (/nix/store/…-name-version)
+	StorePath string // The full nix store path (/nix/store/…-pname-version)
 
 	URL         string // The relative location to the .nar[.xz,…] file. Usually nar/$fileHash.nar[.xz]
 	Compression string // The compression method file at URL is compressed with (none,xz,…)
