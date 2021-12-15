@@ -46,8 +46,10 @@ func (n *NarInfo) String() string {
 	fmt.Fprintf(&buf, "StorePath: %v\n", n.StorePath)
 	fmt.Fprintf(&buf, "URL: %v\n", n.URL)
 	fmt.Fprintf(&buf, "Compression: %v\n", n.Compression)
-	fmt.Fprintf(&buf, "FileHash: %v\n", n.FileHash)
-	fmt.Fprintf(&buf, "FileSize: %d\n", n.FileSize)
+	if n.FileHash != nil && n.FileSize != 0 {
+		fmt.Fprintf(&buf, "FileHash: %v\n", n.FileHash)
+		fmt.Fprintf(&buf, "FileSize: %d\n", n.FileSize)
+	}
 	fmt.Fprintf(&buf, "NarHash: %v\n", n.NarHash)
 	fmt.Fprintf(&buf, "NarSize: %d\n", n.NarSize)
 
