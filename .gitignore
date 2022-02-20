@@ -1,2 +1,3 @@
+.direnv
 tests/.minio.sys/
 tests/nar/

@@ -1,0 +1,9 @@
+[formatter.nix]
+command = "nixpkgs-fmt"
+includes = ["*.nix"]
+
+[formatter.golang]
+command = "gofumpt"
+options = ["-w"]
+includes = ["*.go"]
+excludes = ["vendor/*"]
