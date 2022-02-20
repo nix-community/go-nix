@@ -1,0 +1,17 @@
+name: Nix
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cachix/install-nix-action@v16
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - run: nix flake check --impure
