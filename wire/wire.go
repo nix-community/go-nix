@@ -9,6 +9,4 @@ import (
 	"encoding/binary"
 )
 
-var (
-	byteOrder = binary.LittleEndian
-)
+var byteOrder = binary.LittleEndian
