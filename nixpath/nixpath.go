@@ -2,9 +2,10 @@ package nixpath
 
 import (
 	"fmt"
-	"github.com/numtide/go-nix/nixbase32"
 	"path"
 	"regexp"
+
+	"github.com/numtide/go-nix/nixbase32"
 )
 
 const (

@@ -2,9 +2,10 @@ package narinfo
 
 import (
 	"fmt"
+	"path"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/numtide/go-nix/nixpath"
-	"path"
 )
 
 // Check does some sanity checking on a NarInfo struct, such as:

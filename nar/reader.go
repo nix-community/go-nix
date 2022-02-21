@@ -252,7 +252,7 @@ func (nar *Reader) next() (*Header, error) {
 			}
 			nar.level = append(nar.level, Entry)
 			// TODO: read the directory
-			//return h, nil
+			// return h, nil
 		case "name":
 			name, err := wire.ReadString(nar.r, nameLenMax)
 			if err != nil {

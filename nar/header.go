@@ -31,6 +31,7 @@ func (fi headerFileInfo) Sys() interface{}   { return fi.h }
 
 // FIXME: make sure that this is OK
 func (fi headerFileInfo) Name() string { return fi.h.Name }
+
 func (fi headerFileInfo) Mode() (mode os.FileMode) {
 	if fi.h.Executable || fi.h.Type == TypeDirectory {
 		mode = 0755

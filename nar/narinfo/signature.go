@@ -23,7 +23,6 @@ func ParseSignatureLine(signatureLine string) (*Signature, error) {
 
 	var sig [ed25519.SignatureSize]byte
 	n, err := base64.StdEncoding.Decode(sig[:], []byte(fields[1]))
-
 	if err != nil {
 		return nil, fmt.Errorf("Unable to decode base64: %v", fields[1])
 	}
