@@ -10,6 +10,7 @@ import (
 	"github.com/numtide/go-nix/hash"
 )
 
+//nolint:gocyclo
 // Parse reads a .narinfo file content
 // and returns a NarInfo struct with the parsed data
 func Parse(r io.Reader) (*NarInfo, error) {
@@ -27,15 +28,15 @@ func Parse(r io.Reader) (*NarInfo, error) {
 		var err error
 
 		line := scanner.Text()
-
 		// skip empty lines (like, an empty line at EOF)
 		if line == "" {
 			continue
 		}
+
 		parts := strings.Split(line, ": ")
 
 		if len(parts) != 2 {
-			return nil, fmt.Errorf("Unable to split line %v", line)
+			return nil, fmt.Errorf("unable to split line %v", line)
 		}
 
 		k := parts[0]
@@ -72,16 +73,18 @@ func Parse(r io.Reader) (*NarInfo, error) {
 			if v == "" {
 				continue
 			}
+
 			narInfo.References = append(narInfo.References, strings.Split(v, " ")...)
 		case "Deriver":
 			narInfo.Deriver = v
 		case "System":
 			narInfo.System = v
 		case "Sig":
-			signature, err := ParseSignatureLine(v)
-			if err != nil {
+			signature, e := ParseSignatureLine(v)
+			if e != nil {
 				return nil, fmt.Errorf("unable to parse signature line %v: %v", v, err)
 			}
+
 			narInfo.Signatures = append(narInfo.Signatures, signature)
 		case "CA":
 			narInfo.CA = v
@@ -90,7 +93,7 @@ func Parse(r io.Reader) (*NarInfo, error) {
 		}
 
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse line %v", line)
+			return nil, fmt.Errorf("unable to parse line %v", line)
 		}
 	}
 

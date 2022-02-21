@@ -20,9 +20,6 @@ const (
 	// maximum length for a single path element
 	// NAME_MAX is 255 on Linux
 	nameLenMax = 255
-	// maximum length for a relative path
-	// PATH_MAX is 4096 on Linux, but that includes a null byte
-	pathLenMax = 4096 - 1
 )
 
 // Reader providers sequential access to the contents of a NAR archive.
@@ -62,6 +59,7 @@ func (nar *Reader) Next() (*Header, error) {
 
 	hdr, err := nar.next()
 	nar.err = err
+
 	return hdr, err
 }
 
@@ -69,8 +67,10 @@ func pop(stack []string) ([]string, string, error) {
 	if len(stack) == 0 {
 		return nil, "", fmt.Errorf("cannot pop an empty stack")
 	}
+
 	item := stack[len(stack)-1]
 	newStack := stack[:len(stack)-1]
+
 	return newStack, item, nil
 }
 
@@ -79,9 +79,11 @@ func pop2(stack []string, expected string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if item != expected {
 		return nil, fmt.Errorf("expect %s but got %s", expected, item)
 	}
+
 	return newStack, nil
 }
 
@@ -93,14 +95,18 @@ func expectString(r io.Reader, expected string) error {
 		if err == io.EOF {
 			err = io.ErrUnexpectedEOF
 		}
+
 		return err
 	}
+
 	if s != expected {
 		return fmt.Errorf("expected '%s' got '%s'", expected, s)
 	}
+
 	return nil
 }
 
+//nolint:maintidx,gocyclo,govet
 func (nar *Reader) next() (*Header, error) {
 	// Parse the magic header first
 	if !nar.magic {
@@ -128,6 +134,7 @@ func (nar *Reader) next() (*Header, error) {
 		if err := discard(nar.r, nar.curr.PhysicalRemaining()+nar.pad); err != nil {
 			return nil, err
 		}
+
 		nar.pad = 0
 		nar.curr = &nullFileReader{}
 
@@ -153,7 +160,11 @@ func (nar *Reader) next() (*Header, error) {
 		switch s {
 		case ")":
 			var item string
+
 			nar.level, item, err = pop(nar.level)
+			if err != nil {
+				return nil, err
+			}
 
 			switch item {
 			case Node:
@@ -165,6 +176,7 @@ func (nar *Reader) next() (*Header, error) {
 				}
 			default:
 				err = fmt.Errorf("BUG: unknown item type %s", item)
+				return nil, err
 			}
 
 			// end of file
@@ -198,18 +210,23 @@ func (nar *Reader) next() (*Header, error) {
 				if err = expectString(nar.r, "target"); err != nil {
 					return nil, err
 				}
+
 				s, err := wire.ReadString(nar.r, nameLenMax)
 				if err != nil {
 					return nil, err
 				}
+
 				h.Linkname = s
+
 				if err = expectString(nar.r, ")"); err != nil {
 					return nil, err
 				}
+
 				nar.level, err = pop2(nar.level, Node)
 				if err != nil {
 					return nil, err
 				}
+
 				return h, nil
 			default:
 				return nil, fmt.Errorf("unknown file type %s", s)
@@ -228,6 +245,7 @@ func (nar *Reader) next() (*Header, error) {
 			if size > math.MaxInt64 {
 				return nil, fmt.Errorf("content size exceeds max(int64)")
 			}
+
 			h.Size = int64(size)
 
 			nar.pad = blockPadding(h.Size)
@@ -238,7 +256,12 @@ func (nar *Reader) next() (*Header, error) {
 			if h.Type != TypeRegular {
 				return nil, fmt.Errorf("executable marker for a non-regular file")
 			}
-			expectString(nar.r, "")
+
+			err = expectString(nar.r, "")
+			if err != nil {
+				return nil, err
+			}
+
 			h.Executable = true
 		case "entry":
 			/*
@@ -250,6 +273,7 @@ func (nar *Reader) next() (*Header, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			nar.level = append(nar.level, Entry)
 			// TODO: read the directory
 			// return h, nil
@@ -262,6 +286,7 @@ func (nar *Reader) next() (*Header, error) {
 			if name == "." || name == ".." {
 				return nil, fmt.Errorf("NAR contains invalid file name '%s", name)
 			}
+
 			for _, char := range name {
 				if char == '/' || char == 0 {
 					return nil, fmt.Errorf("NAR contains invalid file name '%s", name)
@@ -273,15 +298,18 @@ func (nar *Reader) next() (*Header, error) {
 			} else {
 				h.Name = nar.path + "/" + name
 			}
+
 			nar.path = h.Name
 		case "node":
 			if h.Name == "" {
 				return nil, fmt.Errorf("entry name missing")
 			}
+
 			err = expectString(nar.r, "(")
 			if err != nil {
 				return nil, err
 			}
+
 			nar.level = append(nar.level, Node)
 			// recurse
 		default:
@@ -305,6 +333,7 @@ func (nar *Reader) Read(b []byte) (int, error) {
 	if err != nil && err != io.EOF {
 		nar.err = err
 	}
+
 	return n, err
 }
 
@@ -372,6 +401,7 @@ func discard(r io.Reader, n int64) error {
 	// the fact that the stream may be truncated. We can rely on the
 	// io.CopyN done shortly afterwards to trigger any IO errors.
 	var seekSkipped int64 // Number of bytes skipped via Seek
+
 	if sr, ok := r.(io.Seeker); ok && n > 1 {
 		// Not all io.Seeker can actually Seek. For example, os.Stdin implements
 		// io.Seeker, but calling Seek always returns an error and performs
@@ -380,10 +410,11 @@ func discard(r io.Reader, n int64) error {
 		pos1, err := sr.Seek(0, io.SeekCurrent)
 		if pos1 >= 0 && err == nil {
 			// Seek seems supported, so perform the real Seek.
-			pos2, err := sr.Seek(int64(n-1), io.SeekCurrent)
+			pos2, err := sr.Seek(n-1, io.SeekCurrent)
 			if pos2 < 0 || err != nil {
 				return err
 			}
+
 			seekSkipped = pos2 - pos1
 		}
 	}
@@ -392,5 +423,6 @@ func discard(r io.Reader, n int64) error {
 	if err == io.EOF && seekSkipped+copySkipped < n {
 		err = io.ErrUnexpectedEOF
 	}
+
 	return err
 }

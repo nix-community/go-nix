@@ -18,13 +18,14 @@ func (r *hesitantReader) Read(p []byte) (n int, err error) {
 	if len(r.data) == 0 {
 		return 0, io.EOF
 	}
+
 	copy(p, r.data[0])
-	len_read := len(r.data[0])
+	lenRead := len(r.data[0])
 
 	// pop first element in r.data
 	r.data = r.data[1:]
 
-	return len_read, nil
+	return lenRead, nil
 }
 
 // TestReadUint64 tests a reading a single uint64 field

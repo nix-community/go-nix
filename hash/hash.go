@@ -8,6 +8,7 @@ import (
 	"github.com/numtide/go-nix/nixbase32"
 )
 
+//nolint:revive
 type HashType string
 
 const (
@@ -38,19 +39,20 @@ func hashFunc(hashType HashType) crypto.Hash {
 func ParseNixBase32(s string) (*Hash, error) {
 	i := strings.IndexByte(s, ':')
 	if i <= 0 {
-		return nil, fmt.Errorf("Unable to find separator in %v", s)
+		return nil, fmt.Errorf("unable to find separator in %v", s)
 	}
 
 	hashTypeStr := s[:i]
 
 	var hashType HashType
+
 	switch hashTypeStr {
 	case HashTypeSha256:
 		hashType = HashTypeSha256
 	case HashTypeSha512:
 		hashType = HashTypeSha512
 	default:
-		return nil, fmt.Errorf("Unknown hash type: %v", hashType)
+		return nil, fmt.Errorf("unknown hash type: %v", hashType)
 	}
 
 	// The digest afterwards is nixbase32-encoded.
@@ -60,7 +62,7 @@ func ParseNixBase32(s string) (*Hash, error) {
 
 	encodedDigestStr := s[i+1:]
 	if len(encodedDigestStr) != encodedDigestLen {
-		return nil, fmt.Errorf("Invalid length for encoded digest line %v", s)
+		return nil, fmt.Errorf("invalid length for encoded digest line %v", s)
 	}
 
 	digest, err := nixbase32.DecodeString(encodedDigestStr)
@@ -80,6 +82,7 @@ func MustParseNixBase32(s string) *Hash {
 	if err != nil {
 		panic(err)
 	}
+
 	return h
 }
 
@@ -92,5 +95,6 @@ func (h *Hash) String() string {
 	if hashFunc(h.HashType).Size() != len(h.Digest) {
 		panic("invalid digest length")
 	}
+
 	return fmt.Sprintf("%v:%v", h.HashType, nixbase32.EncodeToString(h.Digest))
 }

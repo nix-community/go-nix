@@ -11,6 +11,7 @@ func ReadUint64(r io.Reader) (n uint64, err error) {
 	if _, err := io.ReadFull(r, buf[:]); err != nil {
 		return 0, err
 	}
+
 	return byteOrder.Uint64(buf[:]), nil
 }
 
@@ -20,9 +21,11 @@ func ReadBool(r io.Reader) (v bool, err error) {
 	if err != nil {
 		return false, err
 	}
+
 	if n != 0 && n != 1 {
-		return false, fmt.Errorf("Invalid value for boolean: %v", n)
+		return false, fmt.Errorf("invalid value for boolean: %v", n)
 	}
+
 	return n == 1, nil
 }
 
@@ -34,7 +37,9 @@ func readPadding(r io.Reader, contentLength uint64) error {
 	if n == 0 {
 		return nil
 	}
+
 	var buf [8]byte
+
 	// we read the padding contents into the tail of the buf slice
 	if _, err := io.ReadFull(r, buf[n:]); err != nil {
 		return err
@@ -43,6 +48,7 @@ func readPadding(r io.Reader, contentLength uint64) error {
 	if buf != [8]byte{} {
 		return fmt.Errorf("invalid padding, should be null bytes, found %v", buf[n:])
 	}
+
 	return nil
 }
 
@@ -56,27 +62,33 @@ func ReadBytes(r io.Reader, max uint64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	// early exit if no content needs to be read
 	if contentLength == 0 {
 		return []byte{}, nil
 	}
+
 	if contentLength > max {
 		return nil, fmt.Errorf("content length of %v bytes exceeds maximum of %v bytes", contentLength, max)
 	}
+
 	// consume content
 	buf := make([]byte, contentLength)
 	if _, err := io.ReadFull(r, buf); err != nil {
 		return nil, err
 	}
+
 	// consume padding
 	if err := readPadding(r, contentLength); err != nil {
 		return nil, err
 	}
+
 	return buf, nil
 }
 
 // ReadString reads a bytes packet and converts it to string
 func ReadString(r io.Reader, max uint64) (string, error) {
 	buf, err := ReadBytes(r, max)
+
 	return string(buf), err
 }

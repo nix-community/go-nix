@@ -35,7 +35,7 @@ func TestLS(t *testing.T) {
 	root, err := ParseLS(r)
 	assert.NoError(t, err)
 
-	expected_root := &LSRoot{
+	expectedRoot := &LSRoot{
 		Version: 1,
 		Root: LSEntry{
 			Type: nar.TypeDirectory,
@@ -54,5 +54,5 @@ func TestLS(t *testing.T) {
 			},
 		},
 	}
-	assert.Equal(t, expected_root, root)
+	assert.Equal(t, expectedRoot, root)
 }

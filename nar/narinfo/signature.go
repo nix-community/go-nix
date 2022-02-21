@@ -18,17 +18,18 @@ type Signature struct {
 func ParseSignatureLine(signatureLine string) (*Signature, error) {
 	fields := strings.Split(signatureLine, ":")
 	if len(fields) != 2 {
-		return nil, fmt.Errorf("Unexpected number of colons: %v", signatureLine)
+		return nil, fmt.Errorf("unexpected number of colons: %v", signatureLine)
 	}
 
 	var sig [ed25519.SignatureSize]byte
+
 	n, err := base64.StdEncoding.Decode(sig[:], []byte(fields[1]))
 	if err != nil {
-		return nil, fmt.Errorf("Unable to decode base64: %v", fields[1])
+		return nil, fmt.Errorf("unable to decode base64: %v", fields[1])
 	}
 
 	if n != len(sig) {
-		return nil, fmt.Errorf("Invalid signature size: %d", n)
+		return nil, fmt.Errorf("invalid signature size: %d", n)
 	}
 
 	return &Signature{
@@ -43,6 +44,7 @@ func MustParseSignatureLine(signatureLine string) *Signature {
 	if err != nil {
 		panic(err)
 	}
+
 	return s
 }
 
