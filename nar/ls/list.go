@@ -8,12 +8,14 @@ import (
 	"github.com/numtide/go-nix/nar"
 )
 
+//nolint:revive
 // LSRoot represents the .ls file root entry
 type LSRoot struct {
 	Version int `json:"version"`
 	Root    LSEntry
 }
 
+//nolint:revive
 // LSEntry represents one of the entries in a .ls file
 type LSEntry struct {
 	Type       nar.EntryType      `json:"type"`
@@ -36,6 +38,7 @@ func ParseLS(r io.Reader) (*LSRoot, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if root.Version != 1 {
 		return nil, fmt.Errorf("invalide version %d", root.Version)
 	}

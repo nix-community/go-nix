@@ -19,7 +19,7 @@ linters-settings:
     check-blank: true
   funlen:
     lines: 60
-    statements: 40
+    statements: 60
   gocognit:
     min-complexity: 20
   goconst:
@@ -145,3 +145,8 @@ linters:
     - gomoddirectives
     - promlinter
     - tagliatelle
+    - varnamelen
+    - funlen
+    - scopelint
+    - gocognit
+    - golint

@@ -39,12 +39,12 @@ func (n *NixPath) String() string {
 func FromString(s string) (*NixPath, error) {
 	m := pathRe.FindStringSubmatch(s)
 	if m == nil {
-		return nil, fmt.Errorf("Unable to parse path %v", s)
+		return nil, fmt.Errorf("unable to parse path %v", s)
 	}
 
 	digest, err := nixbase32.DecodeString(m[1])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to decode hash: %v", err)
+		return nil, fmt.Errorf("unable to decode hash: %v", err)
 	}
 
 	return &NixPath{

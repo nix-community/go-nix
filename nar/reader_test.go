@@ -196,10 +196,11 @@ func TestReader(t *testing.T) {
 	}
 
 	for i, expectH := range headers {
-		hdr, err := p.Next()
-		if !assert.NoError(t, err, i) {
+		hdr, e := p.Next()
+		if !assert.NoError(t, e, i) {
 			return
 		}
+
 		assert.Equal(t, &expectH, hdr)
 	}
 

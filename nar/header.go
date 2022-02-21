@@ -34,9 +34,9 @@ func (fi headerFileInfo) Name() string { return fi.h.Name }
 
 func (fi headerFileInfo) Mode() (mode os.FileMode) {
 	if fi.h.Executable || fi.h.Type == TypeDirectory {
-		mode = 0755
+		mode = 0o755
 	} else {
-		mode = 0644
+		mode = 0o644
 	}
 
 	switch fi.h.Type {
@@ -44,6 +44,8 @@ func (fi headerFileInfo) Mode() (mode os.FileMode) {
 		mode |= os.ModeDir
 	case TypeSymlink:
 		mode |= os.ModeSymlink
+	case TypeRegular:
+	case TypeUnknown:
 	}
 
 	return mode
