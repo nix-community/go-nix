@@ -1,6 +1,6 @@
 module github.com/numtide/go-nix
 
-go 1.12
+go 1.15
 
 require (
 	github.com/google/go-cmp v0.5.5
