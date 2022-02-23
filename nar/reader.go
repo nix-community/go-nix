@@ -20,6 +20,9 @@ const (
 	// maximum length for a single path element
 	// NAME_MAX is 255 on Linux
 	nameLenMax = 255
+	// maximum length for a relative path
+	// PATH_MAX is 4096 on Linux, but that includes a null byte
+	pathLenMax = 4096 - 1
 )
 
 // Reader providers sequential access to the contents of a NAR archive.
@@ -211,7 +214,7 @@ func (nar *Reader) next() (*Header, error) {
 					return nil, err
 				}
 
-				s, err := wire.ReadString(nar.r, nameLenMax)
+				s, err := wire.ReadString(nar.r, pathLenMax)
 				if err != nil {
 					return nil, err
 				}
@@ -296,7 +299,11 @@ func (nar *Reader) next() (*Header, error) {
 			if nar.path == "" {
 				h.Name = name
 			} else {
-				h.Name = nar.path + "/" + name
+				h.Name = path.Join(nar.path, name)
+			}
+
+			if len(h.Name) > pathLenMax {
+				return nil, fmt.Errorf("path of %v is longer than maximum: %v", h.Name, pathLenMax)
 			}
 
 			nar.path = h.Name
