@@ -35,14 +35,14 @@ func TestLS(t *testing.T) {
 	root, err := ParseLS(r)
 	assert.NoError(t, err)
 
-	expectedRoot := &LSRoot{
+	expectedRoot := &Root{
 		Version: 1,
-		Root: LSEntry{
+		Root: Entry{
 			Type: nar.TypeDirectory,
-			Entries: map[string]LSEntry{
+			Entries: map[string]Entry{
 				"bin": {
 					Type: nar.TypeDirectory,
-					Entries: map[string]LSEntry{
+					Entries: map[string]Entry{
 						"curl": {
 							Type:       nar.TypeRegular,
 							Size:       182520,
