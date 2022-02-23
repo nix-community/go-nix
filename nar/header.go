@@ -10,7 +10,7 @@ import (
 type Header struct {
 	Type       EntryType // Typeflag is the type of header entry.
 	Name       string    // Name of the file entry
-	Linkname   string    // Target name of link (valid for TypeSymlink)
+	LinkTarget string    // Target of symlink (valid for TypeSymlink)
 	Size       int64     // Logical file size in bytes
 	Executable bool      // Set to true for files that are executable
 }

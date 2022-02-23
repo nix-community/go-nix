@@ -216,7 +216,7 @@ func (nar *Reader) next() (*Header, error) {
 					return nil, err
 				}
 
-				h.Linkname = s
+				h.LinkTarget = s
 
 				if err = expectString(nar.r, ")"); err != nil {
 					return nil, err
