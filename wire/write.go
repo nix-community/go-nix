@@ -51,11 +51,10 @@ func WriteString(w io.Writer, s string) error {
 	return writePadding(w, n)
 }
 
-var padding [8]byte
-
 // writePadding writes the appropriate amount of padding.
 func writePadding(w io.Writer, contentLength uint64) error {
 	if m := contentLength % 8; m != 0 {
+		var padding [8]byte
 		_, err := w.Write(padding[m:])
 		return err
 	}

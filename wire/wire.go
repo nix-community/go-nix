@@ -8,4 +8,5 @@ import (
 	"encoding/binary"
 )
 
+// nolint:gochecknoglobals
 var byteOrder = binary.LittleEndian

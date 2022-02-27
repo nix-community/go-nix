@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// nolint:gochecknoglobals
 var tt = []struct {
 	dec []byte
 	enc string

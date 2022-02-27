@@ -2,5 +2,8 @@ linters:
   enable:
     - errname
     - exhaustive
-    - revive
     - gci
+    - gochecknoglobals
+    - gochecknoinits
+    - goconst
+    - revive
