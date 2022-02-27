@@ -106,10 +106,9 @@ func TestDigest(t *testing.T) {
 					return // there is no valid parsed representation to stringify
 				}
 
-				//nolint:govet
 				if c.EncodedHash == "" {
 					assert.Panics(t, func() {
-						c.Hash.String()
+						_ = c.Hash.String()
 					})
 				} else {
 					assert.Equal(t, c.EncodedHash, c.Hash.String())

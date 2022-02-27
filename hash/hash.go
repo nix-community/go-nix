@@ -8,7 +8,7 @@ import (
 	"github.com/numtide/go-nix/nixbase32"
 )
 
-//nolint:revive
+// nolint:revive
 type HashType string
 
 const (

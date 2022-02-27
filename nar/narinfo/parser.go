@@ -10,7 +10,6 @@ import (
 	"github.com/numtide/go-nix/hash"
 )
 
-//nolint:gocyclo
 // Parse reads a .narinfo file content
 // and returns a NarInfo struct with the parsed data
 func Parse(r io.Reader) (*NarInfo, error) {

@@ -109,7 +109,6 @@ func expectString(r io.Reader, expected string) error {
 	return nil
 }
 
-//nolint:maintidx,gocyclo,govet
 func (nar *Reader) next() (*Header, error) {
 	// Parse the magic header first
 	if !nar.magic {
