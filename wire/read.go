@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-// ReadUint64 consumes exactly 8 bytes and returns a uint64
+// ReadUint64 consumes exactly 8 bytes and returns a uint64.
 func ReadUint64(r io.Reader) (n uint64, err error) {
 	var buf [8]byte
 	if _, err := io.ReadFull(r, buf[:]); err != nil {
@@ -15,7 +15,7 @@ func ReadUint64(r io.Reader) (n uint64, err error) {
 	return byteOrder.Uint64(buf[:]), nil
 }
 
-// ReadBool consumes a boolean in nix wire format
+// ReadBool consumes a boolean in nix wire format.
 func ReadBool(r io.Reader) (v bool, err error) {
 	n, err := ReadUint64(r)
 	if err != nil {
@@ -86,7 +86,7 @@ func ReadBytes(r io.Reader, max uint64) ([]byte, error) {
 	return buf, nil
 }
 
-// ReadString reads a bytes packet and converts it to string
+// ReadString reads a bytes packet and converts it to string.
 func ReadString(r io.Reader, max uint64) (string, error) {
 	buf, err := ReadBytes(r, max)
 

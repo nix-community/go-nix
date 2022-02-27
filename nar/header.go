@@ -29,7 +29,7 @@ func (fi headerFileInfo) IsDir() bool        { return fi.h.Type == TypeDirectory
 func (fi headerFileInfo) ModTime() time.Time { return time.Unix(0, 0) }
 func (fi headerFileInfo) Sys() interface{}   { return fi.h }
 
-// FIXME: make sure that this is OK
+// FIXME: make sure that this is OK.
 func (fi headerFileInfo) Name() string { return fi.h.Name }
 
 func (fi headerFileInfo) Mode() (mode os.FileMode) {

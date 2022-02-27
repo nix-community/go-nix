@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Signature is used to sign a NarInfo (parts of it, to be precise)
+// Signature is used to sign a NarInfo (parts of it, to be precise).
 type Signature struct {
 	KeyName string // An identifier for the key that's used for the signature
 
@@ -48,7 +48,7 @@ func MustParseSignatureLine(signatureLine string) *Signature {
 	return s
 }
 
-// String returns the string representation of a signature, which is the KeyName:base
+// String returns the string representation of a signature, which is `KeyName:base`.
 func (s *Signature) String() string {
 	return fmt.Sprintf("%v:%v", s.KeyName, base64.StdEncoding.EncodeToString(s.Digest))
 }

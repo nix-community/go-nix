@@ -6,4 +6,5 @@ linters:
     - gochecknoglobals
     - gochecknoinits
     - goconst
+    - godot
     - revive

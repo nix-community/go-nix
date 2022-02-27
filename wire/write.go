@@ -4,7 +4,7 @@ import (
 	"io"
 )
 
-// WriteUint64 writes an uint64 in nix wire format
+// WriteUint64 writes an uint64 in Nix wire format.
 func WriteUint64(w io.Writer, n uint64) error {
 	var buf [8]byte
 
@@ -14,7 +14,7 @@ func WriteUint64(w io.Writer, n uint64) error {
 	return err
 }
 
-// WriteBool writes a boolean in nix wire format
+// WriteBool writes a boolean in Nix wire format.
 func WriteBool(w io.Writer, v bool) error {
 	if v {
 		return WriteUint64(w, 1)
@@ -37,7 +37,7 @@ func WriteBytes(w io.Writer, buf []byte) error {
 	return writePadding(w, n)
 }
 
-// WriteString writes a bytes packet
+// WriteString writes a bytes packet.
 func WriteString(w io.Writer, s string) error {
 	n := uint64(len(s))
 	if err := WriteUint64(w, n); err != nil {

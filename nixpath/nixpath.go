@@ -23,7 +23,7 @@ var (
 	))
 )
 
-// NixPath represents a nix store path
+// NixPath represents a nix store path.
 type NixPath struct {
 	Name   string
 	Digest []byte
@@ -35,7 +35,7 @@ func (n *NixPath) String() string {
 
 // FromString parses a path string into a nix path,
 // verifying it's syntactically valid
-// It returns an error if it fails to parse
+// It returns an error if it fails to parse.
 func FromString(s string) (*NixPath, error) {
 	m := pathRe.FindStringSubmatch(s)
 	if m == nil {

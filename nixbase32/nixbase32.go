@@ -51,7 +51,8 @@ func EncodeToString(src []byte) string {
 	return dst.String()
 }
 
-// DecodeString returns the bytes represented by the nixbase32 string s or returns an error
+// DecodeString returns the bytes represented by the nixbase32 string s or
+// returns an error.
 func DecodeString(s string) ([]byte, error) {
 	dst := make([]byte, DecodedLen(len(s)))
 
@@ -87,7 +88,8 @@ func DecodeString(s string) ([]byte, error) {
 	return dst, nil
 }
 
-// MustDecodeString returns the bytes represented by the nixbase32 string s or panics on error
+// MustDecodeString returns the bytes represented by the nixbase32 string s or
+// panics on error.
 func MustDecodeString(s string) []byte {
 	b, err := DecodeString(s)
 	if err != nil {

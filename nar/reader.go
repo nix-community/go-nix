@@ -15,13 +15,13 @@ const (
 	Entry = "entry"
 
 	// for small tokens,
-	// we use this to limit how large an invalid token we'll read
+	// we use this to limit how large an invalid token we'll read.
 	tokenLenMax = 32
 	// maximum length for a single path element
-	// NAME_MAX is 255 on Linux
+	// NAME_MAX is 255 on Linux.
 	nameLenMax = 255
 	// maximum length for a relative path
-	// PATH_MAX is 4096 on Linux, but that includes a null byte
+	// PATH_MAX is 4096 on Linux, but that includes a null byte.
 	pathLenMax = 4096 - 1
 )
 

@@ -9,9 +9,11 @@ import (
 )
 
 // Check does some sanity checking on a NarInfo struct, such as:
+//
 // - ensuring the paths in StorePath, References and Deriver are syntactically valid
 //   (references and deriver first need to be made absolute)
-// - when no compression is present, ensuring File{Hash,Size} and Nar{Hash,Size} are equal
+// - when no compression is present, ensuring File{Hash,Size} and
+//   Nar{Hash,Size} are equal
 func (n *NarInfo) Check() error {
 	_, err := nixpath.FromString(n.StorePath)
 	if err != nil {

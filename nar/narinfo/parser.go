@@ -11,7 +11,7 @@ import (
 )
 
 // Parse reads a .narinfo file content
-// and returns a NarInfo struct with the parsed data
+// and returns a NarInfo struct with the parsed data.
 func Parse(r io.Reader) (*NarInfo, error) {
 	narInfo := &NarInfo{}
 	scanner := bufio.NewScanner(r)

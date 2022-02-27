@@ -7,7 +7,7 @@ import (
 	"github.com/numtide/go-nix/hash"
 )
 
-// NarInfo represents a parsed .narinfo file
+// NarInfo represents a parsed .narinfo file.
 type NarInfo struct {
 	StorePath string // The full nix store path (/nix/store/…-pname-version)
 
@@ -88,7 +88,7 @@ func (n *NarInfo) String() string {
 	return buf.String()
 }
 
-// ContentType returns the mime content type of the object
+// ContentType returns the mime content type of the object.
 func (n NarInfo) ContentType() string {
 	return "text/x-nix-narinfo"
 }

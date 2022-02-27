@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// hesitantReader implements an io.Reader
+// hesitantReader implements an io.Reader.
 type hesitantReader struct {
 	data [][]byte
 }
 
-// Read returns the topmost []byte in data, or io.EOF if empty
+// Read returns the topmost []byte in data, or io.EOF if empty.
 func (r *hesitantReader) Read(p []byte) (n int, err error) {
 	if len(r.data) == 0 {
 		return 0, io.EOF
@@ -28,7 +28,7 @@ func (r *hesitantReader) Read(p []byte) (n int, err error) {
 	return lenRead, nil
 }
 
-// TestReadUint64 tests a reading a single uint64 field
+// TestReadUint64 tests a reading a single uint64 field.
 func TestReadUint64(t *testing.T) {
 	bs := []byte{13, 0, 0, 0, 0, 0, 0, 0}
 	r := bytes.NewReader(bs)
@@ -40,7 +40,7 @@ func TestReadUint64(t *testing.T) {
 }
 
 // TestReadLongLongPartial tests reading a single uint64 field, but through a
-// reader not returning everything at once
+// reader not returning everything at once.
 func TestReadUint64Slow(t *testing.T) {
 	r := &hesitantReader{data: [][]byte{
 		{13},
