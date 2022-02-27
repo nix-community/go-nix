@@ -11,4 +11,7 @@ linters:
     - goheader
     - goimports
     - gosec
+    - ifshort
+    - importas
+    - ireturn
     - revive
