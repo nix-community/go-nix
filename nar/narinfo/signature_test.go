@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	dummySigLine    = "cache.nixos.org-1:rH4wxlNRbTbViQon40C15og5zlcFEphwoF26IQGHi2QCwVYyaLj6LOag+MeWcZ65SWzy6PnOlXjriLNcxE0hAQ=="
+	dummySigLine = "cache.nixos.org-1" +
+		":" + "rH4wxlNRbTbViQon40C15og5zlcFEphwoF26IQGHi2QCwVYyaLj6LOag+MeWcZ65SWzy6PnOlXjriLNcxE0hAQ=="
 	expectedKeyName = "cache.nixos.org-1"
 )
 
