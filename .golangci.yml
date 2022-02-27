@@ -21,4 +21,5 @@ linters:
     - nestif
     - nilerr
     - nilnil
+    - nlreturn
     - revive

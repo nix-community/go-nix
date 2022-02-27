@@ -178,6 +178,7 @@ func (nar *Reader) next() (*Header, error) {
 				}
 			default:
 				err = fmt.Errorf("BUG: unknown item type %s", item)
+
 				return nil, err
 			}
 
@@ -205,6 +206,7 @@ func (nar *Reader) next() (*Header, error) {
 				h.Type = TypeRegular
 			case "directory":
 				h.Type = TypeDirectory
+
 				return h, nil
 			case "symlink":
 				h.Type = TypeSymlink

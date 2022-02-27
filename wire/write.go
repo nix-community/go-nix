@@ -56,6 +56,7 @@ func writePadding(w io.Writer, contentLength uint64) error {
 	if m := contentLength % 8; m != 0 {
 		var padding [8]byte
 		_, err := w.Write(padding[m:])
+
 		return err
 	}
 
