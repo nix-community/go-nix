@@ -22,4 +22,12 @@ linters:
     - nilerr
     - nilnil
     - nlreturn
+    - noctx
+    - nolintlint
+    - prealloc
+    - predeclared
     - revive
+    - rowserrcheck
+    - stylecheck
+    - tagliatelle
+    - tenv
