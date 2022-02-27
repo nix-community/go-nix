@@ -15,4 +15,10 @@ linters:
     - importas
     - ireturn
     - lll
+    - makezero
+    - misspell
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnil
     - revive
