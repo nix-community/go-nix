@@ -10,4 +10,5 @@ linters:
     - gofumpt
     - goheader
     - goimports
+    - gosec
     - revive

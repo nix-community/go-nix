@@ -201,7 +201,7 @@ func TestReader(t *testing.T) {
 			return
 		}
 
-		assert.Equal(t, &expectH, hdr)
+		assert.Equal(t, expectH, *hdr)
 	}
 
 	hdr, err := p.Next()
