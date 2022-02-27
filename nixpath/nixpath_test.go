@@ -1,15 +1,16 @@
-package nixpath
+package nixpath_test
 
 import (
 	"testing"
 
+	"github.com/numtide/go-nix/nixpath"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNixPath(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		exampleNixPathStr := "/nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432"
-		nixpath, err := FromString(exampleNixPathStr)
+		nixpath, err := nixpath.FromString(exampleNixPathStr)
 
 		if assert.NoError(t, err) {
 			assert.Equal(t, "net-tools-1.60_p20170221182432", nixpath.Name)
@@ -24,12 +25,12 @@ func TestNixPath(t *testing.T) {
 	})
 
 	t.Run("invalid hash length", func(t *testing.T) {
-		_, err := FromString("/nix/store/00bgd045z0d4icpbc2yy-net-tools-1.60_p20170221182432")
+		_, err := nixpath.FromString("/nix/store/00bgd045z0d4icpbc2yy-net-tools-1.60_p20170221182432")
 		assert.Error(t, err)
 	})
 
 	t.Run("invalid encoding in hash", func(t *testing.T) {
-		_, err := FromString("/nix/store/00bgd045z0d4icpbc2yyz4gx48aku4la-net-tools-1.60_p20170221182432")
+		_, err := nixpath.FromString("/nix/store/00bgd045z0d4icpbc2yyz4gx48aku4la-net-tools-1.60_p20170221182432")
 		assert.Error(t, err)
 	})
 }

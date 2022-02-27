@@ -1,8 +1,9 @@
-package nixbase32
+package nixbase32_test
 
 import (
 	"testing"
 
+	"github.com/numtide/go-nix/nixbase32"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,13 +27,13 @@ var tt = []struct {
 
 func TestEncode(t *testing.T) {
 	for i := range tt {
-		assert.Equal(t, tt[i].enc, EncodeToString(tt[i].dec))
+		assert.Equal(t, tt[i].enc, nixbase32.EncodeToString(tt[i].dec))
 	}
 }
 
 func TestDecode(t *testing.T) {
 	for i := range tt {
-		b, err := DecodeString(tt[i].enc)
+		b, err := nixbase32.DecodeString(tt[i].enc)
 
 		if assert.NoError(t, err) {
 			assert.Equal(t, tt[i].dec, b)
@@ -42,7 +43,7 @@ func TestDecode(t *testing.T) {
 
 func TestMustDecodeString(t *testing.T) {
 	for i := range tt {
-		b := MustDecodeString(tt[i].enc)
+		b := nixbase32.MustDecodeString(tt[i].enc)
 		assert.Equal(t, tt[i].dec, b)
 	}
 }
@@ -57,11 +58,11 @@ func TestDecodeInvalid(t *testing.T) {
 	}
 
 	for _, c := range invalidEncodings {
-		_, err := DecodeString(c)
+		_, err := nixbase32.DecodeString(c)
 		assert.Error(t, err)
 
 		assert.Panics(t, func() {
-			_ = MustDecodeString(c)
+			_ = nixbase32.MustDecodeString(c)
 		})
 	}
 }

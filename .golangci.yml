@@ -31,3 +31,4 @@ linters:
     - stylecheck
     - tagliatelle
     - tenv
+    - testpackage

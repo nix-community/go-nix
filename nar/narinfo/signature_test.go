@@ -1,8 +1,9 @@
-package narinfo
+package narinfo_test
 
 import (
 	"testing"
 
+	"github.com/numtide/go-nix/nar/narinfo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,7 +24,7 @@ var (
 )
 
 func TestParseSignatureLine(t *testing.T) {
-	signature, err := ParseSignatureLine(dummySigLine)
+	signature, err := narinfo.ParseSignatureLine(dummySigLine)
 	if assert.NoError(t, err) {
 		assert.Equal(t, expectedKeyName, signature.KeyName)
 		assert.Equal(t, expectedDigest, signature.Digest)
@@ -31,11 +32,11 @@ func TestParseSignatureLine(t *testing.T) {
 }
 
 func TestMustParseSignatureLine(t *testing.T) {
-	signature := MustParseSignatureLine(dummySigLine)
+	signature := narinfo.MustParseSignatureLine(dummySigLine)
 	assert.Equal(t, expectedKeyName, signature.KeyName)
 	assert.Equal(t, expectedDigest, signature.Digest)
 
 	assert.Panics(t, func() {
-		_ = MustParseSignatureLine(expectedKeyName)
+		_ = narinfo.MustParseSignatureLine(expectedKeyName)
 	})
 }
