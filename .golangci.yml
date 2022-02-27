@@ -32,3 +32,8 @@ linters:
     - tagliatelle
     - tenv
     - testpackage
+    - unconvert
+    - unparam
+    - wastedassign
+    - whitespace
+    - wsl
