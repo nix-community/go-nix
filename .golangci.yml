@@ -1,3 +1,6 @@
 linters:
   enable:
+    - errname
+    - exhaustive
     - revive
+    - gci
