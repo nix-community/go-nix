@@ -1,10 +1,11 @@
-package ls
+package ls_test
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/numtide/go-nix/nar"
+	"github.com/numtide/go-nix/nar/ls"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,17 +33,17 @@ const fixture = `
 
 func TestLS(t *testing.T) {
 	r := strings.NewReader(fixture)
-	root, err := ParseLS(r)
+	root, err := ls.ParseLS(r)
 	assert.NoError(t, err)
 
-	expected_root := &LSRoot{
+	expectedRoot := &ls.Root{
 		Version: 1,
-		Root: LSEntry{
+		Root: ls.Entry{
 			Type: nar.TypeDirectory,
-			Entries: map[string]LSEntry{
+			Entries: map[string]ls.Entry{
 				"bin": {
 					Type: nar.TypeDirectory,
-					Entries: map[string]LSEntry{
+					Entries: map[string]ls.Entry{
 						"curl": {
 							Type:       nar.TypeRegular,
 							Size:       182520,
@@ -54,5 +55,5 @@ func TestLS(t *testing.T) {
 			},
 		},
 	}
-	assert.Equal(t, expected_root, root)
+	assert.Equal(t, expectedRoot, root)
 }

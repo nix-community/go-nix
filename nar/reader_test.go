@@ -31,14 +31,14 @@ func TestReader(t *testing.T) {
 			Size:       55288,
 		},
 		{
-			Type:     nar.TypeSymlink,
-			Name:     "bin/dnsdomainname",
-			Linkname: "hostname",
+			Type:       nar.TypeSymlink,
+			Name:       "bin/dnsdomainname",
+			LinkTarget: "hostname",
 		},
 		{
-			Type:     nar.TypeSymlink,
-			Name:     "bin/domainname",
-			Linkname: "hostname",
+			Type:       nar.TypeSymlink,
+			Name:       "bin/domainname",
+			LinkTarget: "hostname",
 		},
 		{
 			Type:       nar.TypeRegular,
@@ -65,9 +65,9 @@ func TestReader(t *testing.T) {
 			Size:       131784,
 		},
 		{
-			Type:     nar.TypeSymlink,
-			Name:     "bin/nisdomainname",
-			Linkname: "hostname",
+			Type:       nar.TypeSymlink,
+			Name:       "bin/nisdomainname",
+			LinkTarget: "hostname",
 		},
 		{
 			Type:       nar.TypeRegular,
@@ -94,14 +94,14 @@ func TestReader(t *testing.T) {
 			Size:       35672,
 		},
 		{
-			Type:     nar.TypeSymlink,
-			Name:     "bin/ypdomainname",
-			Linkname: "hostname",
+			Type:       nar.TypeSymlink,
+			Name:       "bin/ypdomainname",
+			LinkTarget: "hostname",
 		},
 		{
-			Type:     nar.TypeSymlink,
-			Name:     "sbin",
-			Linkname: "bin",
+			Type:       nar.TypeSymlink,
+			Name:       "sbin",
+			LinkTarget: "bin",
 		},
 		{
 			Type: nar.TypeDirectory,
@@ -196,11 +196,12 @@ func TestReader(t *testing.T) {
 	}
 
 	for i, expectH := range headers {
-		hdr, err := p.Next()
-		if !assert.NoError(t, err, i) {
+		hdr, e := p.Next()
+		if !assert.NoError(t, e, i) {
 			return
 		}
-		assert.Equal(t, &expectH, hdr)
+
+		assert.Equal(t, expectH, *hdr)
 	}
 
 	hdr, err := p.Next()

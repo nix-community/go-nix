@@ -1,4 +1,4 @@
-package narinfo
+package narinfo_test
 
 import (
 	"os"
@@ -6,9 +6,11 @@ import (
 	"testing"
 
 	"github.com/numtide/go-nix/hash"
+	"github.com/numtide/go-nix/nar/narinfo"
 	"github.com/stretchr/testify/assert"
 )
 
+// nolint:gochecknoglobals
 var (
 	strNarinfoSample = `
 StorePath: /nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432
@@ -34,7 +36,6 @@ Deriver: 10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv
 Sig: cache.nixos.org-1:sn5s/RrqEI+YG6/PjwdbPjcAC7rcta7sJU4mFOawGvJBLsWkyLtBrT2EuFt/LJjWkTZ+ZWOI9NTtjo/woMdvAg==
 Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7acJjLn3jofOtilAAwRILKIfVuyrbjAA==
 `
-
 	_NarHash = &hash.Hash{
 		HashType: "sha256",
 		Digest: []uint8{
@@ -43,7 +44,7 @@ Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7ac
 		},
 	}
 
-	_Signatures = []*Signature{
+	_Signatures = []*narinfo.Signature{
 		{
 			KeyName: "cache.nixos.org-1",
 			Digest: []byte{
@@ -64,7 +65,7 @@ Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7ac
 		},
 	}
 
-	narinfoSample = &NarInfo{
+	narinfoSample = &narinfo.NarInfo{
 		StorePath:   "/nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432",
 		URL:         "nar/1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar.xz",
 		Compression: "xz",
@@ -83,7 +84,7 @@ Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7ac
 		Signatures: _Signatures,
 	}
 
-	narinfoSampleWithoutFileFields = &NarInfo{
+	narinfoSampleWithoutFileFields = &narinfo.NarInfo{
 		StorePath:   "/nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432",
 		URL:         "nar/1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar.xz",
 		Compression: "xz",
@@ -96,7 +97,7 @@ Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7ac
 )
 
 func TestNarInfo(t *testing.T) {
-	ni, err := Parse(strings.NewReader(strNarinfoSample))
+	ni, err := narinfo.Parse(strings.NewReader(strNarinfoSample))
 	assert.NoError(t, err)
 
 	// Test the parsing happy path
@@ -108,7 +109,7 @@ func TestNarInfo(t *testing.T) {
 }
 
 func TestNarInfoWithoutFileFields(t *testing.T) {
-	ni, err := Parse(strings.NewReader(strNarinfoSampleWithoutFileFields))
+	ni, err := narinfo.Parse(strings.NewReader(strNarinfoSampleWithoutFileFields))
 	assert.NoError(t, err)
 
 	// Test the parsing happy path
@@ -126,6 +127,6 @@ func TestBigNarinfo(t *testing.T) {
 	}
 	defer f.Close()
 
-	_, err = Parse(f)
+	_, err = narinfo.Parse(f)
 	assert.NoError(t, err, "Parsing big .narinfo files shouldn't fail")
 }

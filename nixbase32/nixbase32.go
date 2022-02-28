@@ -14,6 +14,7 @@ func EncodedLen(n int) int {
 	if n == 0 {
 		return 0
 	}
+
 	return (n*8-1)/5 + 1
 }
 
@@ -30,12 +31,13 @@ func EncodeToString(src []byte) string {
 	l := EncodedLen(len(src))
 
 	var dst strings.Builder
+
 	dst.Grow(l)
 
 	for n := l - 1; n >= 0; n-- {
 		b := uint(n * 5)
-		i := uint(b / 8)
-		j := uint(b % 8)
+		i := b / 8
+		j := b % 8
 
 		c := src[i] >> j
 
@@ -45,22 +47,26 @@ func EncodeToString(src []byte) string {
 
 		dst.WriteByte(Alphabet[c&0x1f])
 	}
+
 	return dst.String()
 }
 
-// DecodeString returns the bytes represented by the nixbase32 string s or returns an error
+// DecodeString returns the bytes represented by the nixbase32 string s or
+// returns an error.
 func DecodeString(s string) ([]byte, error) {
 	dst := make([]byte, DecodedLen(len(s)))
+
 	for n := 0; n < len(s); n++ {
 		c := s[len(s)-n-1]
+
 		digit := strings.IndexByte(Alphabet, c)
 		if digit == -1 {
-			return nil, fmt.Errorf("character %v not in alphabet!", c)
+			return nil, fmt.Errorf("character %v not in alphabet", c)
 		}
 
 		b := uint(n * 5)
-		i := uint(b / 8)
-		j := uint(b % 8)
+		i := b / 8
+		j := b % 8
 
 		// OR the main pattern
 		dst[i] |= byte(digit) << j
@@ -78,14 +84,17 @@ func DecodeString(s string) ([]byte, error) {
 			dst[i+1] |= carry
 		}
 	}
+
 	return dst, nil
 }
 
-// MustDecodeString returns the bytes represented by the nixbase32 string s or panics on error
+// MustDecodeString returns the bytes represented by the nixbase32 string s or
+// panics on error.
 func MustDecodeString(s string) []byte {
 	b, err := DecodeString(s)
 	if err != nil {
 		panic(err)
 	}
+
 	return b
 }

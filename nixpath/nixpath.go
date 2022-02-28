@@ -2,9 +2,10 @@ package nixpath
 
 import (
 	"fmt"
-	"github.com/numtide/go-nix/nixbase32"
 	"path"
 	"regexp"
+
+	"github.com/numtide/go-nix/nixbase32"
 )
 
 const (
@@ -22,7 +23,7 @@ var (
 	))
 )
 
-// NixPath represents a nix store path
+// NixPath represents a nix store path.
 type NixPath struct {
 	Name   string
 	Digest []byte
@@ -34,16 +35,16 @@ func (n *NixPath) String() string {
 
 // FromString parses a path string into a nix path,
 // verifying it's syntactically valid
-// It returns an error if it fails to parse
+// It returns an error if it fails to parse.
 func FromString(s string) (*NixPath, error) {
 	m := pathRe.FindStringSubmatch(s)
 	if m == nil {
-		return nil, fmt.Errorf("Unable to parse path %v", s)
+		return nil, fmt.Errorf("unable to parse path %v", s)
 	}
 
 	digest, err := nixbase32.DecodeString(m[1])
 	if err != nil {
-		return nil, fmt.Errorf("Unable to decode hash: %v", err)
+		return nil, fmt.Errorf("unable to decode hash: %v", err)
 	}
 
 	return &NixPath{

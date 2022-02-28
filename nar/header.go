@@ -10,7 +10,7 @@ import (
 type Header struct {
 	Type       EntryType // Typeflag is the type of header entry.
 	Name       string    // Name of the file entry
-	Linkname   string    // Target name of link (valid for TypeSymlink)
+	LinkTarget string    // Target of symlink (valid for TypeSymlink)
 	Size       int64     // Logical file size in bytes
 	Executable bool      // Set to true for files that are executable
 }
@@ -29,13 +29,14 @@ func (fi headerFileInfo) IsDir() bool        { return fi.h.Type == TypeDirectory
 func (fi headerFileInfo) ModTime() time.Time { return time.Unix(0, 0) }
 func (fi headerFileInfo) Sys() interface{}   { return fi.h }
 
-// FIXME: make sure that this is OK
+// FIXME: make sure that this is OK.
 func (fi headerFileInfo) Name() string { return fi.h.Name }
+
 func (fi headerFileInfo) Mode() (mode os.FileMode) {
 	if fi.h.Executable || fi.h.Type == TypeDirectory {
-		mode = 0755
+		mode = 0o755
 	} else {
-		mode = 0644
+		mode = 0o644
 	}
 
 	switch fi.h.Type {
@@ -43,6 +44,8 @@ func (fi headerFileInfo) Mode() (mode os.FileMode) {
 		mode |= os.ModeDir
 	case TypeSymlink:
 		mode |= os.ModeSymlink
+	case TypeRegular:
+	case TypeUnknown:
 	}
 
 	return mode

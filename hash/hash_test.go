@@ -1,8 +1,9 @@
-package hash
+package hash_test
 
 import (
 	"testing"
 
+	"github.com/numtide/go-nix/hash"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -10,13 +11,13 @@ func TestDigest(t *testing.T) {
 	cases := []struct {
 		Title       string
 		EncodedHash string
-		Hash        *Hash
+		Hash        *hash.Hash
 	}{
 		{
 			"valid sha256",
 			"sha256:1rjs6c23nyf8zkmf7yxglz2q2m7v5kp51nc2m0lk4h998d0qiixs",
-			&Hash{
-				HashType: HashTypeSha256,
+			&hash.Hash{
+				HashType: hash.HashTypeSha256,
 				Digest: []byte{
 					0xba, 0xc7, 0x88, 0x41, 0x43, 0x29, 0x41, 0x32,
 					0x29, 0xa8, 0x82, 0xd9, 0x50, 0xee, 0x2c, 0xfb,
@@ -28,8 +29,8 @@ func TestDigest(t *testing.T) {
 		{
 			"valid sha512",
 			"sha512:37iwwa5iw4m6pkd6qs2c5lw13q7y16hw2rv4i1cx6jax6yibhn6fgajbwc8p4j1fc6iicpy5r1vi7hpfq3n6z1ikhm5kcyz2b1frk80",
-			&Hash{
-				HashType: HashTypeSha512,
+			&hash.Hash{
+				HashType: hash.HashTypeSha512,
 				Digest: []byte{
 					0x00, 0xcd, 0xec, 0xc2, 0x12, 0xdf, 0xb3, 0x59,
 					0x2a, 0x9c, 0x31, 0x7c, 0x63, 0x07, 0x76, 0x17,
@@ -50,8 +51,8 @@ func TestDigest(t *testing.T) {
 		{
 			"invalid digest length",
 			"", // means this should panic
-			&Hash{
-				HashType: HashTypeSha256,
+			&hash.Hash{
+				HashType: hash.HashTypeSha256,
 				Digest: []byte{
 					0xba, 0xc7, 0x88, 0x41, 0x43, 0x29, 0x41, 0x32,
 					0x29, 0xa8, 0x82, 0xd9, 0x50, 0xee, 0x2c, 0xfb,
@@ -75,7 +76,7 @@ func TestDigest(t *testing.T) {
 				}
 
 				t.Run("ParseNixBase32", func(t *testing.T) {
-					hash, err := ParseNixBase32(c.EncodedHash)
+					hash, err := hash.ParseNixBase32(c.EncodedHash)
 
 					if c.Hash != nil {
 						if assert.NoError(t, err, "shouldn't error") {
@@ -88,10 +89,10 @@ func TestDigest(t *testing.T) {
 
 				t.Run("MustParseNixBase32", func(t *testing.T) {
 					if c.Hash != nil {
-						assert.Equal(t, c.Hash, MustParseNixBase32(c.EncodedHash))
+						assert.Equal(t, c.Hash, hash.MustParseNixBase32(c.EncodedHash))
 					} else {
 						assert.Panics(t, func() {
-							MustParseNixBase32(c.EncodedHash)
+							hash.MustParseNixBase32(c.EncodedHash)
 						})
 					}
 				})
@@ -108,7 +109,7 @@ func TestDigest(t *testing.T) {
 
 				if c.EncodedHash == "" {
 					assert.Panics(t, func() {
-						c.Hash.String()
+						_ = c.Hash.String()
 					})
 				} else {
 					assert.Equal(t, c.EncodedHash, c.Hash.String())
