@@ -14,12 +14,12 @@ const (
 )
 
 var (
-	nameRe = regexp.MustCompile(`[a-zA-Z0-9+\-_?=][.a-zA-Z0-9+\-_?=]*`)
-	pathRe = regexp.MustCompile(fmt.Sprintf(
+	NameRe = regexp.MustCompile(`[a-zA-Z0-9+\-_?=][.a-zA-Z0-9+\-_?=]*`)
+	PathRe = regexp.MustCompile(fmt.Sprintf(
 		`^%v/([0-9a-z]{%d})-(%v)$`,
 		regexp.QuoteMeta(StoreDir),
 		nixbase32.EncodedLen(PathHashSize),
-		nameRe,
+		NameRe,
 	))
 )
 
@@ -37,7 +37,7 @@ func (n *NixPath) String() string {
 // verifying it's syntactically valid
 // It returns an error if it fails to parse.
 func FromString(s string) (*NixPath, error) {
-	m := pathRe.FindStringSubmatch(s)
+	m := PathRe.FindStringSubmatch(s)
 	if m == nil {
 		return nil, fmt.Errorf("unable to parse path %v", s)
 	}
