@@ -1,3 +1,4 @@
+// Package nixpath parses and renders Nix store paths.
 package nixpath
 
 import (
@@ -5,7 +6,7 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/numtide/go-nix/nixbase32"
+	"github.com/numtide/go-nix/pkg/nixbase32"
 )
 
 const (

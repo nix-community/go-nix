@@ -3,7 +3,7 @@ package nixbase32_test
 import (
 	"testing"
 
-	"github.com/numtide/go-nix/nixbase32"
+	"github.com/numtide/go-nix/pkg/nixbase32"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/numtide/go-nix/nar"
-	"github.com/numtide/go-nix/nar/ls"
+	"github.com/numtide/go-nix/pkg/nar"
+	"github.com/numtide/go-nix/pkg/nar/ls"
 	"github.com/stretchr/testify/assert"
 )
 

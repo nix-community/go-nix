@@ -3,7 +3,7 @@ package narinfo_test
 import (
 	"testing"
 
-	"github.com/numtide/go-nix/nar/narinfo"
+	"github.com/numtide/go-nix/pkg/nar/narinfo"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/numtide/go-nix/hash"
-	"github.com/numtide/go-nix/nar/narinfo"
+	"github.com/numtide/go-nix/pkg/hash"
+	"github.com/numtide/go-nix/pkg/nar/narinfo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -121,7 +121,7 @@ func TestNarInfoWithoutFileFields(t *testing.T) {
 }
 
 func TestBigNarinfo(t *testing.T) {
-	f, err := os.Open("../../test/testdata/big.narinfo")
+	f, err := os.Open("../../../test/testdata/big.narinfo")
 	if err != nil {
 		panic(err)
 	}
