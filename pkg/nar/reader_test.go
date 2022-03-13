@@ -15,8 +15,10 @@ func TestReader(t *testing.T) {
 		return
 	}
 
-	p := nar.NewReader(f)
+	p, err := nar.NewReader(f)
+	assert.NoError(t, err, "instantiating the NAR Reader shouldn't error")
 
+	// check premature reading doesn't do any harm
 	n, err := p.Read(make([]byte, 1000))
 	assert.Equal(t, 0, n)
 	assert.Equal(t, io.EOF, err)

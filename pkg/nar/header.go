@@ -8,11 +8,11 @@ import (
 // Header represents a single header in a NAR archive. Some fields may not
 // be populated depending on the Type.
 type Header struct {
-	Type       EntryType // Typeflag is the type of header entry.
-	Name       string    // Name of the file entry
-	LinkTarget string    // Target of symlink (valid for TypeSymlink)
-	Size       int64     // Logical file size in bytes
-	Executable bool      // Set to true for files that are executable
+	Name       string   // Name of the file entry, relative inside the NAR
+	Type       NodeType // Typeflag is the type of header entry.
+	LinkTarget string   // Target of symlink (valid for TypeSymlink)
+	Size       int64    // Logical file size in bytes
+	Executable bool     // Set to true for files that are executable
 }
 
 // FileInfo returns an os.FileInfo for the Header.
@@ -29,7 +29,8 @@ func (fi headerFileInfo) IsDir() bool        { return fi.h.Type == TypeDirectory
 func (fi headerFileInfo) ModTime() time.Time { return time.Unix(0, 0) }
 func (fi headerFileInfo) Sys() interface{}   { return fi.h }
 
-// FIXME: make sure that this is OK.
+// Name of the file.
+// Will be an empty string, if this describes the root of a NAR.
 func (fi headerFileInfo) Name() string { return fi.h.Name }
 
 func (fi headerFileInfo) Mode() (mode os.FileMode) {
@@ -45,7 +46,6 @@ func (fi headerFileInfo) Mode() (mode os.FileMode) {
 	case TypeSymlink:
 		mode |= os.ModeSymlink
 	case TypeRegular:
-	case TypeUnknown:
 	}
 
 	return mode

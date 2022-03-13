@@ -11,17 +11,17 @@ import (
 // Root represents the .ls file root entry.
 type Root struct {
 	Version int `json:"version"`
-	Root    Entry
+	Root    Node
 }
 
-// Entry represents one of the entries in a .ls file.
-type Entry struct {
-	Type       nar.EntryType    `json:"type"`
-	Entries    map[string]Entry `json:"entries"`
-	Size       int64            `json:"size"`
-	Target     string           `json:"target"`
-	Executable bool             `json:"executable"`
-	NAROffset  int64            `json:"narOffset"`
+// Node represents one of the entries in a .ls file.
+type Node struct {
+	Type       nar.NodeType    `json:"type"`
+	Entries    map[string]Node `json:"entries"`
+	Size       int64           `json:"size"`
+	Target     string          `json:"target"`
+	Executable bool            `json:"executable"`
+	NAROffset  int64           `json:"narOffset"`
 }
 
 // ParseLS parses the NAR .ls file format.

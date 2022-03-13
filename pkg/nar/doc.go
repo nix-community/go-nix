@@ -1,4 +1,4 @@
-// Package tar implements access to .nar files.
+// Package nar implements access to .nar files.
 //
 // Nix Archive (nar) is a file format for storing a directory or a single file
 // in a binary reproducible format. This is the format that is being used to
