@@ -1,3 +1,5 @@
+// Package hash provides methods to serialize and deserialize some of the
+// hashes used in nix code and .narinfo files.
 package hash
 
 import (
@@ -5,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/numtide/go-nix/nixbase32"
+	"github.com/numtide/go-nix/pkg/nixbase32"
 )
 
 // nolint:revive

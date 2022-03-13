@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/numtide/go-nix/hash"
+	"github.com/numtide/go-nix/pkg/hash"
 )
 
 // Parse reads a .narinfo file content

@@ -7,7 +7,7 @@ import (
 	"math"
 	"path"
 
-	"github.com/numtide/go-nix/wire"
+	"github.com/numtide/go-nix/pkg/wire"
 )
 
 const (

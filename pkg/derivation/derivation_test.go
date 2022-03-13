@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/numtide/go-nix/derivation"
+	"github.com/numtide/go-nix/pkg/derivation"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -87,7 +87,7 @@ func TestParser(t *testing.T) {
 	t.Run("ParseDerivations", func(t *testing.T) {
 		for _, c := range cases {
 			t.Run(c.Title, func(t *testing.T) {
-				derivationFile, err := os.Open("../test/testdata/" + c.DerivationFile)
+				derivationFile, err := os.Open("../../test/testdata/" + c.DerivationFile)
 				if err != nil {
 					panic(err)
 				}

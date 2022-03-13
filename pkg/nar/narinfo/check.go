@@ -5,7 +5,7 @@ import (
 	"path"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/numtide/go-nix/nixpath"
+	"github.com/numtide/go-nix/pkg/nixpath"
 )
 
 // Check does some sanity checking on a NarInfo struct, such as:

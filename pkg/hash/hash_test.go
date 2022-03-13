@@ -3,7 +3,7 @@ package hash_test
 import (
 	"testing"
 
-	"github.com/numtide/go-nix/hash"
+	"github.com/numtide/go-nix/pkg/hash"
 	"github.com/stretchr/testify/assert"
 )
 
