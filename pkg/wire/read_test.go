@@ -1,10 +1,11 @@
-package wire
+package wire_test
 
 import (
 	"bytes"
 	"io"
 	"testing"
 
+	"github.com/numtide/go-nix/pkg/wire"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +34,7 @@ func TestReadUint64(t *testing.T) {
 	bs := []byte{13, 0, 0, 0, 0, 0, 0, 0}
 	r := bytes.NewReader(bs)
 
-	num, err := ReadUint64(r)
+	num, err := wire.ReadUint64(r)
 
 	assert.NoError(t, err)
 	assert.Equal(t, num, uint64(13))
@@ -48,7 +49,7 @@ func TestReadUint64Slow(t *testing.T) {
 		{0, 0, 0, 0, 0, 0, 0},
 	}}
 
-	num, err := ReadUint64(r)
+	num, err := wire.ReadUint64(r)
 	assert.NoError(t, err)
 	assert.Equal(t, num, uint64(13))
 }
