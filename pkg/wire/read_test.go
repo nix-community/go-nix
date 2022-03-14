@@ -73,3 +73,48 @@ func TestReadBool(t *testing.T) {
 	_, err = wire.ReadBool(rdBytesInvalidBool)
 	assert.Error(t, err)
 }
+
+func TestReadBytes(t *testing.T) {
+	payload8Bytes := []byte{
+		8, 0, 0, 0, 0, 0, 0, 0, // length field - 8 bytes
+		42, 23, 42, 23, 42, 23, 42, 23, // the actual data
+	}
+
+	buf, err := wire.ReadBytesFull(bytes.NewReader(payload8Bytes), 1024)
+	if assert.NoError(t, err) {
+		assert.Equal(t, 8, len(buf))
+		assert.Equal(t, buf, []byte{42, 23, 42, 23, 42, 23, 42, 23})
+	}
+
+	payload10Bytes := []byte{
+		10, 0, 0, 0, 0, 0, 0, 0, // length field - 8 bytes
+		42, 23, 42, 23, 42, 23, 42, 23, // the actual data
+		42, 23, 0, 0, 0, 0, 0, 0, // more actual data (2 bytes), then padding
+	}
+
+	buf, err = wire.ReadBytesFull(bytes.NewReader(payload10Bytes), 1024)
+	if assert.NoError(t, err) {
+		assert.Equal(t, 10, len(buf))
+		assert.Equal(t, buf, []byte{42, 23, 42, 23, 42, 23, 42, 23, 42, 23})
+	}
+
+	// concatenate the 10 bytes, then 8 bytes dummy data together,
+	// and see if we can get out both bytes. This will test we properly skip over the padding.
+	payloadCombined := []byte{}
+	payloadCombined = append(payloadCombined, payload10Bytes...)
+	payloadCombined = append(payloadCombined, payload8Bytes...)
+
+	rd := bytes.NewReader(payloadCombined)
+
+	buf, err = wire.ReadBytesFull(rd, 1024)
+	if assert.NoError(t, err) {
+		assert.Equal(t, 10, len(buf))
+		assert.Equal(t, buf, []byte{42, 23, 42, 23, 42, 23, 42, 23, 42, 23})
+	}
+
+	buf, err = wire.ReadBytesFull(rd, 1024)
+	if assert.NoError(t, err) {
+		assert.Equal(t, 8, len(buf))
+		assert.Equal(t, buf, []byte{42, 23, 42, 23, 42, 23, 42, 23})
+	}
+}
