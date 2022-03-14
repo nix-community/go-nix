@@ -52,21 +52,25 @@ func readPadding(r io.Reader, contentLength uint64) error {
 	return nil
 }
 
-// ReadBytes reads a bytes packet and returns a []byte of its contents
-// If the field exceeds the size passed via max, an error is returned
-// A bytes field starts with its size (8 bytes), then chunks of 8 bytes each.
-// Remaining bytes are padded with null bytes.
-func ReadBytes(r io.Reader, max uint64) ([]byte, error) {
-	// consume content length
+// ReadBytes parses the size field, and returns a ReadCloser to its contents.
+// That reader is limited to the actual contents of the bytes field.
+// Closing the reader will skip to the end of the last byte packet, including the padding.
+func ReadBytes(r io.Reader) (uint64, io.ReadCloser, error) {
+	// read content length
 	contentLength, err := ReadUint64(r)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
 
-	// early exit if no content needs to be read
-	if contentLength == 0 {
-		return []byte{}, nil
+	return contentLength, NewBytesReader(r, contentLength), nil
+}
+
+func ReadBytesFull(r io.Reader, max uint64) ([]byte, error) {
+	contentLength, rd, err := ReadBytes(r)
+	if err != nil {
+		return []byte{}, err
 	}
+	defer rd.Close()
 
 	if contentLength > max {
 		return nil, fmt.Errorf("content length of %v bytes exceeds maximum of %v bytes", contentLength, max)
@@ -74,12 +78,7 @@ func ReadBytes(r io.Reader, max uint64) ([]byte, error) {
 
 	// consume content
 	buf := make([]byte, contentLength)
-	if _, err := io.ReadFull(r, buf); err != nil {
-		return nil, err
-	}
-
-	// consume padding
-	if err := readPadding(r, contentLength); err != nil {
+	if _, err := io.ReadFull(rd, buf); err != nil {
 		return nil, err
 	}
 
@@ -88,7 +87,7 @@ func ReadBytes(r io.Reader, max uint64) ([]byte, error) {
 
 // ReadString reads a bytes packet and converts it to string.
 func ReadString(r io.Reader, max uint64) (string, error) {
-	buf, err := ReadBytes(r, max)
+	buf, err := ReadBytesFull(r, max)
 
 	return string(buf), err
 }
