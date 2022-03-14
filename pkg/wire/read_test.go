@@ -118,3 +118,19 @@ func TestReadBytes(t *testing.T) {
 		assert.Equal(t, buf, []byte{42, 23, 42, 23, 42, 23, 42, 23})
 	}
 }
+
+func TestReadString(t *testing.T) {
+	payloadFoo := []byte{
+		3, 0, 0, 0, 0, 0, 0, 0, // length field - 3 bytes
+		0x46, 0x6F, 0x6F, 0, 0, 0, 0, 0, // contents, Foo, then 5 bytes padding
+	}
+
+	s, err := wire.ReadString(bytes.NewReader(payloadFoo), 1024)
+	if assert.NoError(t, err) {
+		assert.Equal(t, s, "Foo")
+	}
+
+	// exceeding max should error
+	_, err = wire.ReadString(bytes.NewReader(payloadFoo), 2)
+	assert.Error(t, err)
+}
