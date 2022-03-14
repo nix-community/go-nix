@@ -2,6 +2,7 @@ package nar_test
 
 import (
 	"io"
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -201,6 +202,22 @@ func TestReader(t *testing.T) {
 		hdr, e := p.Next()
 		if !assert.NoError(t, e, i) {
 			return
+		}
+
+		// read one of the files
+		if hdr.Name == "bin/arp" {
+			f, err := os.Open("../../test/testdata/nar_1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar_bin_arp")
+			assert.NoError(t, err)
+
+			defer f.Close()
+
+			expectedContents, err := ioutil.ReadAll(f)
+			assert.NoError(t, err)
+
+			actualContents, err := ioutil.ReadAll(p)
+			if assert.NoError(t, err) {
+				assert.Equal(t, expectedContents, actualContents)
+			}
 		}
 
 		assert.Equal(t, expectH, *hdr)
