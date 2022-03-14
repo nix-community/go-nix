@@ -53,3 +53,23 @@ func TestReadUint64Slow(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, num, uint64(13))
 }
+
+// TestReadBool tests reading boolean values works.
+func TestReadBool(t *testing.T) {
+	rdBytesFalse := bytes.NewReader([]byte{0, 0, 0, 0, 0, 0, 0, 0})
+	rdBytesTrue := bytes.NewReader([]byte{1, 0, 0, 0, 0, 0, 0, 0})
+	rdBytesInvalidBool := bytes.NewReader([]byte{2, 0, 0, 0, 0, 0, 0, 0})
+
+	v, err := wire.ReadBool(rdBytesFalse)
+	if assert.NoError(t, err) {
+		assert.Equal(t, v, false)
+	}
+
+	v, err = wire.ReadBool(rdBytesTrue)
+	if assert.NoError(t, err) {
+		assert.Equal(t, v, true)
+	}
+
+	_, err = wire.ReadBool(rdBytesInvalidBool)
+	assert.Error(t, err)
+}
