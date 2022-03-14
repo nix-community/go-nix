@@ -26,174 +26,174 @@ func TestReader(t *testing.T) {
 
 	headers := []nar.Header{
 		{Type: nar.TypeDirectory},
-		{Type: nar.TypeDirectory, Name: "bin"},
+		{Type: nar.TypeDirectory, Path: "bin"},
 		{
 			Type:       nar.TypeRegular,
-			Name:       "bin/arp",
+			Path:       "bin/arp",
 			Executable: true,
 			Size:       55288,
 		},
 		{
 			Type:       nar.TypeSymlink,
-			Name:       "bin/dnsdomainname",
+			Path:       "bin/dnsdomainname",
 			LinkTarget: "hostname",
 		},
 		{
 			Type:       nar.TypeSymlink,
-			Name:       "bin/domainname",
+			Path:       "bin/domainname",
 			LinkTarget: "hostname",
 		},
 		{
 			Type:       nar.TypeRegular,
-			Name:       "bin/hostname",
+			Path:       "bin/hostname",
 			Executable: true,
 			Size:       17704,
 		},
 		{
 			Type:       nar.TypeRegular,
-			Name:       "bin/ifconfig",
+			Path:       "bin/ifconfig",
 			Executable: true,
 			Size:       72576,
 		},
 		{
 			Type:       nar.TypeRegular,
-			Name:       "bin/nameif",
+			Path:       "bin/nameif",
 			Executable: true,
 			Size:       18776,
 		},
 		{
 			Type:       nar.TypeRegular,
-			Name:       "bin/netstat",
+			Path:       "bin/netstat",
 			Executable: true,
 			Size:       131784,
 		},
 		{
 			Type:       nar.TypeSymlink,
-			Name:       "bin/nisdomainname",
+			Path:       "bin/nisdomainname",
 			LinkTarget: "hostname",
 		},
 		{
 			Type:       nar.TypeRegular,
-			Name:       "bin/plipconfig",
+			Path:       "bin/plipconfig",
 			Executable: true,
 			Size:       13160,
 		},
 		{
 			Type:       nar.TypeRegular,
-			Name:       "bin/rarp",
+			Path:       "bin/rarp",
 			Executable: true,
 			Size:       30384,
 		},
 		{
 			Type:       nar.TypeRegular,
-			Name:       "bin/route",
+			Path:       "bin/route",
 			Executable: true,
 			Size:       61928,
 		},
 		{
 			Type:       nar.TypeRegular,
-			Name:       "bin/slattach",
+			Path:       "bin/slattach",
 			Executable: true,
 			Size:       35672,
 		},
 		{
 			Type:       nar.TypeSymlink,
-			Name:       "bin/ypdomainname",
+			Path:       "bin/ypdomainname",
 			LinkTarget: "hostname",
 		},
 		{
 			Type:       nar.TypeSymlink,
-			Name:       "sbin",
+			Path:       "sbin",
 			LinkTarget: "bin",
 		},
 		{
 			Type: nar.TypeDirectory,
-			Name: "share",
+			Path: "share",
 		},
 		{
 			Type: nar.TypeDirectory,
-			Name: "share/man",
+			Path: "share/man",
 		},
 		{
 			Type: nar.TypeDirectory,
-			Name: "share/man/man1",
+			Path: "share/man/man1",
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man1/dnsdomainname.1.gz",
+			Path: "share/man/man1/dnsdomainname.1.gz",
 			Size: 40,
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man1/domainname.1.gz",
+			Path: "share/man/man1/domainname.1.gz",
 			Size: 40,
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man1/hostname.1.gz",
+			Path: "share/man/man1/hostname.1.gz",
 			Size: 1660,
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man1/nisdomainname.1.gz",
+			Path: "share/man/man1/nisdomainname.1.gz",
 			Size: 40,
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man1/ypdomainname.1.gz",
+			Path: "share/man/man1/ypdomainname.1.gz",
 			Size: 40,
 		},
 		{
 			Type: nar.TypeDirectory,
-			Name: "share/man/man5",
+			Path: "share/man/man5",
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man5/ethers.5.gz",
+			Path: "share/man/man5/ethers.5.gz",
 			Size: 563,
 		},
 		{
 			Type: nar.TypeDirectory,
-			Name: "share/man/man8",
+			Path: "share/man/man8",
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man8/arp.8.gz",
+			Path: "share/man/man8/arp.8.gz",
 			Size: 2464,
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man8/ifconfig.8.gz",
+			Path: "share/man/man8/ifconfig.8.gz",
 			Size: 3382,
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man8/nameif.8.gz",
+			Path: "share/man/man8/nameif.8.gz",
 			Size: 523,
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man8/netstat.8.gz",
+			Path: "share/man/man8/netstat.8.gz",
 			Size: 4284,
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man8/plipconfig.8.gz",
+			Path: "share/man/man8/plipconfig.8.gz",
 			Size: 889,
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man8/rarp.8.gz",
+			Path: "share/man/man8/rarp.8.gz",
 			Size: 1198,
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man8/route.8.gz",
+			Path: "share/man/man8/route.8.gz",
 			Size: 3525,
 		},
 		{
 			Type: nar.TypeRegular,
-			Name: "share/man/man8/slattach.8.gz",
+			Path: "share/man/man8/slattach.8.gz",
 			Size: 1441,
 		},
 	}
@@ -205,7 +205,7 @@ func TestReader(t *testing.T) {
 		}
 
 		// read one of the files
-		if hdr.Name == "bin/arp" {
+		if hdr.Path == "bin/arp" {
 			f, err := os.Open("../../test/testdata/nar_1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar_bin_arp")
 			assert.NoError(t, err)
 

@@ -147,7 +147,7 @@ func (nr *Reader) ParseNode(path string) error {
 		nr.contentReader = contentReader
 
 		nr.headers <- &Header{
-			Name:       path,
+			Path:       path,
 			Type:       TypeRegular,
 			LinkTarget: "",
 			Size:       int64(contentLength),
@@ -187,7 +187,7 @@ func (nr *Reader) ParseNode(path string) error {
 
 		// yield back the header
 		nr.headers <- &Header{
-			Name:       path,
+			Path:       path,
 			Type:       TypeSymlink,
 			LinkTarget: target,
 			Size:       0,
@@ -207,7 +207,7 @@ func (nr *Reader) ParseNode(path string) error {
 		// set nr.contentReader to a empty reader, we can't read from directories!
 		nr.contentReader = io.NopCloser(io.LimitReader(bytes.NewReader([]byte{}), 0))
 		nr.headers <- &Header{
-			Name:       path,
+			Path:       path,
 			Type:       TypeDirectory,
 			LinkTarget: "",
 			Size:       0,
