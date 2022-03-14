@@ -220,6 +220,16 @@ func TestReader(t *testing.T) {
 			}
 		}
 
+		// ensure reading from symlinks or directories doesn't return any actual contents
+		// we pick examples that previously returned a regular file, so there might
+		// previously have been a reader pointing to something.
+		if hdr.Path == "bin/dnsdomainname" || hdr.Path == "share/man/man5" {
+			actualContents, err := ioutil.ReadAll(p)
+			if assert.NoError(t, err) {
+				assert.Equal(t, []byte{}, actualContents)
+			}
+		}
+
 		assert.Equal(t, expectH, *hdr)
 	}
 
