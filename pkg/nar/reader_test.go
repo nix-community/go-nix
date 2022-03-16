@@ -234,7 +234,12 @@ func TestReader(t *testing.T) {
 	}
 
 	hdr, err := p.Next()
+	// expect to return io.EOF at the end, and no more headers
 	assert.Nil(t, hdr)
-	// expect to be finished
 	assert.Equal(t, io.EOF, err)
+
+	assert.NoError(t, p.Close(), nil, "closing the reader shouldn't error")
+	assert.NotPanics(t, func() {
+		_ = p.Close()
+	}, "closing the reader multiple times shouldn't panic")
 }
