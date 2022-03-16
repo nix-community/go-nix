@@ -38,12 +38,12 @@ func TestLS(t *testing.T) {
 
 	expectedRoot := &ls.Root{
 		Version: 1,
-		Root: ls.Entry{
+		Root: ls.Node{
 			Type: nar.TypeDirectory,
-			Entries: map[string]ls.Entry{
+			Entries: map[string]ls.Node{
 				"bin": {
 					Type: nar.TypeDirectory,
-					Entries: map[string]ls.Entry{
+					Entries: map[string]ls.Node{
 						"curl": {
 							Type:       nar.TypeRegular,
 							Size:       182520,
