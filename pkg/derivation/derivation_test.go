@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/numtide/go-nix/pkg/derivation"
+	"github.com/nix-community/go-nix/pkg/derivation"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/numtide/go-nix/pkg/wire"
+	"github.com/nix-community/go-nix/pkg/wire"
 	"github.com/stretchr/testify/assert"
 )
 

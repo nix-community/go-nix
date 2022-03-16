@@ -7,8 +7,8 @@ import (
 	"math"
 	"path/filepath"
 
-	"github.com/numtide/go-nix/pkg/nixpath"
-	"github.com/numtide/go-nix/pkg/wire"
+	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/wire"
 )
 
 const (

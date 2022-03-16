@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/numtide/go-nix/pkg/hash"
-	"github.com/numtide/go-nix/pkg/nar/narinfo"
+	"github.com/nix-community/go-nix/pkg/hash"
+	"github.com/nix-community/go-nix/pkg/nar/narinfo"
 	"github.com/stretchr/testify/assert"
 )
 

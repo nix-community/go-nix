@@ -6,7 +6,7 @@ import (
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
-	"github.com/numtide/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/nixpath"
 )
 
 type Derivation struct {

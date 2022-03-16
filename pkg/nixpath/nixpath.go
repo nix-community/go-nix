@@ -6,7 +6,7 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/numtide/go-nix/pkg/nixbase32"
+	"github.com/nix-community/go-nix/pkg/nixbase32"
 )
 
 const (

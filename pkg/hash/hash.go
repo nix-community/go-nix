@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/numtide/go-nix/pkg/nixbase32"
+	"github.com/nix-community/go-nix/pkg/nixbase32"
 )
 
 // nolint:revive
