@@ -69,7 +69,7 @@ func NewReader(r io.Reader) (*Reader, error) {
 		// wait for the first Next() call
 		<-narReader.next
 
-		err := narReader.ParseNode("")
+		err := narReader.parseNode("")
 		if err != nil {
 			narReader.errors <- err
 		} else {
@@ -83,7 +83,7 @@ func NewReader(r io.Reader) (*Reader, error) {
 	return narReader, nil
 }
 
-func (nr *Reader) ParseNode(path string) error {
+func (nr *Reader) parseNode(path string) error {
 	// accept a opening (
 	err := expectString(nr.r, "(")
 	if err != nil {
@@ -261,7 +261,7 @@ func (nr *Reader) ParseNode(path string) error {
 				}
 
 				// <Node>, recurse
-				err = nr.ParseNode(newPath)
+				err = nr.parseNode(newPath)
 				if err != nil {
 					return err
 				}
