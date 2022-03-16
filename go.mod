@@ -1,4 +1,4 @@
-module github.com/numtide/go-nix
+module github.com/nix-community/go-nix
 
 go 1.15
 

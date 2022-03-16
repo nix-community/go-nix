@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/numtide/go-nix/pkg/nar"
+	"github.com/nix-community/go-nix/pkg/nar"
 	"github.com/stretchr/testify/assert"
 )
 

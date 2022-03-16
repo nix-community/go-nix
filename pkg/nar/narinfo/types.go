@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/numtide/go-nix/pkg/hash"
+	"github.com/nix-community/go-nix/pkg/hash"
 )
 
 // NarInfo represents a parsed .narinfo file.

@@ -3,7 +3,7 @@ package nixpath_test
 import (
 	"testing"
 
-	"github.com/numtide/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/nixpath"
 	"github.com/stretchr/testify/assert"
 )
 

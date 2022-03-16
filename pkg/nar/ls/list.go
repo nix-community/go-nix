@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/numtide/go-nix/pkg/nar"
+	"github.com/nix-community/go-nix/pkg/nar"
 )
 
 // Root represents the .ls file root entry.
