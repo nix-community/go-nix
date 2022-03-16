@@ -23,6 +23,9 @@ const (
 	pathLenMax = 4096 - 1
 )
 
+// Reader implements io.ReadCloser.
+var _ io.ReadCloser = &Reader{}
+
 // Reader providers sequential access to the contents of a NAR archive.
 // Reader.Next advances to the next file in the archive (including the first),
 // and then Reader can be treated as an io.Reader to access the file's data.
@@ -67,7 +70,11 @@ func NewReader(r io.Reader) (*Reader, error) {
 	// kick off the goroutine
 	go func() {
 		// wait for the first Next() call
-		<-narReader.next
+		next := <-narReader.next
+		// immediate Close(), without ever calling Next()
+		if !next {
+			return
+		}
 
 		err := narReader.parseNode("")
 		if err != nil {
@@ -155,7 +162,10 @@ func (nr *Reader) parseNode(path string) error {
 		}
 
 		// wait for the Next() call
-		<-nr.next
+		next := <-nr.next
+		if !next {
+			return nil
+		}
 
 		// seek to the end of the bytes field - the consumer might not have read all of it
 		err = nr.contentReader.Close()
@@ -195,7 +205,10 @@ func (nr *Reader) parseNode(path string) error {
 		}
 
 		// wait for the Next() call
-		<-nr.next
+		next := <-nr.next
+		if !next {
+			return nil
+		}
 
 		// consume the next token
 		currentToken, err = wire.ReadString(nr.r, tokenLenMax)
@@ -215,7 +228,10 @@ func (nr *Reader) parseNode(path string) error {
 		}
 
 		// wait for the Next() call
-		<-nr.next
+		next := <-nr.next
+		if !next {
+			return nil
+		}
 
 		// there can be none, one or multiple `entry ( name foo node <Node> )`
 
@@ -317,6 +333,16 @@ func (nr *Reader) Next() (*Header, error) {
 // io.EOF).
 func (nr *Reader) Read(b []byte) (int, error) {
 	return nr.contentReader.Read(b)
+}
+
+// Close does all internal cleanup. It doesn't close the underlying reader (which can be any io.Reader).
+func (nr *Reader) Close() error {
+	if nr.err != io.EOF {
+		// Signal the parser there won't be any next.
+		close(nr.next)
+	}
+
+	return nil
 }
 
 // expectString reads a string field from a reader, expecting a certain result,
