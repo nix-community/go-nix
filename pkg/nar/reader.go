@@ -219,7 +219,6 @@ func (nr *Reader) parseNode(path string) error {
 
 		// there can be none, one or multiple `entry ( name foo node <Node> )`
 
-	L:
 		for {
 			// read the next token
 			currentToken, err = wire.ReadString(nr.r, tokenLenMax)
@@ -227,12 +226,8 @@ func (nr *Reader) parseNode(path string) error {
 				return err
 			}
 
-			switch currentToken {
-			case ")":
-				break L
-			case "entry":
+			if currentToken == "entry" { //nolint:nestif
 				// ( name foo node <Node> )
-
 				err = expectString(nr.r, "(")
 				if err != nil {
 					return err
@@ -270,9 +265,6 @@ func (nr *Reader) parseNode(path string) error {
 				if err != nil {
 					return err
 				}
-
-			default:
-				return fmt.Errorf("unexpected token: %v", currentToken)
 			}
 
 			if currentToken == ")" {
