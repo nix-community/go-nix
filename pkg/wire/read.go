@@ -65,16 +65,21 @@ func ReadBytes(r io.Reader) (uint64, io.ReadCloser, error) {
 	return contentLength, NewBytesReader(r, contentLength), nil
 }
 
+// ReadBytesFull reads a byte packet, and will return its content, or an error.
+// A maximum number of bytes can be specified in max.
+// In the case of a packet exceeding the maximum number of bytes,
+// the reader won't seek to the end of the packet.
 func ReadBytesFull(r io.Reader, max uint64) ([]byte, error) {
 	contentLength, rd, err := ReadBytes(r)
 	if err != nil {
 		return []byte{}, err
 	}
-	defer rd.Close()
 
 	if contentLength > max {
 		return nil, fmt.Errorf("content length of %v bytes exceeds maximum of %v bytes", contentLength, max)
 	}
+
+	defer rd.Close()
 
 	// consume content
 	buf := make([]byte, contentLength)
