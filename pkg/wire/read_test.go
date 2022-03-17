@@ -131,6 +131,13 @@ func TestReadString(t *testing.T) {
 	}
 
 	// exceeding max should error
-	_, err = wire.ReadString(bytes.NewReader(payloadFoo), 2)
+	rd := bytes.NewReader(payloadFoo)
+	_, err = wire.ReadString(rd, 2)
 	assert.Error(t, err)
+
+	// the reader should not have seeked to the end of the packet
+	buf, err := io.ReadAll(rd)
+	if assert.NoError(t, err, "reading the rest shouldn't error") {
+		assert.Equal(t, payloadFoo[8:], buf, "the reader should not have seeked to the end of the packet")
+	}
 }

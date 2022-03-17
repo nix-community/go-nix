@@ -8,8 +8,9 @@ import (
 var _ io.ReadCloser = &BytesReader{}
 
 // BytesReader implements reading from bytes fields.
-// It'll return a limited reader to the actual contents,
-// and will take care of skipping and seeking over the padding on Close.
+// It'll return a limited reader to the actual contents.
+// Closing the reader will seek to the end of the packet (including padding).
+// It's fine to not close, in case you don't want to seek to the end.
 type BytesReader struct {
 	contentLength uint64    // the total length of the field
 	lr            io.Reader // a reader limited to the actual contents of the field
@@ -36,6 +37,9 @@ func (br *BytesReader) Read(b []byte) (int, error) {
 }
 
 // Close will skip to the end and consume any remaining padding.
+// It'll return an error if the padding contains something else than null
+// bytes.
+// It's fine to not close, in case you don't want to seek to the end.
 func (br *BytesReader) Close() error {
 	// seek to the end of the limited reader
 	for {
