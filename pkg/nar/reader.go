@@ -7,7 +7,6 @@ import (
 	"math"
 	"path/filepath"
 
-	"github.com/nix-community/go-nix/pkg/nixpath"
 	"github.com/nix-community/go-nix/pkg/wire"
 )
 
@@ -260,7 +259,7 @@ func (nr *Reader) parseNode(path string) error {
 				}
 
 				// validate the name matches NameRe (no slashes etc.)
-				if !nixpath.NameRe.Match([]byte(currentToken)) {
+				if !NodeNameRegexp.MatchString(currentToken) {
 					return fmt.Errorf("name `%v` is invalid", currentToken)
 				}
 
