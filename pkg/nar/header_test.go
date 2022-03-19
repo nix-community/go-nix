@@ -63,4 +63,10 @@ func TestHeaderValidate(t *testing.T) {
 		invHeader.Executable = true
 		assert.Error(t, invHeader.Validate())
 	})
+
+	t.Run("No LinkTarget set on symlinks", func(t *testing.T) {
+		invHeader := *headerRegular
+		invHeader.Type = nar.TypeSymlink
+		assert.Error(t, invHeader.Validate())
+	})
 }
