@@ -86,6 +86,11 @@ func TestBytesWriter10Bytes(t *testing.T) {
 	err = bw.Close()
 	assert.NoError(t, err)
 
+	// closing again shouldn't panic
+	assert.NotPanics(t, func() {
+		bw.Close()
+	})
+
 	assert.Equal(t, wire10Bytes, buf.Bytes())
 }
 
