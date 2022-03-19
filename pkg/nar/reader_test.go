@@ -27,6 +27,27 @@ func TestReaderEmpty(t *testing.T) {
 	}, "closing the reader shouldn't panic")
 }
 
+func TestReaderEmptyDirectory(t *testing.T) {
+	nr, err := nar.NewReader(bytes.NewBuffer(genEmptyDirectoryNar()))
+	assert.NoError(t, err)
+
+	// get first header
+	hdr, err := nr.Next()
+	assert.NoError(t, err)
+	assert.Equal(t, &nar.Header{
+		Path: "",
+		Type: nar.TypeDirectory,
+	}, hdr)
+
+	hdr, err = nr.Next()
+	assert.Equal(t, io.EOF, err, "Next() should return io.EOF as error")
+	assert.Nil(t, hdr, "returned header should be nil")
+
+	assert.NotPanics(t, func() {
+		nr.Close()
+	}, "closing the reader shouldn't panic")
+}
+
 func TestReaderOneByteRegular(t *testing.T) {
 	nr, err := nar.NewReader(bytes.NewBuffer(genOneByteRegularNar()))
 	assert.NoError(t, err)

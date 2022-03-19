@@ -19,6 +19,25 @@ func TestWriterEmpty(t *testing.T) {
 	assert.Error(t, nw.Close())
 }
 
+func TestWriterEmptyDirectory(t *testing.T) {
+	var buf bytes.Buffer
+	nw, err := nar.NewWriter(&buf)
+	assert.NoError(t, err)
+
+	hdr := &nar.Header{
+		Path: "",
+		Type: nar.TypeDirectory,
+	}
+
+	err = nw.WriteHeader(hdr)
+	assert.NoError(t, err)
+
+	err = nw.Close()
+	assert.NoError(t, err)
+
+	assert.Equal(t, genEmptyDirectoryNar(), buf.Bytes())
+}
+
 // TestWriterOneByteRegular writes a NAR only containing a single file at the root.
 func TestWriterOneByteRegular(t *testing.T) {
 	var buf bytes.Buffer

@@ -19,6 +19,38 @@ func genEmptyNar() []byte {
 	return expectedBuf.Bytes()
 }
 
+// genEmptyDirectoryNar returns the bytes of a NAR file only containing an empty directory.
+func genEmptyDirectoryNar() []byte {
+	var expectedBuf bytes.Buffer
+
+	err := wire.WriteString(&expectedBuf, "nix-archive-1")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "(")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "type")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "directory")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, ")")
+	if err != nil {
+		panic(err)
+	}
+
+	return expectedBuf.Bytes()
+}
+
 // genOneByteRegularNar returns the bytes of a NAR only containing a single file at the root.
 func genOneByteRegularNar() []byte {
 	var expectedBuf bytes.Buffer
