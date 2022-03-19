@@ -7,7 +7,6 @@ import (
 	"math"
 	"path/filepath"
 
-	"github.com/nix-community/go-nix/pkg/nixpath"
 	"github.com/nix-community/go-nix/pkg/wire"
 )
 
@@ -260,7 +259,7 @@ func (nr *Reader) parseNode(path string) error {
 				}
 
 				// validate the name matches NameRe (no slashes etc.)
-				if !nixpath.NameRe.Match([]byte(currentToken)) {
+				if !NodeNameRegexp.MatchString(currentToken) {
 					return fmt.Errorf("name `%v` is invalid", currentToken)
 				}
 
@@ -310,19 +309,18 @@ func (nr *Reader) Next() (*Header, error) {
 	// else, resume the parser
 	nr.next <- true
 
-	var header *Header
-
 	// return either an error or headers
 	select {
-	case header = <-nr.headers:
+	case header := <-nr.headers:
+		return header, nil
 	case err := <-nr.errors:
 		if err != nil {
 			// blow fuse
 			nr.err = err
 		}
+
+		return nil, err
 	}
-	// we never reach this
-	return header, nr.err
 }
 
 // Read reads from the current file in the NAR archive. It returns (0, io.EOF)
