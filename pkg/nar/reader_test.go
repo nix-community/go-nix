@@ -1,6 +1,7 @@
 package nar_test
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"os"
@@ -10,7 +11,82 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestReader(t *testing.T) {
+func TestReaderEmpty(t *testing.T) {
+	nr, err := nar.NewReader(bytes.NewBuffer(genEmptyNar()))
+	assert.NoError(t, err)
+
+	hdr, err := nr.Next()
+	// first Next() should return an non-nil error that's != io.EOF,
+	// as an empty NAR is invalid.
+	assert.Error(t, err, "first Next() on an empty NAR should return an error")
+	assert.NotEqual(t, io.EOF, err, "first Next() on an empty NAR shouldn't return io.EOF")
+	assert.Nil(t, hdr, "returned header should be nil")
+
+	assert.NotPanics(t, func() {
+		nr.Close()
+	}, "closing the reader shouldn't panic")
+}
+
+func TestReaderOneByteRegular(t *testing.T) {
+	nr, err := nar.NewReader(bytes.NewBuffer(genOneByteRegularNar()))
+	assert.NoError(t, err)
+
+	// get first header
+	hdr, err := nr.Next()
+	assert.NoError(t, err)
+	assert.Equal(t, &nar.Header{
+		Path:       "",
+		Type:       nar.TypeRegular,
+		Size:       1,
+		Executable: false,
+	}, hdr)
+
+	// read contents
+	contents, err := ioutil.ReadAll(nr)
+	assert.NoError(t, err)
+	assert.Equal(t, []byte{0x1}, contents)
+
+	hdr, err = nr.Next()
+	assert.Equal(t, io.EOF, err, "Next() should return io.EOF as error")
+	assert.Nil(t, hdr, "returned header should be nil")
+
+	assert.NotPanics(t, func() {
+		nr.Close()
+	}, "closing the reader shouldn't panic")
+}
+
+func TestReaderSymlink(t *testing.T) {
+	nr, err := nar.NewReader(bytes.NewBuffer(genSymlinkNar()))
+	assert.NoError(t, err)
+
+	// get first header
+	hdr, err := nr.Next()
+	assert.NoError(t, err)
+	assert.Equal(t, &nar.Header{
+		Path:       "",
+		Type:       nar.TypeSymlink,
+		LinkTarget: "/nix/store/somewhereelse",
+		Size:       0,
+		Executable: false,
+	}, hdr)
+
+	// read contents should only return an empty byte slice
+	contents, err := ioutil.ReadAll(nr)
+	assert.NoError(t, err)
+	assert.Equal(t, []byte{}, contents)
+
+	hdr, err = nr.Next()
+	assert.Equal(t, io.EOF, err, "Next() should return io.EOF as error")
+	assert.Nil(t, hdr, "returned header should be nil")
+
+	assert.NotPanics(t, func() {
+		nr.Close()
+	}, "closing the reader shouldn't panic")
+}
+
+// TODO: various early close cases
+
+func TestReaderSmoketest(t *testing.T) {
 	f, err := os.Open("../../test/testdata/nar_1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar")
 	if !assert.NoError(t, err) {
 		return
