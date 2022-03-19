@@ -36,9 +36,7 @@ func validateNode(node *Node) error {
 		// Regular files and directories may not have LinkTarget set.
 		if node.Type == nar.TypeRegular || node.Type == nar.TypeDirectory {
 			if node.LinkTarget != "" {
-				if node.LinkTarget != "" {
-					return fmt.Errorf("type is %v, but LinkTarget is not empty", node.Type.String())
-				}
+				return fmt.Errorf("type is %v, but LinkTarget is not empty", node.Type.String())
 			}
 		}
 
