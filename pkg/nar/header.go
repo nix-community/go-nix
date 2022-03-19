@@ -35,9 +35,7 @@ func (h *Header) Validate() error {
 	// Regular files and directories may not have LinkTarget set.
 	if h.Type == TypeRegular || h.Type == TypeDirectory {
 		if h.LinkTarget != "" {
-			if h.LinkTarget != "" {
-				return fmt.Errorf("type is %v, but LinkTarget is not empty", h.Type.String())
-			}
+			return fmt.Errorf("type is %v, but LinkTarget is not empty", h.Type.String())
 		}
 	}
 
