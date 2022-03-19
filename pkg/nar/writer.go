@@ -287,6 +287,10 @@ func (nw *Writer) emitNode(currentHeader *Header) (*Header, error) {
 // the current file is not fully written, then this returns an error. This
 // implicitly flushes any padding necessary before writing the header.
 func (nw *Writer) WriteHeader(hdr *Header) error {
+	if err := hdr.Validate(); err != nil {
+		return fmt.Errorf("unable to write header: %w", err)
+	}
+
 	nw.headers <- hdr
 	select {
 	case err := <-nw.errors:

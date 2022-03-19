@@ -311,8 +311,8 @@ func (nr *Reader) Next() (*Header, error) {
 
 	// return either an error or headers
 	select {
-	case header := <-nr.headers:
-		return header, nil
+	case hdr := <-nr.headers:
+		return hdr, nil
 	case err := <-nr.errors:
 		if err != nil {
 			// blow fuse
