@@ -19,7 +19,7 @@ type Node struct {
 	Type       nar.NodeType    `json:"type"`
 	Entries    map[string]Node `json:"entries"`
 	Size       int64           `json:"size"`
-	Target     string          `json:"target"`
+	LinkTarget string          `json:"target"`
 	Executable bool            `json:"executable"`
 	NAROffset  int64           `json:"narOffset"`
 }
