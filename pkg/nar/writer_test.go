@@ -109,9 +109,13 @@ func TestWriterSmoketest(t *testing.T) {
 	contents := [][]byte{}
 
 	for {
-		hdr, e := nr.Next()
-		if e == io.EOF {
-			break
+		hdr, err := nr.Next()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+
+			panic("unexpected error while reading in file")
 		}
 
 		headers = append(headers, hdr)

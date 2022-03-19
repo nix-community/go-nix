@@ -258,8 +258,8 @@ func (nr *Reader) parseNode(path string) error {
 					return err
 				}
 
-				// validate the name matches NameRe (no slashes etc.)
-				if !NodeNameRegexp.MatchString(currentToken) {
+				// ensure the name is valid
+				if !IsValidNodeName(currentToken) {
 					return fmt.Errorf("name `%v` is invalid", currentToken)
 				}
 
@@ -311,8 +311,8 @@ func (nr *Reader) Next() (*Header, error) {
 
 	// return either an error or headers
 	select {
-	case header := <-nr.headers:
-		return header, nil
+	case hdr := <-nr.headers:
+		return hdr, nil
 	case err := <-nr.errors:
 		if err != nil {
 			// blow fuse
