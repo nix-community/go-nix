@@ -309,19 +309,18 @@ func (nr *Reader) Next() (*Header, error) {
 	// else, resume the parser
 	nr.next <- true
 
-	var header *Header
-
 	// return either an error or headers
 	select {
-	case header = <-nr.headers:
+	case header := <-nr.headers:
+		return header, nil
 	case err := <-nr.errors:
 		if err != nil {
 			// blow fuse
 			nr.err = err
 		}
+
+		return nil, err
 	}
-	// we never reach this
-	return header, nr.err
 }
 
 // Read reads from the current file in the NAR archive. It returns (0, io.EOF)
