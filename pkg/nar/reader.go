@@ -258,8 +258,8 @@ func (nr *Reader) parseNode(path string) error {
 					return err
 				}
 
-				// validate the name matches NameRe (no slashes etc.)
-				if !NodeNameRegexp.MatchString(currentToken) {
+				// ensure the name is valid
+				if !isValidNodeName(currentToken) {
 					return fmt.Errorf("name `%v` is invalid", currentToken)
 				}
 

@@ -206,7 +206,8 @@ func (nw *Writer) emitNode(currentHeader *Header) (*Header, error) {
 			)
 		}
 
-		// calculate the relative path between the previous and now-read header
+		// calculate the relative path between the previous and now-read header,
+		// which will become the new node name.
 		nodeName, err := filepath.Rel(currentHeader.Path, nextHeader.Path)
 		if err != nil {
 			return nil, err
@@ -230,10 +231,10 @@ func (nw *Writer) emitNode(currentHeader *Header) (*Header, error) {
 			return nil, fmt.Errorf("received descending path %v, but we're a %v", nextHeader.Path, currentHeader.Type.String())
 		}
 
-		// Each directory needs to be its own node,
-		// so no slashes in the nodeName / relative path allowed.
-		if !NodeNameRegexp.MatchString(nodeName) {
-			return nil, fmt.Errorf("name %v is invalid", nodeName)
+		// ensure the name is valid. At this point, there should be no more slashes,
+		// as we already recursed up.
+		if !isValidNodeName(nodeName) {
+			return nil, fmt.Errorf("name `%v` is invalid, as it contains a slash", nodeName)
 		}
 
 		// write the entry keyword
