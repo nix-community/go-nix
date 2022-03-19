@@ -40,10 +40,10 @@ func TestLS(t *testing.T) {
 		Version: 1,
 		Root: ls.Node{
 			Type: nar.TypeDirectory,
-			Entries: map[string]ls.Node{
+			Entries: map[string]*ls.Node{
 				"bin": {
 					Type: nar.TypeDirectory,
-					Entries: map[string]ls.Node{
+					Entries: map[string]*ls.Node{
 						"curl": {
 							Type:       nar.TypeRegular,
 							Size:       182520,

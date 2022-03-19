@@ -16,12 +16,12 @@ type Root struct {
 
 // Node represents one of the entries in a .ls file.
 type Node struct {
-	Type       nar.NodeType    `json:"type"`
-	Entries    map[string]Node `json:"entries"`
-	Size       int64           `json:"size"`
-	LinkTarget string          `json:"target"`
-	Executable bool            `json:"executable"`
-	NAROffset  int64           `json:"narOffset"`
+	Type       nar.NodeType     `json:"type"`
+	Entries    map[string]*Node `json:"entries"`
+	Size       int64            `json:"size"`
+	LinkTarget string           `json:"target"`
+	Executable bool             `json:"executable"`
+	NAROffset  int64            `json:"narOffset"`
 }
 
 // validateNode runs some consistency checks on a node and all its child
@@ -54,7 +54,7 @@ func validateNode(node *Node) error {
 		}
 
 		// verify children
-		err := validateNode(&v)
+		err := validateNode(v)
 		if err != nil {
 			return err
 		}
