@@ -50,6 +50,13 @@ func (h *Header) Validate() error {
 		}
 	}
 
+	// Symlinks need to specify a target.
+	if h.Type == TypeSymlink {
+		if h.LinkTarget == "" {
+			return fmt.Errorf("type is symlink, but LinkTarget is empty")
+		}
+	}
+
 	return nil
 }
 
