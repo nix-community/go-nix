@@ -233,7 +233,7 @@ func (nw *Writer) emitNode(currentHeader *Header) (*Header, error) {
 
 		// ensure the name is valid. At this point, there should be no more slashes,
 		// as we already recursed up.
-		if !isValidNodeName(nodeName) {
+		if !IsValidNodeName(nodeName) {
 			return nil, fmt.Errorf("name `%v` is invalid, as it contains a slash", nodeName)
 		}
 

@@ -2,8 +2,8 @@ package nar
 
 import "strings"
 
-// isValidNodeName checks the name of a node
+// IsValidNodeName checks the name of a node
 // it may not contain null bytes or slashes.
-func isValidNodeName(nodeName string) bool {
+func IsValidNodeName(nodeName string) bool {
 	return !strings.Contains(nodeName, "/") && !strings.ContainsAny(nodeName, "\u0000")
 }

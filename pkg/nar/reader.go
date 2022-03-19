@@ -259,7 +259,7 @@ func (nr *Reader) parseNode(path string) error {
 				}
 
 				// ensure the name is valid
-				if !isValidNodeName(currentToken) {
+				if !IsValidNodeName(currentToken) {
 					return fmt.Errorf("name `%v` is invalid", currentToken)
 				}
 
