@@ -51,6 +51,13 @@ func validateNode(node *Node) error {
 			}
 		}
 
+		// Symlinks need to specify a target.
+		if node.Type == nar.TypeSymlink {
+			if node.LinkTarget == "" {
+				return fmt.Errorf("type is symlink, but LinkTarget is empty")
+			}
+		}
+
 		// verify children
 		err := validateNode(v)
 		if err != nil {
