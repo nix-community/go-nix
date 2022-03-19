@@ -38,7 +38,7 @@ func ParseLS(r io.Reader) (*Root, error) {
 	}
 
 	if root.Version != 1 {
-		return nil, fmt.Errorf("invalide version %d", root.Version)
+		return nil, fmt.Errorf("invalid version %d", root.Version)
 	}
 
 	return &root, err
