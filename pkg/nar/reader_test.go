@@ -16,11 +16,11 @@ func TestReader(t *testing.T) {
 		return
 	}
 
-	p, err := nar.NewReader(f)
+	nr, err := nar.NewReader(f)
 	assert.NoError(t, err, "instantiating the NAR Reader shouldn't error")
 
 	// check premature reading doesn't do any harm
-	n, err := p.Read(make([]byte, 1000))
+	n, err := nr.Read(make([]byte, 1000))
 	assert.Equal(t, 0, n)
 	assert.Equal(t, io.EOF, err)
 
@@ -199,7 +199,7 @@ func TestReader(t *testing.T) {
 	}
 
 	for i, expectH := range headers {
-		hdr, e := p.Next()
+		hdr, e := nr.Next()
 		if !assert.NoError(t, e, i) {
 			return
 		}
@@ -214,7 +214,7 @@ func TestReader(t *testing.T) {
 			expectedContents, err := ioutil.ReadAll(f)
 			assert.NoError(t, err)
 
-			actualContents, err := ioutil.ReadAll(p)
+			actualContents, err := ioutil.ReadAll(nr)
 			if assert.NoError(t, err) {
 				assert.Equal(t, expectedContents, actualContents)
 			}
@@ -224,7 +224,7 @@ func TestReader(t *testing.T) {
 		// we pick examples that previously returned a regular file, so there might
 		// previously have been a reader pointing to something.
 		if hdr.Path == "bin/dnsdomainname" || hdr.Path == "share/man/man5" {
-			actualContents, err := ioutil.ReadAll(p)
+			actualContents, err := ioutil.ReadAll(nr)
 			if assert.NoError(t, err) {
 				assert.Equal(t, []byte{}, actualContents)
 			}
@@ -233,13 +233,13 @@ func TestReader(t *testing.T) {
 		assert.Equal(t, expectH, *hdr)
 	}
 
-	hdr, err := p.Next()
+	hdr, err := nr.Next()
 	// expect to return io.EOF at the end, and no more headers
 	assert.Nil(t, hdr)
 	assert.Equal(t, io.EOF, err)
 
-	assert.NoError(t, p.Close(), nil, "closing the reader shouldn't error")
+	assert.NoError(t, nr.Close(), nil, "closing the reader shouldn't error")
 	assert.NotPanics(t, func() {
-		_ = p.Close()
+		_ = nr.Close()
 	}, "closing the reader multiple times shouldn't panic")
 }
