@@ -20,7 +20,8 @@ Methods to serialize and deserialize some of the hashes used in nix code and
 
 ## `pkg/nar`
 A Nix ARchive (NAR) file Reader and Writer, with an interface similar to
-`archive/tar` from the stdlib
+`archive/tar` from the stdlib, as well as a `DumpPath` method, which
+will assemble a NAR representation of a local file system path.
 
 ## `pkg/nar/ls`
 A parser for .ls files (providing an index for .nar files)
