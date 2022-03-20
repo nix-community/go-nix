@@ -4,6 +4,13 @@
 
 This repository holds a bunch of experiments written in Go.
 
+## `cmd/gonix`
+A command line entrypoint called `gonix`, currently implementing the nar
+{cat,dump-path,ls} commands.
+
+They're not meant to be 100% compatible, but are documented in the `--help`
+output.
+
 ## `pkg/derivation`
 A parser for Nix `.drv` files
 
