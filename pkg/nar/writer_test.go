@@ -29,7 +29,7 @@ func TestWriterEmptyDirectory(t *testing.T) {
 	assert.NoError(t, err)
 
 	hdr := &nar.Header{
-		Path: "",
+		Path: "/",
 		Type: nar.TypeDirectory,
 	}
 
@@ -53,7 +53,7 @@ func TestWriterOneByteRegular(t *testing.T) {
 	assert.NoError(t, err)
 
 	hdr := nar.Header{
-		Path:       "",
+		Path:       "/",
 		Type:       nar.TypeRegular,
 		Size:       1,
 		Executable: false,
@@ -79,7 +79,7 @@ func TestWriterSymlink(t *testing.T) {
 	assert.NoError(t, err)
 
 	hdr := nar.Header{
-		Path:       "",
+		Path:       "/",
 		Type:       nar.TypeSymlink,
 		LinkTarget: "/nix/store/somewhereelse",
 		Size:       0,
@@ -167,14 +167,14 @@ func TestWriterErrorsTransitions(t *testing.T) {
 
 		// write a directory node
 		err = nw.WriteHeader(&nar.Header{
-			Path: "",
+			Path: "/",
 			Type: nar.TypeDirectory,
 		})
 		assert.NoError(t, err)
 
 		// write a symlink "a/foo", but missing the directory node "a" in between should error
 		err = nw.WriteHeader(&nar.Header{
-			Path:       "a/foo",
+			Path:       "/a/foo",
 			Type:       nar.TypeSymlink,
 			LinkTarget: "doesntmatter",
 		})
@@ -186,9 +186,9 @@ func TestWriterErrorsTransitions(t *testing.T) {
 		nw, err := nar.NewWriter(&buf)
 		assert.NoError(t, err)
 
-		// write a directory node for "a" without writing the one for ""
+		// write a directory node for "/a" without writing the one for "/"
 		err = nw.WriteHeader(&nar.Header{
-			Path: "a",
+			Path: "/a",
 			Type: nar.TypeDirectory,
 		})
 		assert.Error(t, err)
@@ -201,7 +201,7 @@ func TestWriterErrorsTransitions(t *testing.T) {
 
 		// write a symlink for "a" without writing the directory one for ""
 		err = nw.WriteHeader(&nar.Header{
-			Path:       "a",
+			Path:       "/a",
 			Type:       nar.TypeSymlink,
 			LinkTarget: "foo",
 		})
@@ -215,22 +215,22 @@ func TestWriterErrorsTransitions(t *testing.T) {
 
 		// write a directory node
 		err = nw.WriteHeader(&nar.Header{
-			Path: "",
+			Path: "/",
 			Type: nar.TypeDirectory,
 		})
 		assert.NoError(t, err)
 
-		// write a symlink node for "a"
+		// write a symlink node for "/a"
 		err = nw.WriteHeader(&nar.Header{
-			Path:       "a",
+			Path:       "/a",
 			Type:       nar.TypeSymlink,
 			LinkTarget: "doesntmatter",
 		})
 		assert.NoError(t, err)
 
-		// write a symlink "a/b", which should fail, as a was a symlink, not directory
+		// write a symlink "/a/b", which should fail, as a was a symlink, not directory
 		err = nw.WriteHeader(&nar.Header{
-			Path:       "a/b",
+			Path:       "/a/b",
 			Type:       nar.TypeSymlink,
 			LinkTarget: "doesntmatter",
 		})
@@ -244,22 +244,22 @@ func TestWriterErrorsTransitions(t *testing.T) {
 
 		// write a directory node
 		err = nw.WriteHeader(&nar.Header{
-			Path: "",
+			Path: "/",
 			Type: nar.TypeDirectory,
 		})
 		assert.NoError(t, err)
 
-		// write a symlink for "b"
+		// write a symlink for "/b"
 		err = nw.WriteHeader(&nar.Header{
-			Path:       "b",
+			Path:       "/b",
 			Type:       nar.TypeSymlink,
 			LinkTarget: "foo",
 		})
 		assert.NoError(t, err)
 
-		// write a symlink for "a"
+		// write a symlink for "/a"
 		err = nw.WriteHeader(&nar.Header{
-			Path:       "a",
+			Path:       "/a",
 			Type:       nar.TypeSymlink,
 			LinkTarget: "foo",
 		})
@@ -273,22 +273,22 @@ func TestWriterErrorsTransitions(t *testing.T) {
 
 		// write a directory node
 		err = nw.WriteHeader(&nar.Header{
-			Path: "",
+			Path: "/",
 			Type: nar.TypeDirectory,
 		})
 		assert.NoError(t, err)
 
-		// write a symlink for "a"
+		// write a symlink for "/a"
 		err = nw.WriteHeader(&nar.Header{
-			Path:       "a",
+			Path:       "/a",
 			Type:       nar.TypeSymlink,
 			LinkTarget: "foo",
 		})
 		assert.NoError(t, err)
 
-		// write a symlink for "a"
+		// write a symlink for "/a"
 		err = nw.WriteHeader(&nar.Header{
-			Path:       "a",
+			Path:       "/a",
 			Type:       nar.TypeSymlink,
 			LinkTarget: "foo",
 		})

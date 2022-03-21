@@ -61,9 +61,9 @@ func NewWriter(w io.Writer) (*Writer, error) {
 			return
 		}
 
-		// ensure the first item received always has an empty path.
-		if header.Path != "" {
-			narWriter.errors <- fmt.Errorf("first header always needs to have an empty path")
+		// ensure the first item received always has a "/" as path.
+		if header.Path != "/" {
+			narWriter.errors <- fmt.Errorf("first header always needs to have a / as path")
 			close(narWriter.errors)
 
 			return

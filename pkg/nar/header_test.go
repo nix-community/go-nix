@@ -9,7 +9,7 @@ import (
 
 func TestHeaderValidate(t *testing.T) {
 	headerRegular := &nar.Header{
-		Path:       "foo/bar",
+		Path:       "/foo/bar",
 		Type:       nar.TypeRegular,
 		LinkTarget: "",
 		Size:       0,
@@ -23,10 +23,10 @@ func TestHeaderValidate(t *testing.T) {
 
 	t.Run("invalid path", func(t *testing.T) {
 		invHeader := *headerRegular
-		invHeader.Path = "/foo/bar"
+		invHeader.Path = "foo/bar"
 		assert.Error(t, invHeader.Validate())
 
-		invHeader.Path = "foo/bar\000/"
+		invHeader.Path = "/foo/bar\000/"
 		assert.Error(t, invHeader.Validate())
 	})
 

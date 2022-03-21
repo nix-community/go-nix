@@ -22,15 +22,13 @@ type Header struct {
 // checking for valid paths and inconsistent fields, and returns an error if it
 // fails validation.
 func (h *Header) Validate() error {
-	// Path may not start with a /, and may not contain null bytes
-	if len(h.Path) > 1 {
-		if h.Path[:1] == "/" {
-			return fmt.Errorf("path %v starts with a /", h.Path)
-		}
+	// Path needs to start with a /, and must not contain null bytes
+	if len(h.Path) < 1 || h.Path[0:1] != "/" {
+		return fmt.Errorf("path must start with a /")
+	}
 
-		if strings.ContainsAny(h.Path, "\u0000") {
-			return fmt.Errorf("path contains null bytes")
-		}
+	if strings.ContainsAny(h.Path, "\u0000") {
+		return fmt.Errorf("path may not contain null bytes")
 	}
 
 	// Regular files and directories may not have LinkTarget set.

@@ -75,7 +75,7 @@ func NewReader(r io.Reader) (*Reader, error) {
 			return
 		}
 
-		err := narReader.parseNode("")
+		err := narReader.parseNode("/")
 		if err != nil {
 			narReader.errors <- err
 		} else {
