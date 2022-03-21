@@ -2,8 +2,9 @@ package nar
 
 import (
 	"fmt"
-	"os"
+	"io/fs"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -60,8 +61,8 @@ func (h *Header) Validate() error {
 	return nil
 }
 
-// FileInfo returns an os.FileInfo for the Header.
-func (h *Header) FileInfo() os.FileInfo {
+// FileInfo returns an fs.FileInfo for the Header.
+func (h *Header) FileInfo() fs.FileInfo {
 	return headerFileInfo{h}
 }
 
@@ -78,19 +79,21 @@ func (fi headerFileInfo) Sys() interface{}   { return fi.h }
 // Will be an empty string, if this describes the root of a NAR.
 func (fi headerFileInfo) Name() string { return fi.h.Path }
 
-func (fi headerFileInfo) Mode() (mode os.FileMode) {
-	if fi.h.Executable || fi.h.Type == TypeDirectory {
-		mode = 0o755
-	} else {
-		mode = 0o644
-	}
+func (fi headerFileInfo) Mode() fs.FileMode {
+	// everything in the nix store is readable by user, group and other.
+	var mode fs.FileMode
 
 	switch fi.h.Type {
-	case TypeDirectory:
-		mode |= os.ModeDir
-	case TypeSymlink:
-		mode |= os.ModeSymlink
 	case TypeRegular:
+		mode = syscall.S_IRUSR | syscall.S_IRGRP | syscall.S_IROTH
+		if fi.h.Executable {
+			mode |= (syscall.S_IXUSR | syscall.S_IXGRP | syscall.S_IXOTH)
+		}
+	case TypeDirectory:
+		mode = syscall.S_IRUSR | syscall.S_IRGRP | syscall.S_IROTH
+		mode |= (syscall.S_IXUSR | syscall.S_IXGRP | syscall.S_IXOTH)
+	case TypeSymlink:
+		mode = fs.ModePerm | fs.ModeSymlink
 	}
 
 	return mode

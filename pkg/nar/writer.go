@@ -22,6 +22,9 @@ type Writer struct {
 	doneWritingHeader chan interface{} // goroutine is done writing that header, WriteHeader() can return.
 	errors            chan error       // there were errors while writing
 
+	// whether we closed
+	closed bool
+
 	// this is used to send new headers to write to the emitter
 	headers chan *Header
 }
@@ -39,6 +42,8 @@ func NewWriter(w io.Writer) (*Writer, error) {
 
 		doneWritingHeader: make(chan interface{}),
 		errors:            make(chan error),
+
+		closed: false,
 
 		headers: make(chan *Header),
 	}
@@ -316,8 +321,14 @@ func (nw *Writer) Write(b []byte) (int, error) {
 // If the current file (from a prior call to WriteHeader) is not fully
 // written, then this returns an error.
 func (nw *Writer) Close() error {
+	if nw.closed {
+		return fmt.Errorf("already closed")
+	}
+
 	// signal the emitter this was the last one
 	close(nw.headers)
+
+	nw.closed = true
 
 	// wait for it to signal its done (by closing errors)
 	return <-nw.errors
