@@ -20,7 +20,7 @@ func DumpPath(w io.Writer, path string) error {
 	// make sure the NAR writer is always closed, so the underlying goroutine is stopped
 	defer nw.Close()
 
-	err = dumpPath(nw, path, "")
+	err = dumpPath(nw, path, "/")
 	if err != nil {
 		return err
 	}

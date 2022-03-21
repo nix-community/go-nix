@@ -111,7 +111,7 @@ func TestDumpPathRecursion(t *testing.T) {
 		hdr, err := nr.Next()
 		assert.NoError(t, err)
 		assert.Equal(t, &nar.Header{
-			Path: "",
+			Path: "/",
 			Type: nar.TypeDirectory,
 		}, hdr)
 
@@ -119,7 +119,7 @@ func TestDumpPathRecursion(t *testing.T) {
 		hdr, err = nr.Next()
 		assert.NoError(t, err)
 		assert.Equal(t, &nar.Header{
-			Path: "a",
+			Path: "/a",
 			Type: nar.TypeRegular,
 			Size: 1,
 		}, hdr)
