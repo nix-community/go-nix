@@ -17,6 +17,10 @@ func TestWriterEmpty(t *testing.T) {
 
 	// calling close on an empty NAR is an error, as it'd be invalid.
 	assert.Error(t, nw.Close())
+
+	assert.NotPanics(t, func() {
+		nw.Close()
+	}, "closing a second time, after the first one failed shouldn't panic")
 }
 
 func TestWriterEmptyDirectory(t *testing.T) {
@@ -36,6 +40,10 @@ func TestWriterEmptyDirectory(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, genEmptyDirectoryNar(), buf.Bytes())
+
+	assert.NotPanics(t, func() {
+		nw.Close()
+	}, "closing a second time shouldn't panic")
 }
 
 // TestWriterOneByteRegular writes a NAR only containing a single file at the root.
