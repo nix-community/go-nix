@@ -11,7 +11,7 @@ import (
 
 type CatCmd struct {
 	Nar  string `kong:"arg,type='existingfile',help='Path to the NAR'"`
-	Path string `kong:"arg,type='string',help='Path inside the NAR, without leading slash'"`
+	Path string `kong:"arg,type='string',help='Path inside the NAR, starting with \"/\".'"`
 }
 
 func (cmd *CatCmd) Run() error {

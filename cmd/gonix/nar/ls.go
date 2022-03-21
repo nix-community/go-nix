@@ -11,7 +11,7 @@ import (
 
 type LsCmd struct {
 	Nar       string `kong:"arg,type:'existingfile',help='Path to the NAR'"`
-	Path      string `kong:"arg,optional,type='string',default='',help='Path inside the NAR, without leading slash'"`
+	Path      string `kong:"arg,optional,type='string',default='/',help='Path inside the NAR. Defaults to \"/\".'"`
 	Recursive bool   `kong:"short='R',help='Whether to list recursively, or only the current level.'"`
 }
 
@@ -22,13 +22,7 @@ func headerLineString(hdr *nar.Header) string {
 
 	sb.WriteString(hdr.FileInfo().Mode().String())
 	sb.WriteString(" ")
-
-	// write name. In case of an empty path, write a "."
-	if hdr.Path == "" {
-		sb.WriteString(".")
-	} else {
-		sb.WriteString(hdr.Path)
-	}
+	sb.WriteString(hdr.Path)
 
 	// if regular file, show size in parantheses. We don't bother about aligning it nicely,
 	// as that'd require reading in all headers first before printing them out.
