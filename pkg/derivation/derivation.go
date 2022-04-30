@@ -22,20 +22,20 @@ type Derivation struct {
 
 // WriteDerivation writes the textual representation of the derivation to the passed writer.
 func (d *Derivation) WriteDerivation(writer io.Writer) error {
-	outputs := make([]string, len(d.Outputs))
+	outputs := make([][]byte, len(d.Outputs))
 	for i, o := range d.Outputs {
-		outputs[i] = encodeArray('(', ')', true, o.Content, o.Path, o.HashAlgorithm, o.Hash)
+		outputs[i] = encodeArray('(', ')', true, []byte(o.Content), []byte(o.Path), []byte(o.HashAlgorithm), []byte(o.Hash))
 	}
 
-	inputDerivations := make([]string, len(d.InputDerivations))
+	inputDerivations := make([][]byte, len(d.InputDerivations))
 	{
 		for i, in := range d.InputDerivations {
-			names := encodeArray('[', ']', true, in.Name...)
+			names := encodeArray('[', ']', true, stringsToBytes(in.Name)...)
 			inputDerivations[i] = encodeArray('(', ')', false, quoteString(in.Path), names)
 		}
 	}
 
-	envVars := make([]string, len(d.EnvVars))
+	envVars := make([][]byte, len(d.EnvVars))
 	{
 		for i, e := range d.EnvVars {
 			envVars[i] = encodeArray('(', ')', false, escapeString(e.Key), escapeString(e.Value))
@@ -48,16 +48,14 @@ func (d *Derivation) WriteDerivation(writer io.Writer) error {
 	}
 
 	_, err = writer.Write(
-		[]byte(
-			encodeArray('(', ')', false,
-				encodeArray('[', ']', false, outputs...),
-				encodeArray('[', ']', false, inputDerivations...),
-				encodeArray('[', ']', true, d.InputSources...),
-				escapeString(d.Platform),
-				escapeString(d.Builder),
-				encodeArray('[', ']', true, d.Arguments...),
-				encodeArray('[', ']', false, envVars...),
-			),
+		encodeArray('(', ')', false,
+			encodeArray('[', ']', false, outputs...),
+			encodeArray('[', ']', false, inputDerivations...),
+			encodeArray('[', ']', true, stringsToBytes(d.InputSources)...),
+			escapeString(d.Platform),
+			escapeString(d.Builder),
+			encodeArray('[', ']', true, stringsToBytes(d.Arguments)...),
+			encodeArray('[', ']', false, envVars...),
 		),
 	)
 

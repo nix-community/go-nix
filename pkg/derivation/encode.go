@@ -1,6 +1,7 @@
 package derivation
 
 import (
+	"bytes"
 	"strings"
 )
 
@@ -15,7 +16,7 @@ var stringEscaper = strings.NewReplacer(
 
 // Escapes user provided values such as derivation attributes.
 // These may contain special characters such as newlines, tabs, backslashes and so on.
-func escapeString(s string) string {
+func escapeString(s string) []byte {
 	s = stringEscaper.Replace(s)
 
 	return quoteString(s)
@@ -23,7 +24,7 @@ func escapeString(s string) string {
 
 // Adds quotation marks around a string.
 // This is primarily meant for non-user provided strings.
-func quoteString(s string) string {
+func quoteString(s string) []byte {
 	buf := make([]byte, len(s)+2)
 
 	buf[0] = '"'
@@ -34,13 +35,24 @@ func quoteString(s string) string {
 
 	buf[len(s)+1] = '"'
 
-	return string(buf)
+	return buf
+}
+
+// Convert a slice of strings to a slice of byte slices.
+func stringsToBytes(elems []string) [][]byte {
+	b := make([][]byte, len(elems))
+
+	for i, s := range elems {
+		b[i] = []byte(s)
+	}
+
+	return b
 }
 
 // Encode a list of elements staring with `opening` character and ending with a `closing` character.
-func encodeArray(opening byte, closing byte, quote bool, elems ...string) string {
+func encodeArray(opening byte, closing byte, quote bool, elems ...[]byte) []byte {
 	if len(elems) == 0 {
-		return string([]byte{opening, closing})
+		return []byte{opening, closing}
 	}
 
 	n := 3 * (len(elems) - 1)
@@ -52,31 +64,31 @@ func encodeArray(opening byte, closing byte, quote bool, elems ...string) string
 		n += len(elems[i])
 	}
 
-	var b strings.Builder
+	var buf bytes.Buffer
 
-	b.Grow(n)
-	b.WriteByte(opening)
+	buf.Grow(n)
+	buf.WriteByte(opening)
 
-	writeElem := func(s string) {
+	writeElem := func(b []byte) {
 		if quote {
-			b.WriteByte('"')
+			buf.WriteByte('"')
 		}
 
-		b.WriteString(s)
+		buf.Write(b)
 
 		if quote {
-			b.WriteByte('"')
+			buf.WriteByte('"')
 		}
 	}
 
 	writeElem(elems[0])
 
 	for _, s := range elems[1:] {
-		b.WriteByte(',')
+		buf.WriteByte(',')
 		writeElem(s)
 	}
 
-	b.WriteByte(closing)
+	buf.WriteByte(closing)
 
-	return b.String()
+	return buf.Bytes()
 }
