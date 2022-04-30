@@ -37,23 +37,21 @@ type Env struct {
 	Value string `parser:"(@String|@NixPath)? ')'"`
 }
 
-func ReadDerivation(reader io.Reader) (*Derivation, error) {
-	drv := Derivation{}
-	iniLexer := lexer.MustSimple([]lexer.Rule{
+// nolint:gochecknoglobals
+var parser = participle.MustBuild(&Derivation{},
+	participle.Lexer(lexer.MustSimple([]lexer.Rule{
 		{Name: `NixPath`, Pattern: fmt.Sprintf(`"/nix/store/%v"`, nixpath.NameRe.String())},
 		{Name: `DerivationPrefix`, Pattern: `^Derive\(`},
 		{Name: `String`, Pattern: `"(?:\\.|[^"])*"`},
 		{Name: `Delim`, Pattern: `[,()\[\]]`},
 		{Name: "Whitespace", Pattern: `[ \t\n\r]+`},
-	})
+	})),
+	participle.Elide("Whitespace", "DerivationPrefix"),
+	participle.Unquote("NixPath", "String"),
+)
 
-	parser := participle.MustBuild(&Derivation{},
-		participle.Lexer(iniLexer),
-		participle.Elide("Whitespace", "DerivationPrefix"),
-		participle.Unquote("NixPath", "String"),
-	)
+func ReadDerivation(reader io.Reader) (*Derivation, error) {
+	drv := &Derivation{}
 
-	err := parser.Parse("", reader, &drv)
-
-	return &drv, err
+	return drv, parser.Parse("", reader, drv)
 }
