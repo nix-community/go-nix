@@ -3,7 +3,6 @@ package derivation
 import (
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
@@ -21,7 +20,8 @@ type Derivation struct {
 	EnvVars          []Env             `json:"env" parser:"'[' ((@@ ','?)* (@@)? )']'')'"`
 }
 
-func (d *Derivation) String() string {
+// WriteDerivation writes the textual representation of the derivation to the passed writer.
+func (d *Derivation) WriteDerivation(writer io.Writer) error {
 	outputs := make([]string, len(d.Outputs))
 	for i, o := range d.Outputs {
 		outputs[i] = encodeArray('(', ')', true, o.Content, o.Path, o.HashAlgorithm, o.Hash)
@@ -42,22 +42,26 @@ func (d *Derivation) String() string {
 		}
 	}
 
-	var sb strings.Builder
+	_, err := writer.Write([]byte("Derive"))
+	if err != nil {
+		return err
+	}
 
-	sb.WriteString("Derive")
-	sb.WriteString(
-		encodeArray('(', ')', false,
-			encodeArray('[', ']', false, outputs...),
-			encodeArray('[', ']', false, inputDerivations...),
-			encodeArray('[', ']', true, d.InputSources...),
-			escapeString(d.Platform),
-			escapeString(d.Builder),
-			encodeArray('[', ']', true, d.Arguments...),
-			encodeArray('[', ']', false, envVars...),
+	_, err = writer.Write(
+		[]byte(
+			encodeArray('(', ')', false,
+				encodeArray('[', ']', false, outputs...),
+				encodeArray('[', ']', false, inputDerivations...),
+				encodeArray('[', ']', true, d.InputSources...),
+				escapeString(d.Platform),
+				escapeString(d.Builder),
+				encodeArray('[', ']', true, d.Arguments...),
+				encodeArray('[', ']', false, envVars...),
+			),
 		),
 	)
 
-	return sb.String()
+	return err
 }
 
 type Output struct {

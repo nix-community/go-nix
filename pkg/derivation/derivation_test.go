@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/derivation"
@@ -122,7 +123,7 @@ func TestEncoder(t *testing.T) {
 		},
 	}
 
-	t.Run("EncodeDerivations", func(t *testing.T) {
+	t.Run("WriteDerivation", func(t *testing.T) {
 		for _, c := range cases {
 			t.Run(c.Title, func(t *testing.T) {
 				derivationFile, err := os.Open("../../test/testdata/" + c.DerivationFile)
@@ -140,7 +141,13 @@ func TestEncoder(t *testing.T) {
 					panic(err)
 				}
 
-				assert.Equal(t, drv.String(), string(derivationBytes))
+				var sb strings.Builder
+				err = drv.WriteDerivation(&sb)
+				if err != nil {
+					panic(err)
+				}
+
+				assert.Equal(t, sb.String(), string(derivationBytes))
 			})
 		}
 	})
