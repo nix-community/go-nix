@@ -1,7 +1,10 @@
 package derivation_test
 
 import (
+	"bytes"
+	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/derivation"
@@ -100,6 +103,51 @@ func TestParser(t *testing.T) {
 				assert.Equal(t, &drv.Outputs[0], c.Output)
 				assert.Equal(t, drv.Builder, c.Builder)
 				assert.Equal(t, drv.EnvVars, c.EnvVars)
+			})
+		}
+	})
+}
+
+func TestEncoder(t *testing.T) {
+	cases := []struct {
+		Title          string
+		DerivationFile string
+	}{
+		{
+			Title:          "Basic",
+			DerivationFile: "m5j1yp47lw1psd9n6bzina1167abbprr-bash44-023.drv",
+		},
+		{
+			Title:          "Complex",
+			DerivationFile: "cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv",
+		},
+	}
+
+	t.Run("WriteDerivation", func(t *testing.T) {
+		for _, c := range cases {
+			t.Run(c.Title, func(t *testing.T) {
+				derivationFile, err := os.Open("../../test/testdata/" + c.DerivationFile)
+				if err != nil {
+					panic(err)
+				}
+
+				derivationBytes, err := io.ReadAll(derivationFile)
+				if err != nil {
+					panic(err)
+				}
+
+				drv, err := derivation.ReadDerivation(bytes.NewReader(derivationBytes))
+				if err != nil {
+					panic(err)
+				}
+
+				var sb strings.Builder
+				err = drv.WriteDerivation(&sb)
+				if err != nil {
+					panic(err)
+				}
+
+				assert.Equal(t, sb.String(), string(derivationBytes))
 			})
 		}
 	})
