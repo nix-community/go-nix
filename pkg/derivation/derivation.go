@@ -62,6 +62,11 @@ func (d *Derivation) WriteDerivation(writer io.Writer) error {
 	return err
 }
 
+// String returns the default (first) output path.
+func (d *Derivation) String() string {
+	return d.Outputs[0].Path
+}
+
 type Output struct {
 	Content       string `json:"name" parser:"'(' @String ','"`
 	Path          string `json:"path" parser:"@NixPath ','"`

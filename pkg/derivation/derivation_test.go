@@ -152,3 +152,22 @@ func TestEncoder(t *testing.T) {
 		}
 	})
 }
+
+func TestOutputs(t *testing.T) {
+	drv := &derivation.Derivation{
+		Outputs: []derivation.Output{
+			{
+				Content: "foo",
+				Path:    "dummy",
+			},
+			{
+				Content: "bar",
+				Path:    "dummy2",
+			},
+		},
+	}
+
+	t.Run("String", func(t *testing.T) {
+		assert.Equal(t, "dummy", drv.String())
+	})
+}
