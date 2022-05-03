@@ -44,6 +44,14 @@ type Reader struct {
 
 	// NarReader uses this to resume the parser
 	next chan bool
+
+	// keep a record of the previously received hdr.Path.
+	// Only read and updated in the Next() method, receiving from the channel
+	// populated by the goroutine, not the goroutine itself.
+	// We do this to bail out if we receive a header from the channel that's
+	// lexicographically smaller than the previous one.
+	// Elements in NAR files need to be ordered for reproducibility.
+	previousHdrPath string
 }
 
 // NewReader creates a new Reader reading from r.
@@ -300,6 +308,8 @@ func (nr *Reader) parseNode(path string) error {
 // in the current file is automatically discarded.
 //
 // io.EOF is returned at the end of input.
+// Errors are returned in case invalid data was read.
+// This includes non-canonically sorted NAR files.
 func (nr *Reader) Next() (*Header, error) {
 	// if there's an error already stored, keep returning it
 	if nr.err != nil {
@@ -312,7 +322,19 @@ func (nr *Reader) Next() (*Header, error) {
 	// return either an error or headers
 	select {
 	case hdr := <-nr.headers:
+		if hdr.Path <= nr.previousHdrPath {
+			err := fmt.Errorf("received header in the wrong order, %v <= %v", hdr.Path, nr.previousHdrPath)
+
+			// blow fuse
+			nr.err = err
+
+			return nil, err
+		}
+
+		nr.previousHdrPath = hdr.Path
+
 		return hdr, nil
+
 	case err := <-nr.errors:
 		if err != nil {
 			// blow fuse

@@ -107,6 +107,32 @@ func TestReaderSymlink(t *testing.T) {
 
 // TODO: various early close cases
 
+func TestReaderInvalidOrder(t *testing.T) {
+	nr, err := nar.NewReader(bytes.NewBuffer(genInvalidOrderNAR()))
+	assert.NoError(t, err)
+
+	// get first header (/)
+	hdr, err := nr.Next()
+	assert.NoError(t, err)
+	assert.Equal(t, &nar.Header{
+		Path: "/",
+		Type: nar.TypeDirectory,
+	}, hdr)
+
+	// get first element inside / (/b)
+	hdr, err = nr.Next()
+	assert.NoError(t, err)
+	assert.Equal(t, &nar.Header{
+		Path: "/b",
+		Type: nar.TypeDirectory,
+	}, hdr)
+
+	// get second element inside / (/a) should fail
+	_, err = nr.Next()
+	assert.Error(t, err)
+	assert.NotErrorIs(t, err, io.EOF, "should not be io.EOF")
+}
+
 func TestReaderSmoketest(t *testing.T) {
 	f, err := os.Open("../../test/testdata/nar_1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar")
 	if !assert.NoError(t, err) {
