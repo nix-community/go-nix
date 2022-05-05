@@ -134,3 +134,144 @@ func genSymlinkNar() []byte {
 
 	return expectedBuf.Bytes()
 }
+
+// genInvalidOrderNAR returns the bytes of a NAR file that contains a folder
+// with a and b directories inside, but in the wrong order (b comes first).
+func genInvalidOrderNAR() []byte {
+	var expectedBuf bytes.Buffer
+
+	err := wire.WriteString(&expectedBuf, "nix-archive-1")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "(")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "type")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "directory")
+	if err != nil {
+		panic(err)
+	}
+
+	// first entry begin
+	err = wire.WriteString(&expectedBuf, "entry")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "(")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "name")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "b")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "node")
+	if err != nil {
+		panic(err)
+	}
+
+	// begin <Node>
+	err = wire.WriteString(&expectedBuf, "(")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "type")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "directory")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, ")")
+	if err != nil {
+		panic(err)
+	}
+	// end <Node>
+
+	err = wire.WriteString(&expectedBuf, ")")
+	if err != nil {
+		panic(err)
+	}
+	// first entry end
+
+	// second entry begin
+	err = wire.WriteString(&expectedBuf, "entry")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "(")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "name")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "a")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "node")
+	if err != nil {
+		panic(err)
+	}
+
+	// begin <Node>
+	err = wire.WriteString(&expectedBuf, "(")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "type")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, "directory")
+	if err != nil {
+		panic(err)
+	}
+
+	err = wire.WriteString(&expectedBuf, ")")
+	if err != nil {
+		panic(err)
+	}
+	// end <Node>
+
+	err = wire.WriteString(&expectedBuf, ")")
+	if err != nil {
+		panic(err)
+	}
+	// second entry end
+
+	err = wire.WriteString(&expectedBuf, ")")
+	if err != nil {
+		panic(err)
+	}
+
+	return expectedBuf.Bytes()
+}
