@@ -294,4 +294,40 @@ func TestWriterErrorsTransitions(t *testing.T) {
 		})
 		assert.Error(t, err)
 	})
+
+	t.Run("lexicographically sorted with nested directory and common prefix", func(t *testing.T) {
+		var buf bytes.Buffer
+		nw, err := nar.NewWriter(&buf)
+		assert.NoError(t, err)
+
+		// write a directory node
+		err = nw.WriteHeader(&nar.Header{
+			Path: "/",
+			Type: nar.TypeDirectory,
+		})
+		assert.NoError(t, err)
+
+		// write a directory node with name "/foo"
+		err = nw.WriteHeader(&nar.Header{
+			Path: "/foo",
+			Type: nar.TypeDirectory,
+		})
+		assert.NoError(t, err)
+
+		// write a symlink for "/foo/b"
+		err = nw.WriteHeader(&nar.Header{
+			Path:       "/foo/b",
+			Type:       nar.TypeSymlink,
+			LinkTarget: "foo",
+		})
+		assert.NoError(t, err)
+
+		// write a symlink for "/foo-a"
+		err = nw.WriteHeader(&nar.Header{
+			Path:       "/foo-a",
+			Type:       nar.TypeSymlink,
+			LinkTarget: "foo",
+		})
+		assert.NoError(t, err)
+	})
 }

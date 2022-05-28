@@ -322,7 +322,7 @@ func (nr *Reader) Next() (*Header, error) {
 	// return either an error or headers
 	select {
 	case hdr := <-nr.headers:
-		if hdr.Path <= nr.previousHdrPath {
+		if !PathIsLexicographicallyOrdered(nr.previousHdrPath, hdr.Path) {
 			err := fmt.Errorf("received header in the wrong order, %v <= %v", hdr.Path, nr.previousHdrPath)
 
 			// blow fuse

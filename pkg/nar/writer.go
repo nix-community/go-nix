@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"strings"
 
 	"github.com/nix-community/go-nix/pkg/wire"
 )
@@ -203,7 +202,7 @@ func (nw *Writer) emitNode(currentHeader *Header) (*Header, error) {
 
 		// compare Path of the received header.
 		// It needs to be lexicographically greater the previous one.
-		if cmp := strings.Compare(currentHeader.Path, nextHeader.Path); cmp != -1 {
+		if !PathIsLexicographicallyOrdered(currentHeader.Path, nextHeader.Path) {
 			return nil, fmt.Errorf(
 				"received %v, which isn't lexicographically greater than the previous one %v",
 				nextHeader.Path,
