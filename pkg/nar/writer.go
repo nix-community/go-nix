@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"strings"
 
 	"github.com/nix-community/go-nix/pkg/wire"
 )
@@ -203,31 +202,12 @@ func (nw *Writer) emitNode(currentHeader *Header) (*Header, error) {
 
 		// compare Path of the received header.
 		// It needs to be lexicographically greater the previous one.
-		if currentHeader.Path > nextHeader.Path { // Happy path, quick compare
-			// For subdirectory structures with a common prefix we need to check not just
-			// the simple string but each parent path one by one.
-			// Example layout:
-			// /cmd/structlayout/main.go
-			// /cmd/structlayout-optimize
-			currentHeaderPaths := strings.Split(currentHeader.Path, "/")
-			nextHeaderPaths := strings.Split(nextHeader.Path, "/")
-
-			var n int
-			if len(currentHeaderPaths) < len(nextHeaderPaths) {
-				n = len(currentHeaderPaths)
-			} else {
-				n = len(nextHeaderPaths)
-			}
-
-			for i := 0; i < n; i++ {
-				if !(currentHeaderPaths[i] <= nextHeaderPaths[i]) {
-					return nil, fmt.Errorf(
-						"received %v, which isn't lexicographically greater than the previous one %v",
-						nextHeader.Path,
-						currentHeader.Path,
-					)
-				}
-			}
+		if !PathIsLexicographicallyOrdered(currentHeader.Path, nextHeader.Path) {
+			return nil, fmt.Errorf(
+				"received %v, which isn't lexicographically greater than the previous one %v",
+				nextHeader.Path,
+				currentHeader.Path,
+			)
 		}
 
 		// calculate the relative path between the previous and now-read header,
