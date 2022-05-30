@@ -134,3 +134,46 @@ func TestDumpPathRecursion(t *testing.T) {
 		assert.Equal(t, io.EOF, err)
 	}
 }
+
+func TestDumpPathFilter(t *testing.T) {
+	t.Run("unfiltered", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		p := filepath.Join(tmpDir, "a")
+
+		err := os.WriteFile(p, []byte{0x1}, os.ModePerm&syscall.S_IRUSR)
+		if err != nil {
+			panic(err)
+		}
+
+		var buf bytes.Buffer
+
+		err = nar.DumpPathFilter(&buf, p, func(name string, nodeType nar.NodeType) bool {
+			assert.Equal(t, name, p)
+			assert.Equal(t, nodeType, nar.TypeRegular)
+
+			return true
+		})
+		if assert.NoError(t, err) {
+			assert.Equal(t, genOneByteRegularNar(), buf.Bytes())
+		}
+	})
+
+	t.Run("filtered", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		p := filepath.Join(tmpDir, "a")
+
+		err := os.WriteFile(p, []byte{0x1}, os.ModePerm&syscall.S_IRUSR)
+		if err != nil {
+			panic(err)
+		}
+
+		var buf bytes.Buffer
+
+		err = nar.DumpPathFilter(&buf, tmpDir, func(name string, nodeType nar.NodeType) bool {
+			return name != p
+		})
+		if assert.NoError(t, err) {
+			assert.NotEqual(t, genOneByteRegularNar(), buf.Bytes())
+		}
+	})
+}
