@@ -18,8 +18,8 @@ type Writer struct {
 	contentWriter io.WriteCloser
 
 	// channels used by the goroutine to communicate back to WriteHeader and Close.
-	doneWritingHeader chan interface{} // goroutine is done writing that header, WriteHeader() can return.
-	errors            chan error       // there were errors while writing
+	doneWritingHeader chan struct{} // goroutine is done writing that header, WriteHeader() can return.
+	errors            chan error    // there were errors while writing
 
 	// whether we closed
 	closed bool
@@ -39,7 +39,7 @@ func NewWriter(w io.Writer) (*Writer, error) {
 	narWriter := &Writer{
 		w: w,
 
-		doneWritingHeader: make(chan interface{}),
+		doneWritingHeader: make(chan struct{}),
 		errors:            make(chan error),
 
 		closed: false,
@@ -163,7 +163,7 @@ func (nw *Writer) emitNode(currentHeader *Header) (*Header, error) {
 	}
 
 	// return from WriteHeader()
-	nw.doneWritingHeader <- true
+	nw.doneWritingHeader <- struct{}{}
 
 	// wait till we receive a new header
 	nextHeader, ok := <-nw.headers
