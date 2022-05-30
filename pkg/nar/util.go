@@ -10,25 +10,30 @@ func IsValidNodeName(nodeName string) bool {
 
 // PathIsLexicographicallyOrdered checks if two paths are lexicographically ordered component by component.
 func PathIsLexicographicallyOrdered(path1 string, path2 string) bool {
-	if path1 > path2 {
-		path1Segments := strings.Split(path1, "/")
-		path2Segments := strings.Split(path2, "/")
-
-		// n is the lower number of segments of the two paths.
-		var n int
-		if len(path1Segments) < len(path2Segments) {
-			n = len(path1Segments)
-		} else {
-			n = len(path2Segments)
-		}
-
-		// check all segments individually
-		for i := 0; i < n; i++ {
-			if !(path1Segments[i] <= path2Segments[i]) {
-				return false
-			}
-		}
+	if path1 <= path2 {
+		return true
 	}
 
-	return true
+	// n is the lower number of characters of the two paths.
+	var n int
+	if len(path1) < len(path2) {
+		n = len(path1)
+	} else {
+		n = len(path2)
+	}
+
+	for i := 0; i < n; i++ {
+		if path1[i] == path2[i] {
+			continue
+		}
+
+		if path1[i] == '/' && path2[i] != '/' {
+			return true
+		}
+
+		return path1[i] < path2[i]
+	}
+
+	// Cover cases like where path1 is a prefix of path2 (path1=/arp-foo path2=/arp)
+	return len(path2) >= len(path1)
 }
