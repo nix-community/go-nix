@@ -8,9 +8,21 @@ import (
 	"syscall"
 )
 
+// SourceFilterFunc is the interface for creating source filters.
+// If the function returns true, the file is copied to the Nix store, otherwise it is omitted,
+// this mimics the behaviour of the Nix function builtins.filterSource.
+type SourceFilterFunc func(path string, nodeType NodeType) bool
+
 // DumpPath will serialize a path on the local file system to NAR format,
 // and write it to the passed writer.
 func DumpPath(w io.Writer, path string) error {
+	return DumpPathFilter(w, path, nil)
+}
+
+// DumpPathFilter will serialize a path on the local file system to NAR format,
+// and write it to the passed writer, filtering out any files where the filter
+// function returns false.
+func DumpPathFilter(w io.Writer, path string, filter SourceFilterFunc) error {
 	// initialize the nar writer
 	nw, err := NewWriter(w)
 	if err != nil {
@@ -20,7 +32,7 @@ func DumpPath(w io.Writer, path string) error {
 	// make sure the NAR writer is always closed, so the underlying goroutine is stopped
 	defer nw.Close()
 
-	err = dumpPath(nw, path, "/")
+	err = dumpPath(nw, path, "/", filter)
 	if err != nil {
 		return err
 	}
@@ -29,7 +41,7 @@ func DumpPath(w io.Writer, path string) error {
 }
 
 // dumpPath recursively calls itself for every node in the path.
-func dumpPath(nw *Writer, path string, subpath string) error {
+func dumpPath(nw *Writer, path string, subpath string, filter SourceFilterFunc) error {
 	// assemble the full path.
 	p := filepath.Join(path, subpath)
 
@@ -39,7 +51,23 @@ func dumpPath(nw *Writer, path string, subpath string) error {
 		return err
 	}
 
+	var nodeType NodeType
 	if fi.Mode()&os.ModeSymlink == os.ModeSymlink {
+		nodeType = TypeSymlink
+	} else if fi.IsDir() {
+		nodeType = TypeDirectory
+	} else if fi.Mode().IsRegular() {
+		nodeType = TypeRegular
+	} else {
+		nodeType = TypeUnknown
+	}
+
+	if filter != nil && !filter(p, nodeType) {
+		return nil
+	}
+
+	switch nodeType {
+	case TypeSymlink:
 		linkTarget, err := os.Readlink(p)
 		if err != nil {
 			return err
@@ -56,9 +84,8 @@ func dumpPath(nw *Writer, path string, subpath string) error {
 		}
 
 		return nil
-	}
 
-	if fi.IsDir() {
+	case TypeDirectory:
 		// write directory node
 		err := nw.WriteHeader(&Header{
 			Path: subpath,
@@ -76,16 +103,15 @@ func dumpPath(nw *Writer, path string, subpath string) error {
 
 		// loop over all elements
 		for _, file := range files {
-			err := dumpPath(nw, path, filepath.Join(subpath, file.Name()))
+			err := dumpPath(nw, path, filepath.Join(subpath, file.Name()), filter)
 			if err != nil {
 				return err
 			}
 		}
 
 		return nil
-	}
 
-	if fi.Mode().IsRegular() {
+	case TypeRegular:
 		// write regular node
 		err := nw.WriteHeader(&Header{
 			Path: subpath,
@@ -118,6 +144,8 @@ func dumpPath(nw *Writer, path string, subpath string) error {
 		}
 
 		return nil
+
+	case TypeUnknown:
 	}
 
 	return fmt.Errorf("invalid mode for file %v", p)
