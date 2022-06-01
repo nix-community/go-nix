@@ -1,0 +1,35 @@
+name: coverage-ratchet
+
+on:
+  pull_request:
+
+jobs:
+  coverage-ratchet:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        go: [ '1.17' ]
+    name: Check test coverage
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }}
+    - name: Check for dropped coverage
+      run: |
+        set -euo pipefail
+
+        # Record current coverage
+        coverage=$(go test -v ./... -cover | grep '^coverage:' | awk '{s+=substr($2, 1, length($2)-1)}END{print s/NR}')
+
+        # Check out pre-PR tree
+        git fetch origin "${{ github.base_ref }}"
+        git checkout "origin/${{ github.base_ref }}"
+
+        # Record pre-PR coverage
+        coverage_pre=$(go test -v ./... -cover | grep '^coverage:' | awk '{s+=substr($2, 1, length($2)-1)}END{print s/NR}')
+
+        if (( $(echo "$coverage < $coverage_pre" |bc -l) )); then
+          echo "Coverage dropped from $coverage_pre to $coverage"
+          exit 1
+        fi
