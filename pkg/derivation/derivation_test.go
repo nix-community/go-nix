@@ -171,3 +171,222 @@ func TestOutputs(t *testing.T) {
 		assert.Equal(t, "dummy", drv.String())
 	})
 }
+
+func TestValidate(t *testing.T) {
+	getDerivation := func() *derivation.Derivation {
+		derivationFile, err := os.Open("../../test/testdata/cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv")
+		if err != nil {
+			panic(err)
+		}
+
+		drv, err := derivation.ReadDerivation(derivationFile)
+		if err != nil {
+			panic(err)
+		}
+
+		return drv
+	}
+
+	t.Run("InvalidOutput", func(t *testing.T) {
+		t.Run("EmptyOutputs", func(t *testing.T) {
+			drv := getDerivation()
+
+			drv.Outputs = []derivation.Output{}
+
+			err := drv.Validate()
+			assert.Error(t, err)
+
+			assert.Containsf(
+				t,
+				err.Error(),
+				"at least one output must be defined",
+				"error should complain about missing outputs",
+			)
+		})
+
+		t.Run("NoContent", func(t *testing.T) {
+			drv := getDerivation()
+
+			drv.Outputs[0].Content = ""
+
+			err := drv.Validate()
+			assert.Error(t, err)
+
+			assert.Containsf(
+				t,
+				err.Error(),
+				"empty content",
+				"error should complain about missing output name",
+			)
+		})
+
+		t.Run("InvalidPath", func(t *testing.T) {
+			drv := getDerivation()
+
+			drv.Outputs[0].Path = "invalidPath"
+
+			err := drv.Validate()
+			assert.Error(t, err)
+
+			assert.Containsf(
+				t,
+				err.Error(),
+				"unable to parse path",
+				"error should complain about path syntax",
+			)
+		})
+
+		t.Run("InvalidOrder", func(t *testing.T) {
+			drv := getDerivation()
+
+			drv.Outputs[0].Content = "foo"
+
+			err := drv.Validate()
+			assert.Error(t, err)
+
+			assert.Containsf(
+				t,
+				err.Error(),
+				"invalid output order",
+				"error should complain about output order",
+			)
+		})
+	})
+
+	t.Run("InvalidDerivation", func(t *testing.T) {
+		t.Run("InvalidPath", func(t *testing.T) {
+			drv := getDerivation()
+
+			drv.InputDerivations[0].Path = "bar"
+
+			err := drv.Validate()
+			assert.Error(t, err)
+
+			assert.Containsf(
+				t,
+				err.Error(),
+				"unable to parse path",
+				"error should complain about path syntax",
+			)
+		})
+
+		t.Run("InvalidOrder", func(t *testing.T) {
+			drv := getDerivation()
+
+			drv.InputDerivations[0].Path = "/nix/store/5k1sfc5qmzb93addcjxxnqcd5bpf2wlz-hook.drv"
+			drv.InputDerivations[1].Path = "/nix/store/4k1sfc5qmzb93addcjxxnqcd5bpf2wlz-hook.drv"
+
+			err := drv.Validate()
+			assert.Error(t, err)
+
+			assert.Containsf(
+				t,
+				err.Error(),
+				"invalid input derivation order",
+				"error should complain about ordering",
+			)
+		})
+	})
+
+	t.Run("InvalidInputSource", func(t *testing.T) {
+		t.Run("InvalidPath", func(t *testing.T) {
+			drv := getDerivation()
+
+			drv.InputSources[0] = "baz"
+
+			err := drv.Validate()
+			assert.Error(t, err)
+
+			assert.Containsf(
+				t,
+				err.Error(),
+				"unable to parse path",
+				"error should complain about path syntax",
+			)
+		})
+
+		t.Run("InvalidOrder", func(t *testing.T) {
+			drv := getDerivation()
+
+			drv.InputSources[0] = "/nix/store/5k1sfc5qmzb93addcjxxnqcd5bpf2wlz-hook.drv"
+			drv.InputSources = append(drv.InputSources, "/nix/store/4k1sfc5qmzb93addcjxxnqcd5bpf2wlz-hook.drv")
+
+			err := drv.Validate()
+			assert.Error(t, err)
+
+			assert.Containsf(
+				t,
+				err.Error(),
+				"invalid input source order",
+				"error should complain about ordering",
+			)
+		})
+	})
+
+	t.Run("MissingPlatform", func(t *testing.T) {
+		drv := getDerivation()
+
+		drv.Platform = ""
+
+		err := drv.Validate()
+		assert.Error(t, err)
+
+		assert.Containsf(
+			t,
+			err.Error(),
+			"required attribute 'platform' missing",
+			"error should complain about missing platform",
+		)
+	})
+
+	t.Run("MissingBuilder", func(t *testing.T) {
+		drv := getDerivation()
+
+		drv.Builder = ""
+
+		err := drv.Validate()
+		assert.Error(t, err)
+
+		assert.Containsf(
+			t,
+			err.Error(),
+			"required attribute 'builder' missing",
+			"error should complain about missing builder",
+		)
+	})
+
+	t.Run("InvalidEnvVar", func(t *testing.T) {
+		t.Run("InvalidOrder", func(t *testing.T) {
+			drv := getDerivation()
+
+			drv.EnvVars[0].Key = "foo"
+			drv.EnvVars[1].Key = "bar"
+
+			err := drv.Validate()
+			assert.Error(t, err)
+
+			assert.Containsf(
+				t,
+				err.Error(),
+				"invalid env var order",
+				"error should complain about ordering",
+			)
+		})
+
+		t.Run("EmpyEnvVar", func(t *testing.T) {
+			drv := getDerivation()
+
+			drv.EnvVars[0].Key = ""
+
+			err := drv.Validate()
+			assert.Error(t, err)
+
+			assert.Containsf(
+				t,
+				err.Error(),
+				"empty environment variable key",
+				"error should complain about empty key",
+			)
+		})
+	})
+}
