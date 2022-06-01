@@ -121,6 +121,10 @@ func TestEncoder(t *testing.T) {
 			Title:          "Complex",
 			DerivationFile: "cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv",
 		},
+		{
+			Title:          "Builder Nixpath",
+			DerivationFile: "0zhkga32apid60mm7nh92z2970im5837-bootstrap-tools.drv",
+		},
 	}
 
 	t.Run("WriteDerivation", func(t *testing.T) {
