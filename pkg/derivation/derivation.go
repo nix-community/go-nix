@@ -35,6 +35,7 @@ func (d *Derivation) Validate() error {
 			return fmt.Errorf("invalid output order: %s < %s", o.Content, d.Outputs[i-1].Content)
 		}
 	}
+	// FUTUREWORK: check output store path hashes and derivation hashes for consistency (#41)
 
 	for i, id := range d.InputDerivations {
 		err := id.Validate()
