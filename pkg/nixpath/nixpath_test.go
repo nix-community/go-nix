@@ -33,4 +33,9 @@ func TestNixPath(t *testing.T) {
 		_, err := nixpath.FromString("/nix/store/00bgd045z0d4icpbc2yyz4gx48aku4la-net-tools-1.60_p20170221182432")
 		assert.Error(t, err)
 	})
+
+	t.Run("more than just the bare nix store path", func(t *testing.T) {
+		_, err := nixpath.FromString("/nix/store/00bgd045z0d4icpbc2yyz4gx48aku4la-net-tools-1.60_p20170221182432/bin/arp")
+		assert.Error(t, err)
+	})
 }
