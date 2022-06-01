@@ -24,7 +24,7 @@ var (
 	))
 )
 
-// NixPath represents a nix store path.
+// NixPath represents a bare nix store path, without any paths underneath `/nix/store/…-…`.
 type NixPath struct {
 	Name   string
 	Digest []byte
