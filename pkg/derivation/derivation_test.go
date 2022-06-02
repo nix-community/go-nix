@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/derivation"
+	"github.com/nix-community/go-nix/pkg/nixpath"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -419,4 +421,60 @@ func TestValidate(t *testing.T) {
 			)
 		})
 	})
+}
+
+type testFSStore struct {
+	// Use the FS kv store for better test coverage of stores
+	store *derivation.FSKVStore
+}
+
+func (kv *testFSStore) Get(key string) ([]byte, error) {
+	path := filepath.Join("../../test/testdata/", strings.TrimPrefix(key, nixpath.StoreDir+"/"))
+
+	return kv.store.Get(path)
+}
+
+func (kv *testFSStore) Set(key string, value []byte) error {
+	return kv.store.Set(key, value)
+}
+
+func TestOutputPaths(t *testing.T) {
+	cases := []struct {
+		Title          string
+		DerivationFile string
+	}{
+		{
+			Title:          "simple-sha256",
+			DerivationFile: "/nix/store/4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv",
+		},
+	}
+
+	store := &testFSStore{
+		store: &derivation.FSKVStore{},
+	}
+
+	for _, c := range cases {
+		t.Run(filepath.Base(c.Title), func(t *testing.T) {
+			derivationBytes, err := store.Get(c.DerivationFile)
+			if err != nil {
+				panic(err)
+			}
+
+			drv, err := derivation.ReadDerivation(bytes.NewReader(derivationBytes))
+			if err != nil {
+				panic(err)
+			}
+
+			outputs, err := drv.OutputPaths(store)
+			if err != nil {
+				panic(err)
+			}
+
+			for _, o := range drv.Outputs {
+				t.Run(o.Name, func(t *testing.T) {
+					assert.Equal(t, o.Path, outputs[o.Name])
+				})
+			}
+		})
+	}
 }

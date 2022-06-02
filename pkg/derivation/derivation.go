@@ -1,9 +1,14 @@
 package derivation
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
+	"path/filepath"
 
+	"github.com/nix-community/go-nix/pkg/nixbase32"
 	"github.com/nix-community/go-nix/pkg/nixpath"
 )
 
@@ -78,29 +83,183 @@ func (d *Derivation) Validate() error {
 	return nil
 }
 
+func compressHash(hash []byte, newSize int) []byte {
+	buf := make([]byte, newSize)
+	for i := 0; i < len(hash); i++ {
+		buf[i%newSize] ^= hash[i]
+	}
+
+	return buf
+}
+
+func (d *Derivation) Name() string {
+	for _, e := range d.EnvVars {
+		if e.Key == "name" {
+			return e.Value
+		}
+	}
+
+	// TODO: Maybe panic or change type sig to (string, error)?
+	return ""
+}
+
+func (d *Derivation) OutputPaths(store KVStore) (map[string]string, error) {
+	// If the store isn't an input substitution wrapped store, wrap it
+	if _, ok := store.(*InputSubstKV); !ok {
+		store = NewInputSubstKV(store)
+	}
+
+	name := d.Name()
+
+	var buf bytes.Buffer
+	{
+		err := d.writeDerivation(&buf, true, store)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var partialDrvHash string
+	{
+		h := sha256.New()
+
+		_, err := h.Write(buf.Bytes())
+		if err != nil {
+			return nil, err
+		}
+
+		partialDrvHash = hex.EncodeToString(h.Sum(nil))
+	}
+
+	outputs := make(map[string]string)
+
+	for _, o := range d.Outputs {
+		fixed := d.FixedOutput()
+		if fixed != nil {
+			s := fmt.Sprintf("source:sha256:%s:%s:%s", o.Hash, nixpath.StoreDir, name)
+
+			h := sha256.New()
+
+			_, err := h.Write([]byte(s))
+			if err != nil {
+				return nil, err
+			}
+
+			digest := h.Sum(nil)
+
+			outputs[o.Name] = filepath.Join(nixpath.StoreDir, nixbase32.EncodeToString(compressHash(digest, 20))+"-"+name)
+
+			continue
+		}
+
+		outputSuffix := name
+		if o.Name != "out" {
+			outputSuffix += "-" + o.Name
+		}
+
+		s := fmt.Sprintf("output:%s:sha256:%s:%s:%s", o.Name, partialDrvHash, nixpath.StoreDir, outputSuffix)
+
+		var digest []byte
+		{
+			h := sha256.New()
+
+			_, err := h.Write([]byte(s))
+			if err != nil {
+				return nil, err
+			}
+
+			digest = h.Sum(nil)
+		}
+
+		outputs[o.Name] = filepath.Join(nixpath.StoreDir, nixbase32.EncodeToString(compressHash(digest, 20))+"-"+outputSuffix)
+	}
+
+	return outputs, nil
+}
+
+// FixedOutput - Returns the fixed output any is found, otherwise returns nil.
+func (d *Derivation) FixedOutput() *Output {
+	for _, o := range d.Outputs {
+		if o.HashAlgorithm != "" {
+			return &o
+		}
+	}
+
+	return nil
+}
+
 // WriteDerivation writes the textual representation of the derivation to the passed writer.
 func (d *Derivation) WriteDerivation(writer io.Writer) error {
+	return d.writeDerivation(writer, false, nil)
+}
+
+func (d *Derivation) writeDerivation(writer io.Writer, maskOutputs bool, actualInputs KVStore) error {
 	outputs := make([][]byte, len(d.Outputs))
-	for i, o := range d.Outputs {
-		outputs[i] = encodeArray('(', ')', true, []byte(o.Name), []byte(o.Path), []byte(o.HashAlgorithm), []byte(o.Hash))
+	{
+		for i, o := range d.Outputs {
+			var path []byte
+			if maskOutputs {
+				path = []byte{}
+			} else {
+				path = []byte(o.Path)
+			}
+
+			outputs[i] = encodeArray('(', ')', true, []byte(o.Name), path, []byte(o.HashAlgorithm), []byte(o.Hash))
+		}
 	}
+
+	var err error
 
 	inputDerivations := make([][]byte, len(d.InputDerivations))
 	{
 		for i, in := range d.InputDerivations {
+			var path []byte
+			if actualInputs != nil {
+				path, err = actualInputs.Get(in.Path)
+				if err != nil {
+					return err
+				}
+
+				path = append([]byte{'"'}, path...) // TODO: Inefficient
+				path = append(path, '"')
+			} else {
+				path = quoteString(in.Path)
+			}
+
 			names := encodeArray('[', ']', true, stringsToBytes(in.Name)...)
-			inputDerivations[i] = encodeArray('(', ')', false, quoteString(in.Path), names)
+			inputDerivations[i] = encodeArray('(', ')', false, path, names)
 		}
 	}
 
 	envVars := make([][]byte, len(d.EnvVars))
 	{
+		var outputValues map[string]struct{}
+		if maskOutputs {
+			outputValues = make(map[string]struct{})
+			for _, o := range d.Outputs {
+				outputValues[o.Path] = struct{}{}
+			}
+		}
+
+		isOutputValue := func(s string) bool {
+			_, ok := outputValues[s]
+
+			return ok
+		}
+
 		for i, e := range d.EnvVars {
-			envVars[i] = encodeArray('(', ')', false, quoteString(e.Key), quoteString(e.Value))
+			var value []byte
+			if maskOutputs && isOutputValue(e.Value) {
+				value = []byte{'"', '"'}
+			} else {
+				value = quoteString(e.Value)
+			}
+
+			envVars[i] = encodeArray('(', ')', false, quoteString(e.Key), value)
 		}
 	}
 
-	_, err := writer.Write([]byte("Derive"))
+	_, err = writer.Write([]byte("Derive"))
 	if err != nil {
 		return err
 	}
