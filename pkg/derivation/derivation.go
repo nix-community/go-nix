@@ -28,11 +28,11 @@ func (d *Derivation) Validate() error {
 	for i, o := range d.Outputs {
 		err := o.Validate()
 		if err != nil {
-			return fmt.Errorf("error validating output '%s': %w", o.Content, err)
+			return fmt.Errorf("error validating output '%s': %w", o.Name, err)
 		}
 
-		if i > 0 && o.Content < d.Outputs[i-1].Content {
-			return fmt.Errorf("invalid output order: %s < %s", o.Content, d.Outputs[i-1].Content)
+		if i > 0 && o.Name < d.Outputs[i-1].Name {
+			return fmt.Errorf("invalid output order: %s < %s", o.Name, d.Outputs[i-1].Name)
 		}
 	}
 	// FUTUREWORK: check output store path hashes and derivation hashes for consistency (#41)
@@ -85,7 +85,7 @@ func (d *Derivation) Validate() error {
 func (d *Derivation) WriteDerivation(writer io.Writer) error {
 	outputs := make([][]byte, len(d.Outputs))
 	for i, o := range d.Outputs {
-		outputs[i] = encodeArray('(', ')', true, []byte(o.Content), []byte(o.Path), []byte(o.HashAlgorithm), []byte(o.Hash))
+		outputs[i] = encodeArray('(', ')', true, []byte(o.Name), []byte(o.Path), []byte(o.HashAlgorithm), []byte(o.Hash))
 	}
 
 	inputDerivations := make([][]byte, len(d.InputDerivations))
@@ -129,15 +129,15 @@ func (d *Derivation) String() string {
 }
 
 type Output struct {
-	Content       string `json:"name" parser:"'(' @String ','"`
+	Name          string `json:"name" parser:"'(' @String ','"`
 	Path          string `json:"path" parser:"@NixPath ','"`
 	HashAlgorithm string `json:"hashAlgo" parser:"@String ','"`
 	Hash          string `json:"hash" parser:"@String ')'"`
 }
 
 func (o *Output) Validate() error {
-	if o.Content == "" {
-		return fmt.Errorf("empty content (output name)")
+	if o.Name == "" {
+		return fmt.Errorf("empty output name")
 	}
 
 	_, err := nixpath.FromString(o.Path)

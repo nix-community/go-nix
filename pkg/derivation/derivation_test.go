@@ -25,7 +25,7 @@ func TestParser(t *testing.T) {
 			"m5j1yp47lw1psd9n6bzina1167abbprr-bash44-023.drv",
 			//			"basic.drv",
 			&derivation.Output{
-				Content:       "out",
+				Name:          "out",
 				Path:          "/nix/store/x9cyj78gzd1wjf0xsiad1pa3ricbj566-bash44-023",
 				HashAlgorithm: "sha256",
 				Hash:          "4fec236f3fbd3d0c47b893fdfa9122142a474f6ef66c20ffb6c0f4864dd591b6",
@@ -157,12 +157,12 @@ func TestOutputs(t *testing.T) {
 	drv := &derivation.Derivation{
 		Outputs: []derivation.Output{
 			{
-				Content: "foo",
-				Path:    "dummy",
+				Name: "foo",
+				Path: "dummy",
 			},
 			{
-				Content: "bar",
-				Path:    "dummy2",
+				Name: "bar",
+				Path: "dummy2",
 			},
 		},
 	}
@@ -188,7 +188,7 @@ func TestValidate(t *testing.T) {
 	}
 
 	t.Run("InvalidOutput", func(t *testing.T) {
-		t.Run("EmptyOutputs", func(t *testing.T) {
+		t.Run("NoOutputsAtAll", func(t *testing.T) {
 			drv := getDerivation()
 
 			drv.Outputs = []derivation.Output{}
@@ -204,10 +204,10 @@ func TestValidate(t *testing.T) {
 			)
 		})
 
-		t.Run("NoContent", func(t *testing.T) {
+		t.Run("NoOutputName", func(t *testing.T) {
 			drv := getDerivation()
 
-			drv.Outputs[0].Content = ""
+			drv.Outputs[0].Name = ""
 
 			err := drv.Validate()
 			assert.Error(t, err)
@@ -215,7 +215,7 @@ func TestValidate(t *testing.T) {
 			assert.Containsf(
 				t,
 				err.Error(),
-				"empty content",
+				"empty output name",
 				"error should complain about missing output name",
 			)
 		})
@@ -239,7 +239,7 @@ func TestValidate(t *testing.T) {
 		t.Run("InvalidOrder", func(t *testing.T) {
 			drv := getDerivation()
 
-			drv.Outputs[0].Content = "foo"
+			drv.Outputs[0].Name = "foo"
 
 			err := drv.Validate()
 			assert.Error(t, err)
