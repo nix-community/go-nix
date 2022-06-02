@@ -91,7 +91,7 @@ func (d *Derivation) WriteDerivation(writer io.Writer) error {
 	inputDerivations := make([][]byte, len(d.InputDerivations))
 	{
 		for i, in := range d.InputDerivations {
-			names := encodeArray('[', ']', true, stringsToBytes(in.Name)...)
+			names := encodeArrayStrings('[', ']', true, in.Name...)
 			inputDerivations[i] = encodeArray('(', ')', false, quoteString(in.Path), names)
 		}
 	}
@@ -112,10 +112,10 @@ func (d *Derivation) WriteDerivation(writer io.Writer) error {
 		encodeArray('(', ')', false,
 			encodeArray('[', ']', false, outputs...),
 			encodeArray('[', ']', false, inputDerivations...),
-			encodeArray('[', ']', true, stringsToBytes(d.InputSources)...),
+			encodeArrayStrings('[', ']', true, d.InputSources...),
 			escapeString(d.Platform),
 			escapeString(d.Builder),
-			encodeArray('[', ']', true, stringsToBytes(d.Arguments)...),
+			encodeArrayStrings('[', ']', true, d.Arguments...),
 			encodeArray('[', ']', false, envVars...),
 		),
 	)

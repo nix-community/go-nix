@@ -25,28 +25,7 @@ func escapeString(s string) []byte {
 // Adds quotation marks around a string.
 // This is primarily meant for non-user provided strings.
 func quoteString(s string) []byte {
-	buf := make([]byte, len(s)+2)
-
-	buf[0] = '"'
-
-	for i := 0; i < len(s); i++ {
-		buf[i+1] = s[i]
-	}
-
-	buf[len(s)+1] = '"'
-
-	return buf
-}
-
-// Convert a slice of strings to a slice of byte slices.
-func stringsToBytes(elems []string) [][]byte {
-	b := make([][]byte, len(elems))
-
-	for i, s := range elems {
-		b[i] = []byte(s)
-	}
-
-	return b
+	return []byte("\"" + s + "\"")
 }
 
 // Encode a list of elements staring with `opening` character and ending with a `closing` character.
@@ -55,13 +34,13 @@ func encodeArray(opening byte, closing byte, quote bool, elems ...[]byte) []byte
 		return []byte{opening, closing}
 	}
 
-	n := 3 * (len(elems) - 1)
+	n := 2 + (len(elems) - 1) // one byte per item where i > 1
 	if quote {
-		n += 2
+		n += 2 * len(elems) // 2 extra bytes per quoted item
 	}
 
 	for i := 0; i < len(elems); i++ {
-		n += len(elems[i])
+		n += len(elems[i]) // Element length
 	}
 
 	var buf bytes.Buffer
@@ -69,7 +48,11 @@ func encodeArray(opening byte, closing byte, quote bool, elems ...[]byte) []byte
 	buf.Grow(n)
 	buf.WriteByte(opening)
 
-	writeElem := func(b []byte) {
+	for i, b := range elems {
+		if i > 0 {
+			buf.WriteByte(',')
+		}
+
 		if quote {
 			buf.WriteByte('"')
 		}
@@ -81,11 +64,44 @@ func encodeArray(opening byte, closing byte, quote bool, elems ...[]byte) []byte
 		}
 	}
 
-	writeElem(elems[0])
+	buf.WriteByte(closing)
 
-	for _, s := range elems[1:] {
-		buf.WriteByte(',')
-		writeElem(s)
+	return buf.Bytes()
+}
+
+func encodeArrayStrings(opening byte, closing byte, quote bool, elems ...string) []byte {
+	if len(elems) == 0 {
+		return []byte{opening, closing}
+	}
+
+	n := 2 + (len(elems) - 1) // one byte per item where i > 1
+	if quote {
+		n += 2 * len(elems) // 2 extra bytes per quoted item
+	}
+
+	for i := 0; i < len(elems); i++ {
+		n += len(elems[i]) // Element length
+	}
+
+	var buf bytes.Buffer
+
+	buf.Grow(n)
+	buf.WriteByte(opening)
+
+	for i, b := range elems {
+		if i > 0 {
+			buf.WriteByte(',')
+		}
+
+		if quote {
+			buf.WriteByte('"')
+		}
+
+		buf.Write([]byte(b))
+
+		if quote {
+			buf.WriteByte('"')
+		}
 	}
 
 	buf.WriteByte(closing)
