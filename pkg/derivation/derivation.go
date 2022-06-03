@@ -134,9 +134,28 @@ func (d *Derivation) OutputPaths(store KVStore) (map[string]string, error) {
 	outputs := make(map[string]string)
 
 	for _, o := range d.Outputs {
-		fixed := d.FixedOutput()
-		if fixed != nil {
-			s := fmt.Sprintf("source:sha256:%s:%s:%s", o.Hash, nixpath.StoreDir, name)
+		if fixed := d.FixedOutput(); fixed != nil { // nolint:nestif
+			// This code is _weird_ but it is what Nix is doing. See:
+			// https://github.com/NixOS/nix/blob/1385b2007804c8a0370f2a6555045a00e34b07c7/src/libstore/store-api.cc#L178-L196
+			var s string
+			if fixed.HashAlgorithm == "r:sha256" {
+				s = fmt.Sprintf("source:sha256:%s:%s:%s", o.Hash, nixpath.StoreDir, name)
+			} else {
+				s = fmt.Sprintf("fixed:out:%s:%s:", o.HashAlgorithm, o.Hash)
+
+				h := sha256.New()
+
+				_, err := h.Write([]byte(s))
+				if err != nil {
+					return nil, err
+				}
+
+				digest := h.Sum(nil)
+
+				s = hex.EncodeToString(digest)
+
+				s = fmt.Sprintf("output:out:sha256:%s:%s:%s", s, nixpath.StoreDir, name)
+			}
 
 			h := sha256.New()
 
@@ -157,11 +176,11 @@ func (d *Derivation) OutputPaths(store KVStore) (map[string]string, error) {
 			outputSuffix += "-" + o.Name
 		}
 
-		s := fmt.Sprintf("output:%s:sha256:%s:%s:%s", o.Name, partialDrvHash, nixpath.StoreDir, outputSuffix)
-
 		var digest []byte
 		{
 			h := sha256.New()
+
+			s := fmt.Sprintf("output:%s:sha256:%s:%s:%s", o.Name, partialDrvHash, nixpath.StoreDir, outputSuffix)
 
 			_, err := h.Write([]byte(s))
 			if err != nil {
