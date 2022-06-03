@@ -175,7 +175,7 @@ func (env *Env) Validate() error {
 // nolint:gochecknoglobals
 var parser = participle.MustBuild(&Derivation{},
 	participle.Lexer(lexer.MustSimple([]lexer.Rule{
-		{Name: `NixPath`, Pattern: fmt.Sprintf(`"/nix/store/%v"`, nixpath.NameRe.String())},
+		{Name: `NixPath`, Pattern: fmt.Sprintf(`"%v/%v"`, nixpath.StoreDir, nixpath.NameRe.String())},
 		{Name: `DerivationPrefix`, Pattern: `^Derive\(`},
 		{Name: `String`, Pattern: `"(?:\\.|[^"])*"`},
 		{Name: `Delim`, Pattern: `[,()\[\]]`},
