@@ -70,14 +70,30 @@ func (d *Derivation) Validate() error {
 		return fmt.Errorf("required attribute 'builder' missing")
 	}
 
-	for i, e := range d.EnvVars {
-		err := e.Validate()
-		if err != nil {
-			return fmt.Errorf("error validating env var '%s': %w", e.Key, err)
+	{
+		hasName := false
+
+		for i, e := range d.EnvVars {
+			err := e.Validate()
+			if err != nil {
+				return fmt.Errorf("error validating env var '%s': %w", e.Key, err)
+			}
+
+			if e.Key == "name" {
+				if e.Value == "" {
+					return fmt.Errorf("env var key 'name' cannot be empty")
+				}
+
+				hasName = true
+			}
+
+			if i > 0 && e.Key < d.EnvVars[i-1].Key {
+				return fmt.Errorf("invalid env var order: %s < %s", e.Key, d.EnvVars[i-1].Key)
+			}
 		}
 
-		if i > 0 && e.Key < d.EnvVars[i-1].Key {
-			return fmt.Errorf("invalid env var order: %s < %s", e.Key, d.EnvVars[i-1].Key)
+		if !hasName {
+			return fmt.Errorf("missing env var 'name'")
 		}
 	}
 
@@ -100,8 +116,7 @@ func (d *Derivation) Name() string {
 		}
 	}
 
-	// TODO: Maybe panic or change type sig to (string, error)?
-	return ""
+	panic("missing env var 'name'. hint: call Validate() before calling Name()")
 }
 
 func (d *Derivation) OutputPaths(store KVStore) (map[string]string, error) {
