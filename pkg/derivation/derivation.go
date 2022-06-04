@@ -106,6 +106,56 @@ func (d *Derivation) Validate() error {
 	return nil
 }
 
+func (d *Derivation) DrvPath() (string, error) {
+	name := d.Name()
+
+	h := sha256.New()
+
+	err := d.writeDerivation(h, false, nil)
+	if err != nil {
+		return "", err
+	}
+
+	digest := h.Sum(nil)
+
+	h = sha256.New()
+
+	h.Write([]byte("text:"))
+
+	// Write references (lexicographically ordered)
+	{
+		references := make([]string, len(d.InputDerivations)+len(d.InputSources))
+
+		n := 0
+
+		for i, input := range d.InputDerivations {
+			references[i] = input.Path
+			n = i + 1
+		}
+
+		for _, input := range d.InputSources {
+			references[n] = input
+			n = +1
+		}
+
+		sort.Strings(references)
+
+		for _, ref := range references {
+			h.Write([]byte(ref))
+			h.Write([]byte{':'})
+		}
+	}
+
+	h.Write([]byte("sha256:"))
+	h.Write([]byte(hex.EncodeToString(digest) + ":"))
+	h.Write([]byte(nixpath.StoreDir + ":"))
+	h.Write([]byte(name + ".drv"))
+
+	digest = h.Sum(nil)
+
+	return filepath.Join(nixpath.StoreDir, nixbase32.EncodeToString(compressHash(digest, 20))+"-"+name+".drv"), nil
+}
+
 func compressHash(hash []byte, newSize int) []byte {
 	buf := make([]byte, newSize)
 	for i := 0; i < len(hash); i++ {
@@ -126,11 +176,6 @@ func (d *Derivation) Name() string {
 }
 
 func (d *Derivation) OutputPaths(store KVStore) (map[string]string, error) {
-	// If the store isn't an input substitution wrapped store, wrap it
-	if _, ok := store.(*InputSubstKV); !ok {
-		store = NewInputSubstKV(store)
-	}
-
 	name := d.Name()
 
 	var buf bytes.Buffer
@@ -235,6 +280,13 @@ func (d *Derivation) WriteDerivation(writer io.Writer) error {
 }
 
 func (d *Derivation) writeDerivation(writer io.Writer, maskOutputs bool, actualInputs KVStore) error {
+	if actualInputs != nil {
+		// If the store isn't an input substitution wrapped store, wrap it
+		if _, ok := actualInputs.(*InputSubstKV); !ok {
+			actualInputs = NewInputSubstKV(actualInputs)
+		}
+	}
+
 	outputs := make([][]byte, len(d.Outputs))
 	{
 		for i, o := range d.Outputs {
