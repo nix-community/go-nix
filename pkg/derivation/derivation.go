@@ -4,20 +4,17 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/alecthomas/participle/v2"
-	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/nix-community/go-nix/pkg/nixpath"
 )
 
 type Derivation struct {
-	_                string            `parser:"@DerivationPrefix"`
-	Outputs          []Output          `json:"outputs" parser:"'[' ((@@ ','?)* @@? )']'','"`
-	InputDerivations []InputDerivation `json:"inputDrvs" parser:"'[' ((@@ ','?)* @@? )?']'','"`
-	InputSources     []string          `json:"inputSrcs" parser:"'[' ((@NixPath ','?)* @NixPath? )?']'','"`
-	Platform         string            `json:"system" parser:"@String ','"`
-	Builder          string            `json:"builder" parser:"(@String|@NixPath) ','"`
-	Arguments        []string          `json:"args" parser:"'[' ((@String ','?)* (@NixPath|@String)? )?']'','"`
-	EnvVars          []Env             `json:"env" parser:"'[' ((@@ ','?)* (@@)? )']'')'"`
+	Outputs          []Output          `json:"outputs"`
+	InputDerivations []InputDerivation `json:"inputDrvs"`
+	InputSources     []string          `json:"inputSrcs"`
+	Platform         string            `json:"system"`
+	Builder          string            `json:"builder"`
+	Arguments        []string          `json:"args"`
+	EnvVars          []Env             `json:"env"`
 }
 
 func (d *Derivation) Validate() error {
@@ -99,7 +96,7 @@ func (d *Derivation) WriteDerivation(writer io.Writer) error {
 	envVars := make([][]byte, len(d.EnvVars))
 	{
 		for i, e := range d.EnvVars {
-			envVars[i] = encodeArray('(', ')', false, escapeString(e.Key), escapeString(e.Value))
+			envVars[i] = encodeArray('(', ')', false, quoteString(e.Key), quoteString(e.Value))
 		}
 	}
 
@@ -113,8 +110,8 @@ func (d *Derivation) WriteDerivation(writer io.Writer) error {
 			encodeArray('[', ']', false, outputs...),
 			encodeArray('[', ']', false, inputDerivations...),
 			encodeArray('[', ']', true, stringsToBytes(d.InputSources)...),
-			escapeString(d.Platform),
-			escapeString(d.Builder),
+			quoteString(d.Platform),
+			quoteString(d.Builder),
 			encodeArray('[', ']', true, stringsToBytes(d.Arguments)...),
 			encodeArray('[', ']', false, envVars...),
 		),
@@ -129,10 +126,10 @@ func (d *Derivation) String() string {
 }
 
 type Output struct {
-	Name          string `json:"name" parser:"'(' @String ','"`
-	Path          string `json:"path" parser:"@NixPath ','"`
-	HashAlgorithm string `json:"hashAlgo" parser:"@String ','"`
-	Hash          string `json:"hash" parser:"@String ')'"`
+	Name          string `json:"name"`
+	Path          string `json:"path"`
+	HashAlgorithm string `json:"hashAlgo"`
+	Hash          string `json:"hash"`
 }
 
 func (o *Output) Validate() error {
@@ -149,8 +146,8 @@ func (o *Output) Validate() error {
 }
 
 type InputDerivation struct {
-	Path string   `json:"path" parser:"'(' @NixPath ','"`
-	Name []string `json:"name" parser:"'[' ((@String ','?)* @String? )']' ')'"`
+	Path string   `json:"path"`
+	Name []string `json:"name"`
 }
 
 func (id *InputDerivation) Validate() error {
@@ -160,8 +157,8 @@ func (id *InputDerivation) Validate() error {
 }
 
 type Env struct {
-	Key   string `parser:"'(' @String ','"`
-	Value string `parser:"(@String|@NixPath)? ')'"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 func (env *Env) Validate() error {
@@ -171,19 +168,6 @@ func (env *Env) Validate() error {
 
 	return nil
 }
-
-// nolint:gochecknoglobals
-var parser = participle.MustBuild(&Derivation{},
-	participle.Lexer(lexer.MustSimple([]lexer.Rule{
-		{Name: `NixPath`, Pattern: fmt.Sprintf(`"%v/%v"`, nixpath.StoreDir, nixpath.NameRe.String())},
-		{Name: `DerivationPrefix`, Pattern: `^Derive\(`},
-		{Name: `String`, Pattern: `"(?:\\.|[^"])*"`},
-		{Name: `Delim`, Pattern: `[,()\[\]]`},
-		{Name: "Whitespace", Pattern: `[ \t\n\r]+`},
-	})),
-	participle.Elide("Whitespace", "DerivationPrefix"),
-	participle.Unquote("NixPath", "String"),
-)
 
 func ReadDerivation(reader io.Reader) (*Derivation, error) {
 	bytes, err := io.ReadAll(reader)

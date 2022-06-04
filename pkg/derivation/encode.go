@@ -4,12 +4,6 @@ import (
 	"bytes"
 )
 
-// Escapes user provided values such as derivation attributes.
-// These may contain special characters such as newlines, tabs, backslashes and so on.
-func escapeString(s string) []byte {
-	return quoteString(s)
-}
-
 // Adds quotation marks around a string.
 // This is primarily meant for non-user provided strings.
 func quoteString(s string) []byte {
