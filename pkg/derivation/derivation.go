@@ -15,7 +15,7 @@ type Derivation struct {
 	InputDerivations []InputDerivation `json:"inputDrvs" parser:"'[' ((@@ ','?)* @@? )?']'','"`
 	InputSources     []string          `json:"inputSrcs" parser:"'[' ((@NixPath ','?)* @NixPath? )?']'','"`
 	Platform         string            `json:"system" parser:"@String ','"`
-	Builder          string            `json:"builder" parser:"@String ','"`
+	Builder          string            `json:"builder" parser:"(@String|@NixPath) ','"`
 	Arguments        []string          `json:"args" parser:"'[' ((@String ','?)* (@NixPath|@String)? )?']'','"`
 	EnvVars          []Env             `json:"env" parser:"'[' ((@@ ','?)* (@@)? )']'')'"`
 }
