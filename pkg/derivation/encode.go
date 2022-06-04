@@ -2,23 +2,11 @@ package derivation
 
 import (
 	"bytes"
-	"strings"
-)
-
-// nolint:gochecknoglobals
-var stringEscaper = strings.NewReplacer(
-	"\\", "\\\\",
-	"\n", "\\n",
-	"\r", "\\r",
-	"\t", "\\t",
-	"\"", "\\\"",
 )
 
 // Escapes user provided values such as derivation attributes.
 // These may contain special characters such as newlines, tabs, backslashes and so on.
 func escapeString(s string) []byte {
-	s = stringEscaper.Replace(s)
-
 	return quoteString(s)
 }
 

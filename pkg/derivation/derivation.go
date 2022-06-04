@@ -186,9 +186,12 @@ var parser = participle.MustBuild(&Derivation{},
 )
 
 func ReadDerivation(reader io.Reader) (*Derivation, error) {
-	drv := &Derivation{}
+	bytes, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
 
-	err := parser.Parse("", reader, drv)
+	drv, err := parseDerivation(bytes)
 	if err != nil {
 		return nil, err
 	}
