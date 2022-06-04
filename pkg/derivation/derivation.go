@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"sort"
 
 	"github.com/nix-community/go-nix/pkg/nixbase32"
 	"github.com/nix-community/go-nix/pkg/nixpath"
@@ -231,22 +232,44 @@ func (d *Derivation) writeDerivation(writer io.Writer, maskOutputs bool, actualI
 
 	inputDerivations := make([][]byte, len(d.InputDerivations))
 	{
-		for i, in := range d.InputDerivations {
-			var path []byte
-			if actualInputs != nil {
-				path, err = actualInputs.Get(in.Path)
+		if actualInputs != nil {
+			type substInputDerivation struct {
+				path string
+				arr  []byte
+			}
+
+			paths := make([]*substInputDerivation, len(d.InputDerivations))
+
+			for i, in := range d.InputDerivations {
+				path, err := actualInputs.Get(in.Path)
 				if err != nil {
 					return err
 				}
 
 				path = append([]byte{'"'}, path...) // TODO: Inefficient
 				path = append(path, '"')
-			} else {
-				path = quoteString(in.Path)
+
+				names := encodeArray('[', ']', true, stringsToBytes(in.Name)...) // Outputs names
+				arr := encodeArray('(', ')', false, path, names)
+
+				paths[i] = &substInputDerivation{
+					path: string(path),
+					arr:  arr,
+				}
 			}
 
-			names := encodeArray('[', ']', true, stringsToBytes(in.Name)...)
-			inputDerivations[i] = encodeArray('(', ')', false, path, names)
+			sort.Slice(paths, func(i, j int) bool {
+				return paths[i].path < paths[j].path
+			})
+
+			for i, foo := range paths {
+				inputDerivations[i] = foo.arr
+			}
+		} else {
+			for i, in := range d.InputDerivations {
+				names := encodeArray('[', ']', true, stringsToBytes(in.Name)...)
+				inputDerivations[i] = encodeArray('(', ')', false, quoteString(in.Path), names)
+			}
 		}
 	}
 
