@@ -34,6 +34,12 @@ func (d *Derivation) Validate() error {
 			return fmt.Errorf("error validating output '%s': %w", o.Name, err)
 		}
 
+		if o.HashAlgorithm != "" {
+			if len(d.Outputs) > 1 {
+				return fmt.Errorf("is a fixed output derivation, but had more than 1 output")
+			}
+		}
+
 		if i > 0 && o.Name < d.Outputs[i-1].Name {
 			return fmt.Errorf("invalid output order: %s < %s", o.Name, d.Outputs[i-1].Name)
 		}
@@ -356,6 +362,10 @@ func (o *Output) Validate() error {
 	_, err := nixpath.FromString(o.Path)
 	if err != nil {
 		return err
+	}
+
+	if o.HashAlgorithm != "" && o.Name != "out" {
+		return fmt.Errorf("is a fixed output derivation, but output name was not 'out'")
 	}
 
 	return nil
