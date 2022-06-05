@@ -6,14 +6,28 @@ import (
 	"github.com/nix-community/go-nix/pkg/nixpath"
 )
 
+// Derivation describes all data in a .drv, which canonically is expressed in ATerm format.
+// Nix requires some stronger properties w.r.t. order of elements, so we can internally use
+// maps for some of the fields, and convert to the canonical representation when encoding back
+// to ATerm format.
+// The field names also match the json structure that the `nix show-derivation /path/to.drv` is using.
 type Derivation struct {
-	Outputs          []Output          `json:"outputs"`
-	InputDerivations []InputDerivation `json:"inputDrvs"`
-	InputSources     []string          `json:"inputSrcs"`
-	Platform         string            `json:"system"`
-	Builder          string            `json:"builder"`
-	Arguments        []string          `json:"args"`
-	EnvVars          []Env             `json:"env"`
+	// Outputs are always lexicographically sorted by their name (key in this map)
+	Outputs map[string]*Output `json:"outputs"`
+
+	// InputDerivations are always lexicographically sorted by their path (key in this map)
+	// the []string returns the output names (out, …) of this input derivation that are used.
+	InputDerivations map[string][]string `json:"inputDrvs"`
+
+	// InputSources are always lexicographically sorted.
+	InputSources []string `json:"inputSrcs"`
+
+	Platform  string   `json:"system"`
+	Builder   string   `json:"builder"`
+	Arguments []string `json:"args"`
+
+	// Env must be lexicographically sorted by their key.
+	Env map[string]string `json:"env"`
 }
 
 func (d *Derivation) Validate() error {
@@ -21,26 +35,37 @@ func (d *Derivation) Validate() error {
 		return fmt.Errorf("at least one output must be defined")
 	}
 
-	for i, o := range d.Outputs {
-		err := o.Validate()
-		if err != nil {
-			return fmt.Errorf("error validating output '%s': %w", o.Name, err)
+	for outputName, output := range d.Outputs {
+		if outputName == "" {
+			return fmt.Errorf("empty output name")
 		}
 
-		if i > 0 && o.Name < d.Outputs[i-1].Name {
-			return fmt.Errorf("invalid output order: %s < %s", o.Name, d.Outputs[i-1].Name)
+		err := output.Validate()
+		if err != nil {
+			return fmt.Errorf("error validating output '%s': %w", outputName, err)
 		}
 	}
 	// FUTUREWORK: check output store path hashes and derivation hashes for consistency (#41)
 
-	for i, id := range d.InputDerivations {
-		err := id.Validate()
+	for inputDerivationPath := range d.InputDerivations {
+		_, err := nixpath.FromString(inputDerivationPath)
 		if err != nil {
-			return fmt.Errorf("error validating input derivation '%s': %w", id.Path, err)
+			return err
 		}
 
-		if i > 0 && id.Path < d.InputDerivations[i-1].Path {
-			return fmt.Errorf("invalid input derivation order: %s < %s", id.Path, d.InputDerivations[i-1].Path)
+		outputNames := d.InputDerivations[inputDerivationPath]
+		if len(outputNames) == 0 {
+			return fmt.Errorf("output names list for '%s' empty", inputDerivationPath)
+		}
+
+		for i, o := range outputNames {
+			if i > 1 && o < outputNames[i-1] {
+				return fmt.Errorf("invalid input derivation output order: %s < %s", o, outputNames[i-1])
+			}
+
+			if o == "" {
+				return fmt.Errorf("Output name entry for '%s' empty", inputDerivationPath)
+			}
 		}
 	}
 
@@ -63,64 +88,31 @@ func (d *Derivation) Validate() error {
 		return fmt.Errorf("required attribute 'builder' missing")
 	}
 
-	for i, e := range d.EnvVars {
-		err := e.Validate()
-		if err != nil {
-			return fmt.Errorf("error validating env var '%s': %w", e.Key, err)
-		}
-
-		if i > 0 && e.Key < d.EnvVars[i-1].Key {
-			return fmt.Errorf("invalid env var order: %s < %s", e.Key, d.EnvVars[i-1].Key)
+	for k := range d.Env {
+		if k == "" {
+			return fmt.Errorf("empty environment variable key")
 		}
 	}
 
 	return nil
 }
 
-// String returns the default (first) output path.
+// String returns the path of the derivation.
 func (d *Derivation) String() string {
-	return d.Outputs[0].Path
+	// TODO: replace with drv path
+	return "TODO"
 }
 
 type Output struct {
-	Name          string `json:"name"`
 	Path          string `json:"path"`
 	HashAlgorithm string `json:"hashAlgo"`
 	Hash          string `json:"hash"`
 }
 
 func (o *Output) Validate() error {
-	if o.Name == "" {
-		return fmt.Errorf("empty output name")
-	}
-
 	_, err := nixpath.FromString(o.Path)
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-type InputDerivation struct {
-	Path string   `json:"path"`
-	Name []string `json:"name"`
-}
-
-func (id *InputDerivation) Validate() error {
-	_, err := nixpath.FromString(id.Path)
-
-	return err
-}
-
-type Env struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-func (env *Env) Validate() error {
-	if env.Key == "" {
-		return fmt.Errorf("empty environment variable key")
 	}
 
 	return nil

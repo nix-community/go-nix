@@ -49,16 +49,24 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 		var err error
 
 		switch index {
-		case 0:
-			// For every output
+		case 0: // Outputs
+			drv.Outputs = make(map[string]*Output)
+			// Outputs are always lexicographically sorted by their name.
+			// keep track of the previous path read (if any), so we detect
+			// invalid encodings.
+			prevOutputName := ""
 			err = arrayEach(value, func(value []byte, index int) error {
 				output := &Output{}
+				outputName := ""
 
 				// Get every output field
 				err := arrayEach(value, func(value []byte, index int) error {
 					switch index {
 					case 0:
-						output.Name = unquote(value)
+						outputName = unquote(value)
+						if outputName <= prevOutputName {
+							return fmt.Errorf("invalid output order, %s <= %s", outputName, prevOutputName)
+						}
 					case 1:
 						output.Path = unquote(value)
 					case 2:
@@ -75,22 +83,34 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 					return err
 				}
 
-				drv.Outputs = append(drv.Outputs, *output)
+				if outputName == "" {
+					return fmt.Errorf("output name for %s may not be empty", output.Path)
+				}
+				drv.Outputs[outputName] = output
+				prevOutputName = outputName
 
 				return nil
 			})
 
 		case 1: // InputDerivations
+			drv.InputDerivations = make(map[string][]string)
+			// InputDerivations are always lexicographically sorted by their path
+			prevInputDrvPath := ""
 			err = arrayEach(value, func(value []byte, index int) error {
-				inputDrv := &InputDerivation{}
+				inputDrvPath := ""
+				inputDrvNames := []string{}
 
 				err := arrayEach(value, func(value []byte, index int) error {
 					switch index {
 					case 0:
-						inputDrv.Path = unquote(value)
+						inputDrvPath = unquote(value)
+						if inputDrvPath <= prevInputDrvPath {
+							return fmt.Errorf("invalid input derivation order: %s <= %s", inputDrvPath, prevInputDrvPath)
+						}
+
 					case 1:
 						err := arrayEach(value, func(value []byte, index int) error {
-							inputDrv.Name = append(inputDrv.Name, unquote(value))
+							inputDrvNames = append(inputDrvNames, unquote(value))
 
 							return nil
 						})
@@ -108,7 +128,8 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 					return err
 				}
 
-				drv.InputDerivations = append(drv.InputDerivations, *inputDrv)
+				drv.InputDerivations[inputDrvPath] = inputDrvNames
+				prevInputDrvPath = inputDrvPath
 
 				return nil
 			})
@@ -133,25 +154,35 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 				return nil
 			})
 
-		case 6: // EnvVars
+		case 6: // Env
+			drv.Env = make(map[string]string)
+			prevEnvKey := ""
 			err = arrayEach(value, func(value []byte, index int) error {
-				envVar := &Env{}
+				envValue := ""
+				envKey := ""
 
 				// For every field
 				err := arrayEach(value, func(value []byte, index int) error {
 					switch index {
 					case 0:
-						envVar.Key = unquote(value)
+						envKey = unquote(value)
+						if envKey <= prevEnvKey {
+							return fmt.Errorf("invalid env var order: %s <= %s", envKey, prevEnvKey)
+						}
 					case 1:
-						envVar.Value = unquote(value)
+						envValue = unquote(value)
 					default:
 						return fmt.Errorf("unhandled env var index: %d", index)
 					}
 
 					return nil
 				})
+				if err != nil {
+					return err
+				}
 
-				drv.EnvVars = append(drv.EnvVars, *envVar)
+				drv.Env[envKey] = envValue
+				prevEnvKey = envKey
 
 				return err
 			})
