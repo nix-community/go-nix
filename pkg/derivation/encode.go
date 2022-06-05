@@ -2,6 +2,7 @@ package derivation
 
 import (
 	"bytes"
+	"io"
 )
 
 // Adds quotation marks around a string.
@@ -73,4 +74,46 @@ func encodeArray(opening byte, closing byte, quote bool, elems ...[]byte) []byte
 	buf.WriteByte(closing)
 
 	return buf.Bytes()
+}
+
+// WriteDerivation writes the textual representation of the derivation to the passed writer.
+func (d *Derivation) WriteDerivation(writer io.Writer) error {
+	outputs := make([][]byte, len(d.Outputs))
+	for i, o := range d.Outputs {
+		outputs[i] = encodeArray('(', ')', true, []byte(o.Name), []byte(o.Path), []byte(o.HashAlgorithm), []byte(o.Hash))
+	}
+
+	inputDerivations := make([][]byte, len(d.InputDerivations))
+	{
+		for i, in := range d.InputDerivations {
+			names := encodeArray('[', ']', true, stringsToBytes(in.Name)...)
+			inputDerivations[i] = encodeArray('(', ')', false, quoteString(in.Path), names)
+		}
+	}
+
+	envVars := make([][]byte, len(d.EnvVars))
+	{
+		for i, e := range d.EnvVars {
+			envVars[i] = encodeArray('(', ')', false, quoteString(e.Key), quoteString(e.Value))
+		}
+	}
+
+	_, err := writer.Write([]byte("Derive"))
+	if err != nil {
+		return err
+	}
+
+	_, err = writer.Write(
+		encodeArray('(', ')', false,
+			encodeArray('[', ']', false, outputs...),
+			encodeArray('[', ']', false, inputDerivations...),
+			encodeArray('[', ']', true, stringsToBytes(d.InputSources)...),
+			quoteString(d.Platform),
+			quoteString(d.Builder),
+			encodeArray('[', ']', true, stringsToBytes(d.Arguments)...),
+			encodeArray('[', ']', false, envVars...),
+		),
+	)
+
+	return err
 }
