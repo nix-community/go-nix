@@ -1,0 +1,1 @@
+Derive([("out","/nix/store/hb42ifgavm0d783l9xr0l3ydl76f1hss-foo-file","","")],[],["/nix/store/gy295yl6dvm27wv7rsa6gswiq14zk3za-foofile"],":",":",[],[("builder",":"),("file","/nix/store/gy295yl6dvm27wv7rsa6gswiq14zk3za-foofile"),("name","foo-file"),("out","/nix/store/hb42ifgavm0d783l9xr0l3ydl76f1hss-foo-file"),("system",":")])

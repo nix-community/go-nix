@@ -125,6 +125,32 @@ func TestEncoder(t *testing.T) {
 			Title:          "Builder Nixpath",
 			DerivationFile: "0zhkga32apid60mm7nh92z2970im5837-bootstrap-tools.drv",
 		},
+		{
+			Title:          "fixed-sha256",
+			DerivationFile: "0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv",
+		},
+		{
+			// Has a single fixed-output dependency
+			Title:          "simple-sha256",
+			DerivationFile: "4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv",
+		},
+		{
+			Title:          "fixed-sha1",
+			DerivationFile: "ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv",
+		},
+		{
+			// Has a single fixed-output dependency
+			Title:          "simple-sha1",
+			DerivationFile: "ch49594n9avinrf8ip0aslidkc4lxkqv-foo.drv",
+		},
+		{
+			Title:          "has-file-dependency",
+			DerivationFile: "385bniikgs469345jfsbw24kjfhxrsi0-foo-file.drv",
+		},
+		{
+			Title:          "has-file-and-drv-dependency",
+			DerivationFile: "z8dajq053b2bxc3ncqp8p8y3nfwafh3p-foo-file.drv",
+		},
 	}
 
 	t.Run("WriteDerivation", func(t *testing.T) {
