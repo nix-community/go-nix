@@ -11,7 +11,8 @@ var _ derivation.Store = &MemoryStore{}
 
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
-		drvs: make(map[string]*derivation.Derivation),
+		drvs:               make(map[string]*derivation.Derivation),
+		substitutionHashes: make(map[string]string),
 	}
 }
 
@@ -20,6 +21,10 @@ func NewMemoryStore() *MemoryStore {
 type MemoryStore struct {
 	// drvs stores all derivation structs, indexed by their drv path
 	drvs map[string]*derivation.Derivation
+
+	// substitutionHashes stores the substitution hashes once they're calculated through
+	// GetSubstitutionHash.
+	substitutionHashes map[string]string
 }
 
 // Put inserts a new Derivation into the Derivation Store.
@@ -54,4 +59,28 @@ func (ms *MemoryStore) Get(derivationPath string) (*derivation.Derivation, error
 	}
 
 	return nil, fmt.Errorf("derivation path not found: %s", derivationPath)
+}
+
+// GetSubstitionHash calculates the substitution hash and returns the result.
+// It queries a cache first, which is populated on demand.
+func (ms *MemoryStore) GetSubstitutionHash(derivationPath string) (string, error) {
+	// serve substitution hash from cache if present
+	if substitutionHash, ok := ms.substitutionHashes[derivationPath]; ok {
+		return substitutionHash, nil
+	}
+
+	// else, calculate it and add to cache.
+	drv, ok := ms.drvs[derivationPath]
+	if !ok {
+		return "", fmt.Errorf("couldn't find %v", derivationPath)
+	}
+
+	substitutionHash, err := drv.GetSubstitutionHash(ms)
+	if err != nil {
+		return "", err
+	}
+
+	ms.substitutionHashes[derivationPath] = substitutionHash
+
+	return substitutionHash, nil
 }

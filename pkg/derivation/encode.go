@@ -131,16 +131,11 @@ func (d *Derivation) writeDerivation(writer io.Writer, stripOutputs bool, store 
 		// create a new input derivations, with the substituted paths as keys
 		inputDerivations = map[string][]string{}
 		for dPath, v := range d.InputDerivations {
-			// lookup the referred derivation in the store
-			inputDrv, err := store.Get(dPath)
+			substitutionHash, err := store.GetSubstitutionHash(dPath)
 			if err != nil {
 				return err
 			}
-			k, err := inputDrv.getSubstitutionHash(store)
-			if err != nil {
-				return err
-			}
-			inputDerivations[k] = v
+			inputDerivations[substitutionHash] = v
 		}
 	}
 

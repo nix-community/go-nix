@@ -14,4 +14,9 @@ type Store interface {
 	// The second return argument specifies if the derivation could be found,
 	// similar to how acessing from a map works.
 	Get(string) (*Derivation, error)
+
+	// GetSubstitutionHash produces a hex-encoded hash of the current derivation.
+	// It recursively does this for all Input Derivations, so implementations might
+	// want to cache these results.
+	GetSubstitutionHash(string) (string, error)
 }

@@ -53,9 +53,9 @@ func (d *Derivation) OutputPaths(store Store) (map[string]string, error) {
 	return outputPaths, nil
 }
 
-// getSubstitutionHash is producing a hex-encoded hash of the current derivation.
+// GetSubstitutionHash is producing a hex-encoded hash of the current derivation.
 // It needs a store, as it does some substitution on the way.
-func (d *Derivation) getSubstitutionHash(store Store) (string, error) {
+func (d *Derivation) GetSubstitutionHash(store Store) (string, error) {
 	h := sha256.New()
 
 	if fixed := d.GetFixedOutput(); fixed != nil { // nolint:nestif
