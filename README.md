@@ -12,7 +12,11 @@ They're not meant to be 100% compatible, but are documented in the `--help`
 output.
 
 ## `pkg/derivation`
-A parser for Nix `.drv` files
+A parser for Nix `.drv` files.
+Functions to calculate derivation paths and output hashes.
+
+## `pkg/derivation/store`
+A Structure to hold derivation graphs.
 
 ## `pkg/hash`
 Methods to serialize and deserialize some of the hashes used in nix code and
