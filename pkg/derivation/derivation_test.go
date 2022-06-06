@@ -15,74 +15,39 @@ func TestParser(t *testing.T) {
 	cases := []struct {
 		Title          string
 		DerivationFile string
-		Output         *derivation.Output
+		Outputs        map[string]*derivation.Output
 		Platform       string
 		Builder        string
-		EnvVars        []derivation.Env
+		Env            map[string]string
 	}{
 		{
 			"Basic",
 			"m5j1yp47lw1psd9n6bzina1167abbprr-bash44-023.drv",
 			//			"basic.drv",
-			&derivation.Output{
-				Name:          "out",
-				Path:          "/nix/store/x9cyj78gzd1wjf0xsiad1pa3ricbj566-bash44-023",
-				HashAlgorithm: "sha256",
-				Hash:          "4fec236f3fbd3d0c47b893fdfa9122142a474f6ef66c20ffb6c0f4864dd591b6",
+			map[string]*derivation.Output{
+				"out": {
+					Path:          "/nix/store/x9cyj78gzd1wjf0xsiad1pa3ricbj566-bash44-023",
+					HashAlgorithm: "sha256",
+					Hash:          "4fec236f3fbd3d0c47b893fdfa9122142a474f6ef66c20ffb6c0f4864dd591b6",
+				},
 			},
+
 			"builtin",
 			"builtin:fetchurl",
-			[]derivation.Env{
-				{
-					Key:   "builder",
-					Value: "builtin:fetchurl",
-				},
-				{
-					Key: "executable",
-				},
-				{
-					Key:   "impureEnvVars",
-					Value: "http_proxy https_proxy ftp_proxy all_proxy no_proxy",
-				},
-				{
-					Key:   "name",
-					Value: "bash44-023",
-				},
-				{
-					Key:   "out",
-					Value: "/nix/store/x9cyj78gzd1wjf0xsiad1pa3ricbj566-bash44-023",
-				},
-				{
-					Key:   "outputHash",
-					Value: "1dlism6qdx60nvzj0v7ndr7lfahl4a8zmzckp13hqgdx7xpj7v2g",
-				},
-				{
-					Key:   "outputHashAlgo",
-					Value: "sha256",
-				},
-				{
-					Key:   "outputHashMode",
-					Value: "flat",
-				},
-				{
-					Key:   "preferLocalBuild",
-					Value: "1",
-				},
-				{
-					Key:   "system",
-					Value: "builtin",
-				},
-				{
-					Key: "unpack",
-				},
-				{
-					Key:   "url",
-					Value: "https://ftpmirror.gnu.org/bash/bash-4.4-patches/bash44-023",
-				},
-				{
-					Key:   "urls",
-					Value: "https://ftpmirror.gnu.org/bash/bash-4.4-patches/bash44-023",
-				},
+			map[string]string{
+				"builder":          "builtin:fetchurl",
+				"executable":       "",
+				"impureEnvVars":    "http_proxy https_proxy ftp_proxy all_proxy no_proxy",
+				"name":             "bash44-023",
+				"out":              "/nix/store/x9cyj78gzd1wjf0xsiad1pa3ricbj566-bash44-023",
+				"outputHash":       "1dlism6qdx60nvzj0v7ndr7lfahl4a8zmzckp13hqgdx7xpj7v2g",
+				"outputHashAlgo":   "sha256",
+				"outputHashMode":   "flat",
+				"preferLocalBuild": "1",
+				"system":           "builtin",
+				"unpack":           "",
+				"url":              "https://ftpmirror.gnu.org/bash/bash-4.4-patches/bash44-023",
+				"urls":             "https://ftpmirror.gnu.org/bash/bash-4.4-patches/bash44-023",
 			},
 		},
 	}
@@ -96,13 +61,10 @@ func TestParser(t *testing.T) {
 				}
 
 				drv, err := derivation.ReadDerivation(derivationFile)
-				if err != nil {
-					panic(err)
-				}
-				// repr.Println(drv, repr.Indent("  "), repr.OmitEmpty(true))
-				assert.Equal(t, &drv.Outputs[0], c.Output)
-				assert.Equal(t, drv.Builder, c.Builder)
-				assert.Equal(t, drv.EnvVars, c.EnvVars)
+				assert.NoError(t, err, "parsing derivation %s shouldn't fail", derivationFile)
+				assert.Equal(t, c.Outputs, drv.Outputs)
+				assert.Equal(t, c.Builder, drv.Builder)
+				assert.Equal(t, c.Env, drv.Env)
 			})
 		}
 	})
@@ -177,28 +139,9 @@ func TestEncoder(t *testing.T) {
 					panic(err)
 				}
 
-				assert.Equal(t, sb.String(), string(derivationBytes))
+				assert.Equal(t, string(derivationBytes), sb.String())
 			})
 		}
-	})
-}
-
-func TestOutputs(t *testing.T) {
-	drv := &derivation.Derivation{
-		Outputs: []derivation.Output{
-			{
-				Name: "foo",
-				Path: "dummy",
-			},
-			{
-				Name: "bar",
-				Path: "dummy2",
-			},
-		},
-	}
-
-	t.Run("String", func(t *testing.T) {
-		assert.Equal(t, "dummy", drv.String())
 	})
 }
 
@@ -221,7 +164,7 @@ func TestValidate(t *testing.T) {
 		t.Run("NoOutputsAtAll", func(t *testing.T) {
 			drv := getDerivation()
 
-			drv.Outputs = []derivation.Output{}
+			drv.Outputs = map[string]*derivation.Output{}
 
 			err := drv.Validate()
 			assert.Error(t, err)
@@ -237,7 +180,10 @@ func TestValidate(t *testing.T) {
 		t.Run("NoOutputName", func(t *testing.T) {
 			drv := getDerivation()
 
-			drv.Outputs[0].Name = ""
+			// rename key of bin to ""
+			binOutput := drv.Outputs["bin"]
+			delete(drv.Outputs, "bin")
+			drv.Outputs[""] = binOutput
 
 			err := drv.Validate()
 			assert.Error(t, err)
@@ -253,7 +199,7 @@ func TestValidate(t *testing.T) {
 		t.Run("InvalidPath", func(t *testing.T) {
 			drv := getDerivation()
 
-			drv.Outputs[0].Path = "invalidPath"
+			drv.Outputs["bin"].Path = "invalidPath"
 
 			err := drv.Validate()
 			assert.Error(t, err)
@@ -263,22 +209,6 @@ func TestValidate(t *testing.T) {
 				err.Error(),
 				"unable to parse path",
 				"error should complain about path syntax",
-			)
-		})
-
-		t.Run("InvalidOrder", func(t *testing.T) {
-			drv := getDerivation()
-
-			drv.Outputs[0].Name = "foo"
-
-			err := drv.Validate()
-			assert.Error(t, err)
-
-			assert.Containsf(
-				t,
-				err.Error(),
-				"invalid output order",
-				"error should complain about output order",
 			)
 		})
 	})
@@ -287,7 +217,14 @@ func TestValidate(t *testing.T) {
 		t.Run("InvalidPath", func(t *testing.T) {
 			drv := getDerivation()
 
-			drv.InputDerivations[0].Path = "bar"
+			// the first input derivation, and re-insert it with an empty key.
+			k := "/nix/store/073gancjdr3z1scm2p553v0k3cxj2cpy-fix-tests-when-building-without-regex-supports.patch.drv"
+			firstInputDrv, ok := drv.InputDerivations[k]
+			if !ok {
+				panic("missing key")
+			}
+			delete(drv.InputDerivations, k)
+			drv.InputDerivations[""] = firstInputDrv
 
 			err := drv.Validate()
 			assert.Error(t, err)
@@ -297,23 +234,6 @@ func TestValidate(t *testing.T) {
 				err.Error(),
 				"unable to parse path",
 				"error should complain about path syntax",
-			)
-		})
-
-		t.Run("InvalidOrder", func(t *testing.T) {
-			drv := getDerivation()
-
-			drv.InputDerivations[0].Path = "/nix/store/5k1sfc5qmzb93addcjxxnqcd5bpf2wlz-hook.drv"
-			drv.InputDerivations[1].Path = "/nix/store/4k1sfc5qmzb93addcjxxnqcd5bpf2wlz-hook.drv"
-
-			err := drv.Validate()
-			assert.Error(t, err)
-
-			assert.Containsf(
-				t,
-				err.Error(),
-				"invalid input derivation order",
-				"error should complain about ordering",
 			)
 		})
 	})
@@ -332,23 +252,6 @@ func TestValidate(t *testing.T) {
 				err.Error(),
 				"unable to parse path",
 				"error should complain about path syntax",
-			)
-		})
-
-		t.Run("InvalidOrder", func(t *testing.T) {
-			drv := getDerivation()
-
-			drv.InputSources[0] = "/nix/store/5k1sfc5qmzb93addcjxxnqcd5bpf2wlz-hook.drv"
-			drv.InputSources = append(drv.InputSources, "/nix/store/4k1sfc5qmzb93addcjxxnqcd5bpf2wlz-hook.drv")
-
-			err := drv.Validate()
-			assert.Error(t, err)
-
-			assert.Containsf(
-				t,
-				err.Error(),
-				"invalid input source order",
-				"error should complain about ordering",
 			)
 		})
 	})
@@ -386,27 +289,10 @@ func TestValidate(t *testing.T) {
 	})
 
 	t.Run("InvalidEnvVar", func(t *testing.T) {
-		t.Run("InvalidOrder", func(t *testing.T) {
-			drv := getDerivation()
-
-			drv.EnvVars[0].Key = "foo"
-			drv.EnvVars[1].Key = "bar"
-
-			err := drv.Validate()
-			assert.Error(t, err)
-
-			assert.Containsf(
-				t,
-				err.Error(),
-				"invalid env var order",
-				"error should complain about ordering",
-			)
-		})
-
 		t.Run("EmpyEnvVar", func(t *testing.T) {
 			drv := getDerivation()
 
-			drv.EnvVars[0].Key = ""
+			drv.Env[""] = "foo"
 
 			err := drv.Validate()
 			assert.Error(t, err)
