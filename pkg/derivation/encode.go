@@ -77,12 +77,23 @@ func encodeArray(opening byte, closing byte, quote bool, elems ...[]byte) []byte
 	return buf.Bytes()
 }
 
-// WriteDerivation writes the textual representation of the derivation to the passed writer.
+// WriteDerivation writes the ATerm representation of the derivation to the passed writer.
+// It calls writeDerivation in non-stripOutput mode, without any substitutions to be done.
 func (d *Derivation) WriteDerivation(writer io.Writer) error {
-	// we need to sort outputs by their name, which is the key of the map.
-	// get the list of keys, sort them, then add each one by one.
-	// Due to the "sorted paths" requirement, we know there's no two
-	// outputs with the same path.
+	return d.writeDerivation(writer, false, nil)
+}
+
+// writeDerivation is the internal method that's used to create the ATerm representation
+// of a derivation.
+// Contrary to the public interface, which is used to return their canonical representation,
+// it has two more flags:
+// - stripOutputs describes whether outputs in Outputs, and those in any Env value are omitted
+// - derivation.Store can be passed, which allows looking up other Derivation objects.
+//   if set, all InputDerivations are replaced.
+//   TODO: write an overwiew on how that's done!
+func (d *Derivation) writeDerivation(writer io.Writer, stripOutputs bool, store Store) error {
+	// To order outputs by their output name (which is the key of the map), we
+	// get the keys, sort them, then add each one by one.
 	outputNames := make([]string, len(d.Outputs))
 	{
 		i := 0
@@ -98,11 +109,16 @@ func (d *Derivation) WriteDerivation(writer io.Writer) error {
 		for i, outputName := range outputNames {
 			o := d.Outputs[outputName]
 
+			encPath := o.Path
+			if stripOutputs {
+				encPath = ""
+			}
+
 			encOutputs[i] = encodeArray(
 				'(', ')',
 				true,
 				[]byte(outputName),
-				[]byte(o.Path),
+				[]byte(encPath),
 				[]byte(o.HashAlgorithm),
 				[]byte(o.Hash),
 			)
@@ -144,7 +160,15 @@ func (d *Derivation) WriteDerivation(writer io.Writer) error {
 	encEnv := make([][]byte, len(d.Env))
 	{
 		for i, k := range envKeys {
-			encEnv[i] = encodeArray('(', ')', false, quoteString(k), quoteString(d.Env[k]))
+			encEnvV := d.Env[k]
+			// when stripOutputs is set, we need to strip all env keys
+			// that are named like an output.
+			if stripOutputs {
+				if _, ok := d.Outputs[k]; ok {
+					encEnvV = ""
+				}
+			}
+			encEnv[i] = encodeArray('(', ')', false, quoteString(k), quoteString(encEnvV))
 		}
 	}
 
