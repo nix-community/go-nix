@@ -6,8 +6,8 @@ import (
 	"github.com/nix-community/go-nix/pkg/derivation"
 )
 
-// MemoryStore implements derivation.Store.
-var _ derivation.Store = &MemoryStore{}
+// MemoryStore implements derivation.StorePut.
+var _ derivation.StorePut = &MemoryStore{}
 
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
