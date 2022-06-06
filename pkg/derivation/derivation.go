@@ -2,7 +2,6 @@ package derivation
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/nix-community/go-nix/pkg/nixpath"
 )
@@ -125,18 +124,4 @@ func (env *Env) Validate() error {
 	}
 
 	return nil
-}
-
-func ReadDerivation(reader io.Reader) (*Derivation, error) {
-	bytes, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, err
-	}
-
-	drv, err := parseDerivation(bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return drv, drv.Validate()
 }
