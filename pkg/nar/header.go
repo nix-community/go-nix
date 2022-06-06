@@ -3,8 +3,8 @@ package nar
 import (
 	"fmt"
 	"io/fs"
+	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -23,7 +23,8 @@ type Header struct {
 // fails validation.
 func (h *Header) Validate() error {
 	// Path needs to start with a /, and must not contain null bytes
-	if len(h.Path) < 1 || h.Path[0:1] != "/" {
+	// as we might get passed windows paths, ToSlash them first.
+	if p := filepath.ToSlash(h.Path); len(h.Path) < 1 || p[0:1] != "/" {
 		return fmt.Errorf("path must start with a /")
 	}
 
@@ -81,27 +82,3 @@ func (fi headerFileInfo) Sys() interface{}   { return fi.h }
 // Name of the file.
 // Will be an empty string, if this describes the root of a NAR.
 func (fi headerFileInfo) Name() string { return fi.h.Path }
-
-func (fi headerFileInfo) Mode() fs.FileMode {
-	// everything in the nix store is readable by user, group and other.
-	var mode fs.FileMode
-
-	switch fi.h.Type {
-	case TypeRegular:
-		mode = syscall.S_IRUSR | syscall.S_IRGRP | syscall.S_IROTH
-		if fi.h.Executable {
-			mode |= (syscall.S_IXUSR | syscall.S_IXGRP | syscall.S_IXOTH)
-		}
-	case TypeDirectory:
-		mode = syscall.S_IRUSR | syscall.S_IRGRP | syscall.S_IROTH
-		mode |= (syscall.S_IXUSR | syscall.S_IXGRP | syscall.S_IXOTH)
-	case TypeSymlink:
-		mode = fs.ModePerm | fs.ModeSymlink
-	case TypeUnknown:
-		// It's not possible to create a NAR with a member of TypeUnknown using either
-		// the reader or the writer, only by manually populating structs.
-		panic("No mode for TypeUnknown")
-	}
-
-	return mode
-}

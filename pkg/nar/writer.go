@@ -145,8 +145,8 @@ func (nw *Writer) emitNode(currentHeader *Header) (*Header, error) {
 				return nil, err
 			}
 
-			// write the target location
-			err = wire.WriteString(nw.w, currentHeader.LinkTarget)
+			// write the target location. Make sure to convert slashes.
+			err = wire.WriteString(nw.w, filepath.ToSlash(currentHeader.LinkTarget))
 			if err != nil {
 				return nil, err
 			}
@@ -216,6 +216,9 @@ func (nw *Writer) emitNode(currentHeader *Header) (*Header, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		// make sure we're using slashes
+		nodeName = filepath.ToSlash(nodeName)
 
 		// if the received header is something further up, or a sibling, we're done here.
 		if len(nodeName) > 2 && (nodeName[0:2] == "..") {
