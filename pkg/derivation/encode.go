@@ -88,9 +88,8 @@ func (d *Derivation) WriteDerivation(writer io.Writer) error {
 // Contrary to the public interface, which is used to return their canonical representation,
 // it has two more flags:
 // - stripOutputs describes whether outputs in Outputs, and those in any Env value are omitted
-// - derivation.Store can be passed, which allows looking up other Derivation objects.
-//   if set, all InputDerivations are replaced.
-//   TODO: write an overwiew on how that's done!
+// - derivation.Store can be passed, which allows looking up InputDerivations, so they can be
+//   replaced with their substitution hash.
 func (d *Derivation) writeDerivation(writer io.Writer, stripOutputs bool, store Store) error {
 	// To order outputs by their output name (which is the key of the map), we
 	// get the keys, sort them, then add each one by one.
@@ -125,22 +124,42 @@ func (d *Derivation) writeDerivation(writer io.Writer, stripOutputs bool, store 
 		}
 	}
 
+	var inputDerivations map[string][]string
+	if store == nil {
+		inputDerivations = d.InputDerivations
+	} else {
+		// create a new input derivations, with the substituted paths as keys
+		inputDerivations = map[string][]string{}
+		for dPath, v := range d.InputDerivations {
+			// lookup the referred derivation in the store
+			inputDrv, err := store.Get(dPath)
+			if err != nil {
+				return err
+			}
+			k, err := inputDrv.getSubstitutionHash(store)
+			if err != nil {
+				return err
+			}
+			inputDerivations[k] = v
+		}
+	}
+
 	// input derivations are sorted by their path, which is the key of the map.
 	// get the list of keys, sort them, then add each one by one.
-	inputDerivationPaths := make([]string, len(d.InputDerivations))
+	inputDerivationPaths := make([]string, len(inputDerivations))
 	{
 		i := 0
-		for inputDerivationPath := range d.InputDerivations {
+		for inputDerivationPath := range inputDerivations {
 			inputDerivationPaths[i] = inputDerivationPath
 			i++
 		}
 		sort.Strings(inputDerivationPaths)
 	}
 
-	encInputDerivations := make([][]byte, len(d.InputDerivations))
+	encInputDerivations := make([][]byte, len(inputDerivations))
 	{
 		for i, inputDerivationPath := range inputDerivationPaths {
-			names := encodeArray('[', ']', true, stringsToBytes(d.InputDerivations[inputDerivationPath])...)
+			names := encodeArray('[', ']', true, stringsToBytes(inputDerivations[inputDerivationPath])...)
 			encInputDerivations[i] = encodeArray('(', ')', false, quoteString(inputDerivationPath), names)
 		}
 	}
