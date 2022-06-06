@@ -88,10 +88,21 @@ func (d *Derivation) Validate() error {
 		return fmt.Errorf("required attribute 'builder' missing")
 	}
 
+	// there has to be an env variable with key `name`.
+	hasNameEnv := false
+
 	for k := range d.Env {
 		if k == "" {
 			return fmt.Errorf("empty environment variable key")
 		}
+
+		if k == "name" {
+			hasNameEnv = true
+		}
+	}
+
+	if !hasNameEnv {
+		return fmt.Errorf("env 'name' not found")
 	}
 
 	return nil
