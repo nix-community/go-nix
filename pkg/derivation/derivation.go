@@ -107,18 +107,3 @@ func (d *Derivation) Validate() error {
 
 	return nil
 }
-
-type Output struct {
-	Path          string `json:"path"`
-	HashAlgorithm string `json:"hashAlgo"`
-	Hash          string `json:"hash"`
-}
-
-func (o *Output) Validate() error {
-	_, err := nixpath.FromString(o.Path)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
