@@ -14,7 +14,7 @@ func (d *Derivation) DrvPath() (string, error) {
 	// calculate the sha256 digest of the ATerm representation
 	h := sha256.New()
 
-	if err := d.WriteDerivation(h); err != nil {
+	if err := d.WriteDerivation(h, false, nil); err != nil {
 		return "", err
 	}
 
