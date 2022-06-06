@@ -3,7 +3,6 @@ package derivation
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"path/filepath"
 	"sort"
 
 	"github.com/nix-community/go-nix/pkg/hash"
@@ -65,8 +64,5 @@ func (d *Derivation) DrvPath() (string, error) {
 
 	atermDigest = h.Sum(nil)
 
-	return filepath.Join(
-		nixpath.StoreDir,
-		nixbase32.EncodeToString(hash.CompressHash(atermDigest, 20))+"-"+name+".drv",
-	), nil
+	return nixpath.Absolute(nixbase32.EncodeToString(hash.CompressHash(atermDigest, 20)) + "-" + name + ".drv"), nil
 }

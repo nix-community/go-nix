@@ -1,6 +1,8 @@
 package nixpath_test
 
 import (
+	"path"
+	"strings"
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/nixpath"
@@ -37,5 +39,29 @@ func TestNixPath(t *testing.T) {
 	t.Run("more than just the bare nix store path", func(t *testing.T) {
 		_, err := nixpath.FromString("/nix/store/00bgd045z0d4icpbc2yyz4gx48aku4la-net-tools-1.60_p20170221182432/bin/arp")
 		assert.Error(t, err)
+	})
+}
+
+func TestNixPathAbsolute(t *testing.T) {
+	t.Run("simple (foo)", func(t *testing.T) {
+		s := nixpath.Absolute("foo")
+		assert.Equal(t, nixpath.StoreDir+"/"+"foo", s)
+	})
+	t.Run("subdir (foo/bar)", func(t *testing.T) {
+		s := nixpath.Absolute("foo/bar")
+		assert.Equal(t, nixpath.StoreDir+"/"+"foo/bar", s)
+	})
+	t.Run("with ../ getting cleaned (foo/bar/.. -> foo)", func(t *testing.T) {
+		s := nixpath.Absolute("foo/bar/..")
+		assert.Equal(t, nixpath.StoreDir+"/"+"foo", s)
+	})
+	// test you can use this to exit nixpath.StoreDir
+	// Note path.Join does a path.Clean already, this is only
+	// written for additional clarity.
+	t.Run("leave storeDir", func(t *testing.T) {
+		s := nixpath.Absolute("..")
+		assert.Equal(t, path.Clean(path.Join(nixpath.StoreDir, "..")), s)
+		assert.False(t, strings.HasPrefix(s, nixpath.StoreDir),
+			"path shouldn't have the full storedir as prefix anymore (/nix)")
 	})
 }

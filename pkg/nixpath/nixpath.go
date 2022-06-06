@@ -31,7 +31,7 @@ type NixPath struct {
 }
 
 func (n *NixPath) String() string {
-	return path.Join(StoreDir, fmt.Sprintf("%v-%v", nixbase32.EncodeToString(n.Digest), n.Name))
+	return Absolute(fmt.Sprintf("%v-%v", nixbase32.EncodeToString(n.Digest), n.Name))
 }
 
 // FromString parses a path string into a nix path,
@@ -52,4 +52,14 @@ func FromString(s string) (*NixPath, error) {
 		Name:   m[2],
 		Digest: digest,
 	}, nil
+}
+
+// Absolute prefixes a nixpath name with StoreDir and a '/', and cleans the path.
+// It does not prevent from leaving StoreDir, so check if it still starts with StoreDir
+// if you accept untrusted input.
+// This should be used when assembling store paths in hashing contexts.
+// Even if this code is running on windows, we want to use forward
+// slashes to construct them.
+func Absolute(name string) string {
+	return path.Join(StoreDir, name)
 }
