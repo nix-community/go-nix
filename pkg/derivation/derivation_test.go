@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/derivation"
+	"github.com/nix-community/go-nix/pkg/nixpath"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -139,7 +141,13 @@ func TestEncoder(t *testing.T) {
 					panic(err)
 				}
 
-				assert.Equal(t, string(derivationBytes), sb.String())
+				assert.Equal(t, string(derivationBytes), sb.String(),
+					"encoded ATerm notation should match what's initially read from disk")
+
+				drvPath, err := drv.DrvPath()
+				assert.NoError(t, err, "calling DrvPath shouldn't error")
+				assert.Equal(t, filepath.Join(nixpath.StoreDir, c.DerivationFile), drvPath,
+					"drv path should be calculated correctly")
 			})
 		}
 	})
