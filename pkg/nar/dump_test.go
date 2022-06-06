@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"syscall"
 	"testing"
 
@@ -41,6 +42,11 @@ func TestDumpPathOneByteRegular(t *testing.T) {
 	})
 
 	t.Run("executable", func(t *testing.T) {
+		// This writes to the filesystem and looks at the attributes.
+		// As you can't represent the executable bit on windows, it would fail.
+		if runtime.GOOS == "windows" {
+			return
+		}
 		tmpDir := t.TempDir()
 		p := filepath.Join(tmpDir, "a")
 
