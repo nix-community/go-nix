@@ -108,12 +108,6 @@ func (d *Derivation) Validate() error {
 	return nil
 }
 
-// String returns the path of the derivation.
-func (d *Derivation) String() string {
-	// TODO: replace with drv path
-	return "TODO"
-}
-
 type Output struct {
 	Path          string `json:"path"`
 	HashAlgorithm string `json:"hashAlgo"`

@@ -145,24 +145,6 @@ func TestEncoder(t *testing.T) {
 	})
 }
 
-func TestOutputs(t *testing.T) {
-	drv := &derivation.Derivation{
-		Outputs: map[string]*derivation.Output{
-			"foo": {
-				Path: "dummy",
-			},
-			"bar": {
-				Path: "dummy2",
-			},
-		},
-	}
-
-	t.Run("String", func(t *testing.T) {
-		// TODO: replace with Drv path eventually
-		assert.Equal(t, "TODO", drv.String())
-	})
-}
-
 func TestValidate(t *testing.T) {
 	getDerivation := func() *derivation.Derivation {
 		derivationFile, err := os.Open("../../test/testdata/cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv")
