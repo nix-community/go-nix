@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"path/filepath"
+	"path"
 
 	"github.com/nix-community/go-nix/pkg/wire"
 )
@@ -97,7 +97,7 @@ func NewReader(r io.Reader) (*Reader, error) {
 	return narReader, nil
 }
 
-func (nr *Reader) parseNode(path string) error {
+func (nr *Reader) parseNode(p string) error {
 	// accept a opening (
 	err := expectString(nr.r, "(")
 	if err != nil {
@@ -161,7 +161,7 @@ func (nr *Reader) parseNode(path string) error {
 		nr.contentReader = contentReader
 
 		nr.headers <- &Header{
-			Path:       path,
+			Path:       p,
 			Type:       TypeRegular,
 			LinkTarget: "",
 			Size:       int64(contentLength),
@@ -204,7 +204,7 @@ func (nr *Reader) parseNode(path string) error {
 
 		// yield back the header
 		nr.headers <- &Header{
-			Path:       path,
+			Path:       p,
 			Type:       TypeSymlink,
 			LinkTarget: target,
 			Size:       0,
@@ -227,7 +227,7 @@ func (nr *Reader) parseNode(path string) error {
 		// set nr.contentReader to a empty reader, we can't read from directories!
 		nr.contentReader = io.NopCloser(io.LimitReader(bytes.NewReader([]byte{}), 0))
 		nr.headers <- &Header{
-			Path:       path,
+			Path:       p,
 			Type:       TypeDirectory,
 			LinkTarget: "",
 			Size:       0,
@@ -271,7 +271,7 @@ func (nr *Reader) parseNode(path string) error {
 					return fmt.Errorf("name `%v` is invalid", currentToken)
 				}
 
-				newPath := filepath.Join(path, currentToken)
+				newPath := path.Join(p, currentToken)
 
 				err = expectString(nr.r, "node")
 				if err != nil {
