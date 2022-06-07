@@ -7,7 +7,7 @@ import (
 	"github.com/nix-community/go-nix/pkg/derivation"
 )
 
-func NewFromUri(uri string) (derivation.Store, error) {
+func NewFromURI(uri string) (derivation.Store, error) { // nolint:ireturn
 	u, err := url.Parse(uri)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse uri: %w", err)
