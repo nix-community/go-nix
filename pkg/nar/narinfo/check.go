@@ -2,7 +2,6 @@ package narinfo
 
 import (
 	"fmt"
-	"path"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nix-community/go-nix/pkg/nixpath"
@@ -21,7 +20,7 @@ func (n *NarInfo) Check() error {
 	}
 
 	for i, r := range n.References {
-		referenceAbsolute := path.Join(nixpath.StoreDir, r)
+		referenceAbsolute := nixpath.Absolute(r)
 		_, err = nixpath.FromString(referenceAbsolute)
 
 		if err != nil {
@@ -29,7 +28,7 @@ func (n *NarInfo) Check() error {
 		}
 	}
 
-	deriverAbsolute := path.Join(nixpath.StoreDir, n.Deriver)
+	deriverAbsolute := nixpath.Absolute(n.Deriver)
 
 	_, err = nixpath.FromString(deriverAbsolute)
 	if err != nil {

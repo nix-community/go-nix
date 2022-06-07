@@ -146,7 +146,7 @@ func TestEncoder(t *testing.T) {
 
 				drvPath, err := drv.DrvPath()
 				assert.NoError(t, err, "calling DrvPath shouldn't error")
-				assert.Equal(t, filepath.Join(nixpath.StoreDir, c.DerivationFile), drvPath,
+				assert.Equal(t, nixpath.Absolute(c.DerivationFile), drvPath,
 					"drv path should be calculated correctly")
 			})
 		}
@@ -370,7 +370,7 @@ func TestDrvPath(t *testing.T) {
 				panic(err)
 			}
 
-			assert.Equal(t, filepath.Join(nixpath.StoreDir, c.DerivationFile), drvPath)
+			assert.Equal(t, nixpath.Absolute(c.DerivationFile), drvPath)
 		})
 	}
 }
