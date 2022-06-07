@@ -18,6 +18,10 @@ func NewFromURI(uri string) (derivation.Store, error) { // nolint:ireturn
 		return NewFSStore(u.Path), nil
 	case "file":
 		return NewFSStore(u.Path), nil
+	case "http":
+		return NewHTTPStore(u), nil
+	case "https":
+		return NewHTTPStore(u), nil
 	default:
 		return nil, fmt.Errorf("unknown scheme: %v", u.Scheme)
 	}
