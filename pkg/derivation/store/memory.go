@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/nix-community/go-nix/pkg/derivation"
@@ -35,7 +36,7 @@ func (ms *MemoryStore) Put(drv *derivation.Derivation) (string, error) {
 	// when we try to use them from a child.
 	for inputDerivationPath := range drv.InputDerivations {
 		// lookup
-		_, err := ms.Get(inputDerivationPath)
+		_, err := ms.Get(context.TODO(), inputDerivationPath)
 		if err != nil {
 			return "", fmt.Errorf("unable to find referred input drv path %v", inputDerivationPath)
 		}
@@ -53,7 +54,7 @@ func (ms *MemoryStore) Put(drv *derivation.Derivation) (string, error) {
 }
 
 // Get retrieves a Derivation by drv path from the Derivation Store.
-func (ms *MemoryStore) Get(derivationPath string) (*derivation.Derivation, error) {
+func (ms *MemoryStore) Get(ctx context.Context, derivationPath string) (*derivation.Derivation, error) {
 	if drv, ok := ms.drvs[derivationPath]; ok {
 		return drv, nil
 	}
@@ -63,7 +64,7 @@ func (ms *MemoryStore) Get(derivationPath string) (*derivation.Derivation, error
 
 // GetSubstitionHash calculates the substitution hash and returns the result.
 // It queries a cache first, which is populated on demand.
-func (ms *MemoryStore) GetSubstitutionHash(derivationPath string) (string, error) {
+func (ms *MemoryStore) GetSubstitutionHash(ctx context.Context, derivationPath string) (string, error) {
 	// serve substitution hash from cache if present
 	if substitutionHash, ok := ms.substitutionHashes[derivationPath]; ok {
 		return substitutionHash, nil
@@ -75,7 +76,7 @@ func (ms *MemoryStore) GetSubstitutionHash(derivationPath string) (string, error
 		return "", fmt.Errorf("couldn't find %v", derivationPath)
 	}
 
-	substitutionHash, err := drv.GetSubstitutionHash(ms)
+	substitutionHash, err := drv.GetSubstitutionHash(ctx, ms)
 	if err != nil {
 		return "", err
 	}

@@ -1,6 +1,7 @@
 package store_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/derivation/store"
@@ -30,10 +31,10 @@ func TestFSStore(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.Title, func(t *testing.T) {
 			drvPath := nixpath.Absolute(c.DerivationFile)
-			_, err := drvStore.Get(drvPath)
+			_, err := drvStore.Get(context.Background(), drvPath)
 			assert.NoError(t, err, "Get(%v) shouldn't error", c.DerivationFile)
 
-			_, err = drvStore.GetSubstitutionHash(drvPath)
+			_, err = drvStore.GetSubstitutionHash(context.Background(), drvPath)
 			assert.NoError(t, err, "GetSubstitutionHash(%v) shouldn't error", c.DerivationFile)
 		})
 	}

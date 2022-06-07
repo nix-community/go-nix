@@ -2,6 +2,7 @@ package derivation
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"sort"
 )
@@ -80,17 +81,20 @@ func encodeArray(opening byte, closing byte, quote bool, elems ...[]byte) []byte
 // WriteDerivation writes the ATerm representation of the derivation to the passed writer.
 // It calls writeDerivation in non-stripOutput mode, without any substitutions to be done.
 func (d *Derivation) WriteDerivation(writer io.Writer) error {
-	return d.writeDerivation(writer, false, nil)
+	// we pass context.Background as context, as writeDerivation without a passed store doesn't produce requests.
+	return d.writeDerivation(context.Background(), writer, false, nil)
 }
 
 // writeDerivation is the internal method that's used to create the ATerm representation
 // of a derivation.
 // Contrary to the public interface, which is used to return their canonical representation,
-// it has two more flags:
+// it is context-aware and has two more flags:
+// - ctx allows cancelling the request.
+//   This is only useful in case a derivation.Store is passed, which triggers context-aware requests.
 // - stripOutputs describes whether outputs in Outputs, and those in any Env value are omitted
 // - derivation.Store can be passed, which allows looking up InputDerivations, so they can be
 //   replaced with their substitution hash.
-func (d *Derivation) writeDerivation(writer io.Writer, stripOutputs bool, store Store) error {
+func (d *Derivation) writeDerivation(ctx context.Context, writer io.Writer, stripOutputs bool, store Store) error {
 	// To order outputs by their output name (which is the key of the map), we
 	// get the keys, sort them, then add each one by one.
 	outputNames := make([]string, len(d.Outputs))
@@ -131,7 +135,7 @@ func (d *Derivation) writeDerivation(writer io.Writer, stripOutputs bool, store 
 		// create a new input derivations, with the substituted paths as keys
 		inputDerivations = map[string][]string{}
 		for dPath, v := range d.InputDerivations {
-			substitutionHash, err := store.GetSubstitutionHash(dPath)
+			substitutionHash, err := store.GetSubstitutionHash(ctx, dPath)
 			if err != nil {
 				return err
 			}

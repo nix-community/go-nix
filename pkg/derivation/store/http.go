@@ -2,6 +2,7 @@ package store
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -38,7 +39,7 @@ type HTTPStore struct {
 }
 
 // Get retrieves a Derivation by drv path from the Derivation Store.
-func (hs *HTTPStore) Get(derivationPath string) (*derivation.Derivation, error) {
+func (hs *HTTPStore) Get(ctx context.Context, derivationPath string) (*derivation.Derivation, error) {
 	// serve from derivation cache if present
 	if drv, ok := hs.derivationCache[derivationPath]; ok {
 		return drv, nil
@@ -49,7 +50,15 @@ func (hs *HTTPStore) Get(derivationPath string) (*derivation.Derivation, error) 
 	url := *hs.BaseURL
 	url.Path = path.Join(url.Path, path.Base(derivationPath))
 
-	resp, err := http.Get(url.String())
+	// prepare a buffer to receive the body in
+	var buf bytes.Buffer
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url.String(), &buf)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving .drv: %w", err)
 	}
@@ -58,9 +67,6 @@ func (hs *HTTPStore) Get(derivationPath string) (*derivation.Derivation, error) 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("bad status code: %v", resp.StatusCode)
 	}
-
-	// prepare a buffer to receive the body in
-	var buf bytes.Buffer
 
 	// copy body into buffer
 	_, err = io.Copy(&buf, resp.Body)
@@ -82,19 +88,19 @@ func (hs *HTTPStore) Get(derivationPath string) (*derivation.Derivation, error) 
 
 // GetSubstitionHash calculates the substitution hash and returns the result.
 // It queries a cache first, which is populated on demand.
-func (hs *HTTPStore) GetSubstitutionHash(derivationPath string) (string, error) {
+func (hs *HTTPStore) GetSubstitutionHash(ctx context.Context, derivationPath string) (string, error) {
 	// serve substitution hash from cache if present
 	if substitutionHash, ok := hs.substitutionHashes[derivationPath]; ok {
 		return substitutionHash, nil
 	}
 
 	// else, calculate it and add to cache.
-	drv, err := hs.Get(derivationPath)
+	drv, err := hs.Get(ctx, derivationPath)
 	if err != nil {
 		return "", err
 	}
 
-	substitutionHash, err := drv.GetSubstitutionHash(hs)
+	substitutionHash, err := drv.GetSubstitutionHash(ctx, hs)
 	if err != nil {
 		return "", err
 	}

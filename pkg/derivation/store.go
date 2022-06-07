@@ -1,5 +1,7 @@
 package derivation
 
+import "context"
+
 // Store describes the interface a Derivation store needs to implement
 // to be used from here.
 // Note we use pointers to Derivation structs here, so be careful modifying these.
@@ -8,12 +10,12 @@ type Store interface {
 	// Get retrieves a derivation by drv path.
 	// The second return argument specifies if the derivation could be found,
 	// similar to how acessing from a map works.
-	Get(string) (*Derivation, error)
+	Get(context.Context, string) (*Derivation, error)
 
 	// GetSubstitutionHash produces a hex-encoded hash of the current derivation.
 	// It recursively does this for all Input Derivations, so implementations might
 	// want to cache these results.
-	GetSubstitutionHash(string) (string, error)
+	GetSubstitutionHash(context.Context, string) (string, error)
 }
 
 // StorePut describes the interface a Derivation store implements,

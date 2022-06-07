@@ -2,6 +2,7 @@ package derivation
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -11,7 +12,7 @@ import (
 // For more than trivial derivations, calculating these requires some
 // substitutions of other referred InputDerivations, so a store needs to be passed,
 // that can be used to look up other Derivations.
-func (d *Derivation) OutputPaths(store Store) (map[string]string, error) {
+func (d *Derivation) OutputPaths(ctx context.Context, store Store) (map[string]string, error) {
 	derivationName, ok := d.Env["name"]
 	if !ok {
 		// asserted by Validate
@@ -24,7 +25,7 @@ func (d *Derivation) OutputPaths(store Store) (map[string]string, error) {
 	if fixed := d.GetFixedOutput(); fixed == nil {
 		var buf bytes.Buffer
 
-		err := d.writeDerivation(&buf, true, store)
+		err := d.writeDerivation(ctx, &buf, true, store)
 		if err != nil {
 			return nil, err
 		}
@@ -55,11 +56,11 @@ func (d *Derivation) OutputPaths(store Store) (map[string]string, error) {
 
 // GetSubstitutionHash is producing a hex-encoded hash of the current derivation.
 // It needs a store, as it does some substitution on the way.
-func (d *Derivation) GetSubstitutionHash(store Store) (string, error) {
+func (d *Derivation) GetSubstitutionHash(ctx context.Context, store Store) (string, error) {
 	h := sha256.New()
 
 	if fixed := d.GetFixedOutput(); fixed != nil { // nolint:nestif
-		outputs, err := d.OutputPaths(store)
+		outputs, err := d.OutputPaths(ctx, store)
 		if err != nil {
 			return "", err
 		}
@@ -74,7 +75,7 @@ func (d *Derivation) GetSubstitutionHash(store Store) (string, error) {
 			return "", err
 		}
 	} else {
-		err := d.writeDerivation(h, false, store)
+		err := d.writeDerivation(ctx, h, false, store)
 		if err != nil {
 			return "", err
 		}

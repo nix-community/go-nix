@@ -1,6 +1,7 @@
 package drv
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -23,7 +24,7 @@ type ShowCmd struct {
 func (cmd *ShowCmd) Run(drvCmd *Cmd) error {
 	drvStore := drvCmd.DrvStore
 
-	drv, err := drvStore.Get(cmd.DrvPath)
+	drv, err := drvStore.Get(context.TODO(), cmd.DrvPath)
 	if err != nil {
 		return fmt.Errorf("error getting drv: %w", err)
 	}
@@ -56,7 +57,7 @@ type CheckCmd struct {
 func (cmd *CheckCmd) Run(drvCmd *Cmd) error {
 	drvStore := drvCmd.DrvStore
 
-	drv, err := drvStore.Get(cmd.DrvPath)
+	drv, err := drvStore.Get(context.TODO(), cmd.DrvPath)
 	if err != nil {
 		return fmt.Errorf("error getting drv: %w", err)
 	}
@@ -74,7 +75,7 @@ func (cmd *CheckCmd) Run(drvCmd *Cmd) error {
 	// check calculated output paths match observed ones
 
 	// calculate output paths
-	calculatedOutputPaths, err := drv.OutputPaths(drvStore)
+	calculatedOutputPaths, err := drv.OutputPaths(context.TODO(), drvStore)
 	if err != nil {
 		return fmt.Errorf("error calculating output paths: %w", err)
 	}

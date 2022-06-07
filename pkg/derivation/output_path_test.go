@@ -2,6 +2,7 @@ package derivation_test
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -64,7 +65,7 @@ func TestOutputPaths(t *testing.T) {
 
 			assert.Equal(t, nixpath.Absolute(c.DerivationFile), drvPath)
 
-			outputs, err := drv.OutputPaths(store)
+			outputs, err := drv.OutputPaths(context.Background(), store)
 			if err != nil {
 				panic(err)
 			}

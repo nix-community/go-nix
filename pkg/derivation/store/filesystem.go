@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"os"
 	"path"
 	"path/filepath"
@@ -38,7 +39,7 @@ type FSStore struct {
 }
 
 // Get retrieves a Derivation by drv path from the Derivation Store.
-func (fs *FSStore) Get(derivationPath string) (*derivation.Derivation, error) {
+func (fs *FSStore) Get(ctx context.Context, derivationPath string) (*derivation.Derivation, error) {
 	path := filepath.Join(fs.StorageDir, path.Base(derivationPath))
 
 	f, err := os.Open(path)
@@ -51,19 +52,19 @@ func (fs *FSStore) Get(derivationPath string) (*derivation.Derivation, error) {
 
 // GetSubstitionHash calculates the substitution hash and returns the result.
 // It queries a cache first, which is populated on demand.
-func (fs *FSStore) GetSubstitutionHash(derivationPath string) (string, error) {
+func (fs *FSStore) GetSubstitutionHash(ctx context.Context, derivationPath string) (string, error) {
 	// serve substitution hash from cache if present
 	if substitutionHash, ok := fs.substitutionHashes[derivationPath]; ok {
 		return substitutionHash, nil
 	}
 
 	// else, calculate it and add to cache.
-	drv, err := fs.Get(derivationPath)
+	drv, err := fs.Get(ctx, derivationPath)
 	if err != nil {
 		return "", err
 	}
 
-	substitutionHash, err := drv.GetSubstitutionHash(fs)
+	substitutionHash, err := drv.GetSubstitutionHash(ctx, fs)
 	if err != nil {
 		return "", err
 	}
