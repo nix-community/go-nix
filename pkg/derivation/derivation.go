@@ -31,13 +31,33 @@ type Derivation struct {
 }
 
 func (d *Derivation) Validate() error {
-	if len(d.Outputs) == 0 {
+	numberOfOutputs := len(d.Outputs)
+
+	if numberOfOutputs == 0 {
 		return fmt.Errorf("at least one output must be defined")
 	}
 
 	for outputName, output := range d.Outputs {
 		if outputName == "" {
 			return fmt.Errorf("empty output name")
+		}
+
+		// TODO: are there more restrictions on output names?
+
+		// we encountered a fixed-output output
+		// In these derivations, there may be only one output,
+		// which needs to be called out
+		if output.HashAlgorithm != "" {
+			if numberOfOutputs != 1 {
+				return fmt.Errorf("encountered fixed-output, but there's more than 1 output in total")
+			}
+
+			if outputName != "out" {
+				return fmt.Errorf("the fixed-output output name must be called 'out'")
+			}
+
+			// we confirmed above there's only one output, so we're done with the loop
+			break
 		}
 
 		err := output.Validate()
