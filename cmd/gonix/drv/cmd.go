@@ -5,11 +5,20 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nix-community/go-nix/pkg/derivation"
 	derivationStore "github.com/nix-community/go-nix/pkg/derivation/store"
 )
 
 type Cmd struct {
+	StorageDir string `kong:"default='/nix/store',help='Path where derivations are read from.'"`
+	drvStore   derivation.Store
+
 	Show ShowCmd `kong:"cmd,name='show',help='Show a derivation'"`
+}
+
+func (cmd *Cmd) AfterApply() error {
+	cmd.drvStore = derivationStore.NewFSStore(cmd.StorageDir)
+	return nil
 }
 
 type ShowCmd struct {
@@ -17,10 +26,10 @@ type ShowCmd struct {
 	Format string `kong:"default='json-pretty',help='The format to use to show (aterm,json-pretty,json)'"`
 }
 
-func (cmd *ShowCmd) Run() error {
-	store := derivationStore.NewFSStoreNixStore()
+func (cmd *ShowCmd) Run(drvCmd *Cmd) error {
+	drvStore := drvCmd.drvStore
 
-	drv, err := store.Get(cmd.Drv)
+	drv, err := drvStore.Get(cmd.Drv)
 	if err != nil {
 		return err
 	}
