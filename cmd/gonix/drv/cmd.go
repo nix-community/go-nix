@@ -17,7 +17,13 @@ type Cmd struct {
 }
 
 func (cmd *Cmd) AfterApply() error {
-	cmd.drvStore = derivationStore.NewFSStore(cmd.StorageDir)
+	drvStore, err := derivationStore.NewFromUri(cmd.StorageDir)
+	if err != nil {
+		return err
+	}
+
+	cmd.drvStore = drvStore
+
 	return nil
 }
 
