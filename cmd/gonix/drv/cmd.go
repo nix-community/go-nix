@@ -11,16 +11,16 @@ import (
 )
 
 type Cmd struct {
-	StorageDir string `kong:"default='',help='Path where derivations are read from.'"`
-	drvStore   derivation.Store
+	DrvStoreURI string `kong:"name='drv-store',default='',help='URI to a Derivation Store'"`
+	drvStore    derivation.Store
 
 	Show ShowCmd `kong:"cmd,name='show',help='Show a derivation'"`
 }
 
 func (cmd *Cmd) AfterApply() error {
-	drvStore, err := derivationStore.NewFSStore(cmd.StorageDir)
+	drvStore, err := derivationStore.NewFromURI(cmd.DrvStoreURI)
 	if err != nil {
-		return fmt.Errorf("error initializing store: %w", err)
+		return fmt.Errorf("error creating store from URI: %w", err)
 	}
 
 	cmd.drvStore = drvStore
