@@ -14,16 +14,16 @@ var _ derivation.Store = &FSStore{}
 
 // NewFSStore returns a store exposing all `.drv` files in the directory
 // specified by storageDir.
+// If storageDir is set to an empty string, nixpath.StoreDir is used as a directory.
 func NewFSStore(storageDir string) *FSStore {
+	if storageDir == "" {
+		storageDir = nixpath.StoreDir
+	}
+
 	return &FSStore{
 		StorageDir:         storageDir,
 		substitutionHashes: make(map[string]string),
 	}
-}
-
-// NewFSStore returns a store exposing all `.drv` files in the /nix/store of the local system.
-func NewFSStoreNixStore() *FSStore {
-	return NewFSStore(nixpath.StoreDir)
 }
 
 // FSStore provides a derivation.Store interface,

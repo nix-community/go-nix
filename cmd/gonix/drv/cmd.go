@@ -10,7 +10,7 @@ import (
 )
 
 type Cmd struct {
-	StorageDir string `kong:"default='/nix/store',help='Path where derivations are read from.'"`
+	StorageDir string `kong:"default='',help='Path where derivations are read from.'"`
 	drvStore   derivation.Store
 
 	Show ShowCmd `kong:"cmd,name='show',help='Show a derivation'"`
