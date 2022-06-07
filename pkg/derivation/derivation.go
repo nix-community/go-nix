@@ -65,7 +65,6 @@ func (d *Derivation) Validate() error {
 			return fmt.Errorf("error validating output '%s': %w", outputName, err)
 		}
 	}
-	// FUTUREWORK: check output store path hashes and derivation hashes for consistency (#41)
 
 	for inputDerivationPath := range d.InputDerivations {
 		_, err := nixpath.FromString(inputDerivationPath)
