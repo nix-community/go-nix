@@ -7,25 +7,12 @@ import (
 	"os"
 
 	"github.com/nix-community/go-nix/pkg/derivation"
-	derivationStore "github.com/nix-community/go-nix/pkg/derivation/store"
 )
 
 type Cmd struct {
-	DrvStoreURI string `kong:"name='drv-store',default='',help='URI to a Derivation Store'"`
-	drvStore    derivation.Store
+	DrvStore derivation.Store `kong:"type='drv-store-uri',default='',help='Path where derivations are read from.'"`
 
 	Show ShowCmd `kong:"cmd,name='show',help='Show a derivation'"`
-}
-
-func (cmd *Cmd) AfterApply() error {
-	drvStore, err := derivationStore.NewFromURI(cmd.DrvStoreURI)
-	if err != nil {
-		return fmt.Errorf("error creating store from URI: %w", err)
-	}
-
-	cmd.drvStore = drvStore
-
-	return nil
 }
 
 type ShowCmd struct {
@@ -34,7 +21,7 @@ type ShowCmd struct {
 }
 
 func (cmd *ShowCmd) Run(drvCmd *Cmd) error {
-	drvStore := drvCmd.drvStore
+	drvStore := drvCmd.DrvStore
 
 	drv, err := drvStore.Get(context.Background(), cmd.Drv)
 	if err != nil {
