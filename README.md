@@ -36,5 +36,8 @@ providing some of the functions in `encoding/base32.Encoding`.
 ## `pkg/nixpath`
 A parser and regexes for Nix Store Paths.
 
+## `pkg/nixpath/references`
+A Nix Store path reference scanner.
+
 ## `pkg/wire`
 Methods to parse and produce fields used in the low-level Nix wire protocol.
