@@ -6,6 +6,8 @@ require (
 	github.com/alecthomas/kong v0.5.0
 	github.com/dgraph-io/badger/v3 v3.2103.2
 	github.com/google/go-cmp v0.5.5
+	github.com/google/uuid v1.3.0
+	github.com/opencontainers/runtime-spec v1.0.2
 	github.com/stretchr/testify v1.7.0
 )
 
