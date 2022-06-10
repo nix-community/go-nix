@@ -136,7 +136,7 @@ func TestEncoder(t *testing.T) {
 				}
 
 				var sb strings.Builder
-				err = drv.WriteDerivation(&sb, false, nil)
+				err = drv.WriteDerivation(&sb)
 				if err != nil {
 					panic(err)
 				}

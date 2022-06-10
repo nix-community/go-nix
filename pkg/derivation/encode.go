@@ -141,18 +141,16 @@ func (d *Derivation) writeDerivation(
 	if len(inputDrvReplacements) == 0 {
 		inputDerivations = d.InputDerivations
 	} else {
-		// this most certainly means someone is using this incorrectly
-		if len(inputDerivations) != len(d.InputDerivations) {
-			return fmt.Errorf("len(inputDrvReplacement) != len(d.InputDerivations)")
-		}
 		inputDerivations = make(map[string][]string, len(d.InputDerivations))
-		for drvPath, replacement := range inputDrvReplacements {
-			// get output names
-			outputNames, ok := d.InputDerivations[drvPath]
+		// walk over d.InputDerivations.
+		// Check if there's a match in inputDrvReplacements, and if so, replace
+		// it with that.
+		// If there's no match, this means we were called wrongly
+		for drvPath, outputNames := range d.InputDerivations {
+			replacement, ok := inputDrvReplacements[drvPath]
 			if !ok {
-				return fmt.Errorf("drvpath not found: %v", drvPath)
+				return fmt.Errorf("unable to find replacement for %s, but replacement requested", replacement)
 			}
-
 			inputDerivations[replacement] = outputNames
 		}
 	}
