@@ -11,7 +11,8 @@ var _ derivation.Store = &MemoryStore{}
 
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
-		drvs: make(map[string]*derivation.Derivation),
+		drvs:            make(map[string]*derivation.Derivation),
+		drvReplacements: make(map[string]string),
 	}
 }
 
@@ -20,6 +21,9 @@ func NewMemoryStore() *MemoryStore {
 type MemoryStore struct {
 	// drvs stores all derivation structs, indexed by their drv path
 	drvs map[string]*derivation.Derivation
+
+	// drvReplacements stores the replacement strings for a derivation (indexed by drv path, too)
+	drvReplacements map[string]string
 }
 
 // Put inserts a new Derivation into the Derivation Store.
@@ -41,13 +45,41 @@ func (ms *MemoryStore) Put(drv *derivation.Derivation) (string, error) {
 		}
 	}
 
-	// calculate the drv path of the drv we're about to insert
+	// (Re-)calculate the output paths of the derivation that we're about to insert.
+	// pass in all of ms.drvReplacements, to look up replacements from there.
+	outputPaths, err := drv.CalculateOutputPaths(ms.drvReplacements)
+	if err != nil {
+		return "", fmt.Errorf("unable to calculate output paths: %w", err)
+	}
+
+	// Compare calculated output paths with what has been passed
+	for outputName, calculatedOutputPath := range outputPaths {
+		if calculatedOutputPath != drv.Outputs[outputName].Path {
+			return "", fmt.Errorf(
+				"calculated output path (%s) doesn't match sent output path (%s)",
+				calculatedOutputPath, drv.Outputs[outputName].Path,
+			)
+		}
+	}
+
+	// Calculate the drv path of the drv we're about to insert
 	drvPath, err := drv.DrvPath()
 	if err != nil {
 		return "", err
 	}
 
+	// We might already have one in here, and overwrite it.
+	// But as it's fully validated, it'll be the same.
 	ms.drvs[drvPath] = drv
+
+	// (Pre-)calculate the replacement string, so it's available
+	// once we refer to it from other derivations inserted later.
+	drvReplacement, err := drv.CalculateDrvReplacement(ms.drvReplacements)
+	if err != nil {
+		return "", fmt.Errorf("unable to calculate drv replacement: %w", err)
+	}
+
+	ms.drvReplacements[drvPath] = drvReplacement
 
 	return drvPath, nil
 }
