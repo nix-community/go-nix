@@ -88,6 +88,11 @@ func TestStores(t *testing.T) {
 
 	for _, s := range stores {
 		t.Run(s.Title, func(t *testing.T) {
+			t.Run("open and close", func(t *testing.T) {
+				store := s.NewStore(t.TempDir())
+				assert.NoError(t, store.Close(), "closing the store shouldn't error")
+			})
+
 			t.Run("normal Put", func(t *testing.T) {
 				store := s.NewStore(t.TempDir())
 				defer store.Close()
