@@ -33,21 +33,8 @@ func (ms *MemoryStore) Put(ctx context.Context, drv *derivation.Derivation) (str
 		return "", err
 	}
 
-	// (Re-)calculate the output paths of the derivation that we're about to insert.
-	// pass in all of ms.drvReplacements, to look up replacements from there.
-	outputPaths, err := drv.CalculateOutputPaths(ms.drvReplacements)
-	if err != nil {
-		return "", fmt.Errorf("unable to calculate output paths: %w", err)
-	}
-
-	// Compare calculated output paths with what has been passed
-	for outputName, calculatedOutputPath := range outputPaths {
-		if calculatedOutputPath != drv.Outputs[outputName].Path {
-			return "", fmt.Errorf(
-				"calculated output path (%s) doesn't match sent output path (%s)",
-				calculatedOutputPath, drv.Outputs[outputName].Path,
-			)
-		}
+	if err := checkOutputPaths(drv, ms.drvReplacements); err != nil {
+		return "", err
 	}
 
 	// Calculate the drv path of the drv we're about to insert

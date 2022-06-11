@@ -33,3 +33,26 @@ func validateDerivationInStore(ctx context.Context, drv *derivation.Derivation, 
 
 	return nil
 }
+
+// checkOutputPaths re-calculates the paths of a derivation, and returns an error if they don't match.
+// It needs some (usually pre-calculated) values for input derivations.
+func checkOutputPaths(drv *derivation.Derivation, drvReplacements map[string]string) error {
+	// (Re-)calculate the output paths of the derivation that we're about to insert.
+	// pass in all of ms.drvReplacements, to look up replacements from there.
+	outputPaths, err := drv.CalculateOutputPaths(drvReplacements)
+	if err != nil {
+		return fmt.Errorf("unable to calculate output paths: %w", err)
+	}
+
+	// Compare calculated output paths with what has been passed
+	for outputName, calculatedOutputPath := range outputPaths {
+		if calculatedOutputPath != drv.Outputs[outputName].Path {
+			return fmt.Errorf(
+				"calculated output path (%s) doesn't match sent output path (%s)",
+				calculatedOutputPath, drv.Outputs[outputName].Path,
+			)
+		}
+	}
+
+	return nil
+}
