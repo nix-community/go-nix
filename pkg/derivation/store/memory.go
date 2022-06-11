@@ -29,25 +29,8 @@ type MemoryStore struct {
 
 // Put inserts a new Derivation into the Derivation Store.
 func (ms *MemoryStore) Put(ctx context.Context, drv *derivation.Derivation) (string, error) {
-	// Validate the derivation, we don't bother with costly calculations
-	// if it's obviously wrong.
-	if err := drv.Validate(); err != nil {
-		return "", fmt.Errorf("unable to validate derivation: %w", err)
-	}
-
-	// Check if all InputDerivations already exist.
-	// It's easy to check, and this means we detect
-	// inconsistencies when inserting Drvs early, and not
-	// when we try to use them from a child.
-	for inputDerivationPath := range drv.InputDerivations {
-		// lookup
-		found, err := ms.Has(ctx, inputDerivationPath)
-		if err != nil {
-			return "", fmt.Errorf("error checking if input derivation exists: %w", err)
-		}
-		if !found {
-			return "", fmt.Errorf("unable to find referred input drv path %v", inputDerivationPath)
-		}
+	if err := validateDerivationInStore(ctx, drv, ms); err != nil {
+		return "", err
 	}
 
 	// (Re-)calculate the output paths of the derivation that we're about to insert.
