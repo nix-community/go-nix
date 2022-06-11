@@ -5,11 +5,23 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strings"
+)
+
+// nolint:gochecknoglobals
+var stringEscaper = strings.NewReplacer(
+	"\\", "\\\\",
+	"\n", "\\n",
+	"\r", "\\r",
+	"\t", "\\t",
+	"\"", "\\\"",
 )
 
 // Adds quotation marks around a string.
 // This is primarily meant for non-user provided strings.
 func quoteString(s string) []byte {
+	s = stringEscaper.Replace(s)
+
 	buf := make([]byte, len(s)+2)
 
 	buf[0] = '"'

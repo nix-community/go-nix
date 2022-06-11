@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strconv"
 )
 
 var (
@@ -284,5 +285,10 @@ func arrayEach(value []byte, callback func(value []byte, index int) error) error
 }
 
 func unquote(b []byte) string {
-	return string(b[1 : len(b)-1])
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		panic(err)
+	}
+
+	return s
 }
