@@ -38,7 +38,7 @@ func TestStores(t *testing.T) {
 		{
 			Title: "MemoryStore",
 			NewStore: func(tmpDir string) derivation.Store {
-				return store.NewMemoryStore()
+				return store.NewMapStore()
 			},
 		}, {
 			Title: "BadgerStore (tmpdir)",

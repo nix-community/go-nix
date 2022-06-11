@@ -7,19 +7,20 @@ import (
 	"github.com/nix-community/go-nix/pkg/derivation"
 )
 
-// MemoryStore implements derivation.Store.
-var _ derivation.Store = &MemoryStore{}
+// MapStore implements derivation.Store.
+var _ derivation.Store = &MapStore{}
 
-func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{
+func NewMapStore() *MapStore {
+	return &MapStore{
 		drvs:            make(map[string]*derivation.Derivation),
 		drvReplacements: make(map[string]string),
 	}
 }
 
-// MemoryStore provides a simple implementation of derivation.Store,
+// MapStore provides a simple implementation of derivation.Store,
 // that's just a hashmap mapping drv paths to Derivation objects.
-type MemoryStore struct {
+// The interface is not thread-safe.
+type MapStore struct {
 	// drvs stores all derivation structs, indexed by their drv path
 	drvs map[string]*derivation.Derivation
 
@@ -28,7 +29,7 @@ type MemoryStore struct {
 }
 
 // Put inserts a new Derivation into the Derivation Store.
-func (ms *MemoryStore) Put(ctx context.Context, drv *derivation.Derivation) (string, error) {
+func (ms *MapStore) Put(ctx context.Context, drv *derivation.Derivation) (string, error) {
 	if err := validateDerivationInStore(ctx, drv, ms); err != nil {
 		return "", err
 	}
@@ -60,7 +61,7 @@ func (ms *MemoryStore) Put(ctx context.Context, drv *derivation.Derivation) (str
 }
 
 // Get retrieves a Derivation by drv path from the Derivation Store.
-func (ms *MemoryStore) Get(ctx context.Context, derivationPath string) (*derivation.Derivation, error) {
+func (ms *MapStore) Get(ctx context.Context, derivationPath string) (*derivation.Derivation, error) {
 	if drv, ok := ms.drvs[derivationPath]; ok {
 		return drv, nil
 	}
@@ -69,7 +70,7 @@ func (ms *MemoryStore) Get(ctx context.Context, derivationPath string) (*derivat
 }
 
 // Has returns whether the derivation (by drv path) exists.
-func (ms *MemoryStore) Has(ctx context.Context, derivationPath string) (bool, error) {
+func (ms *MapStore) Has(ctx context.Context, derivationPath string) (bool, error) {
 	if _, ok := ms.drvs[derivationPath]; ok {
 		return true, nil
 	}
@@ -78,6 +79,6 @@ func (ms *MemoryStore) Has(ctx context.Context, derivationPath string) (bool, er
 }
 
 // Close is a no-op.
-func (ms *MemoryStore) Close() error {
+func (ms *MapStore) Close() error {
 	return nil
 }
