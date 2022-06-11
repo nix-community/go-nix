@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strconv"
 )
 
 var (
@@ -65,18 +66,31 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 
 				// Get every output field
 				err := arrayEach(value, func(value []byte, index int) error {
+					var err error
 					switch index {
 					case 0:
-						outputName = unquote(value)
+						outputName, err = unquote(value)
+						if err != nil {
+							return err
+						}
 						if outputName <= prevOutputName {
 							return fmt.Errorf("invalid output order, %s <= %s", outputName, prevOutputName)
 						}
 					case 1:
-						output.Path = unquote(value)
+						output.Path, err = unquote(value)
+						if err != nil {
+							return err
+						}
 					case 2:
-						output.HashAlgorithm = unquote(value)
+						output.HashAlgorithm, err = unquote(value)
+						if err != nil {
+							return err
+						}
 					case 3:
-						output.Hash = unquote(value)
+						output.Hash, err = unquote(value)
+						if err != nil {
+							return err
+						}
 					default:
 						return fmt.Errorf("unhandled output index: %d", index)
 					}
@@ -105,16 +119,24 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 				inputDrvNames := []string{}
 
 				err := arrayEach(value, func(value []byte, index int) error {
+					var err error
 					switch index {
 					case 0:
-						inputDrvPath = unquote(value)
+						inputDrvPath, err = unquote(value)
+						if err != nil {
+							return err
+						}
 						if inputDrvPath <= prevInputDrvPath {
 							return fmt.Errorf("invalid input derivation order: %s <= %s", inputDrvPath, prevInputDrvPath)
 						}
 
 					case 1:
 						err := arrayEach(value, func(value []byte, index int) error {
-							inputDrvNames = append(inputDrvNames, unquote(value))
+							unquoted, err := unquote(value)
+							if err != nil {
+								return err
+							}
+							inputDrvNames = append(inputDrvNames, unquoted)
 
 							return nil
 						})
@@ -140,20 +162,28 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 
 		case 2: // InputSources
 			err = arrayEach(value, func(value []byte, index int) error {
-				drv.InputSources = append(drv.InputSources, unquote(value))
+				unquoted, err := unquote(value)
+				if err != nil {
+					return err
+				}
+				drv.InputSources = append(drv.InputSources, unquoted)
 
 				return nil
 			})
 
 		case 3: // Platform
-			drv.Platform = unquote(value)
+			drv.Platform, err = unquote(value)
 
 		case 4: // Builder
-			drv.Builder = unquote(value)
+			drv.Builder, err = unquote(value)
 
 		case 5: // Arguments
 			err = arrayEach(value, func(value []byte, index int) error {
-				drv.Arguments = append(drv.Arguments, unquote(value))
+				unquoted, err := unquote(value)
+				if err != nil {
+					return err
+				}
+				drv.Arguments = append(drv.Arguments, unquoted)
 
 				return nil
 			})
@@ -167,14 +197,21 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 
 				// For every field
 				err := arrayEach(value, func(value []byte, index int) error {
+					var err error
 					switch index {
 					case 0:
-						envKey = unquote(value)
+						envKey, err = unquote(value)
+						if err != nil {
+							return err
+						}
 						if envKey <= prevEnvKey {
 							return fmt.Errorf("invalid env var order: %s <= %s", envKey, prevEnvKey)
 						}
 					case 1:
-						envValue = unquote(value)
+						envValue, err = unquote(value)
+						if err != nil {
+							return err
+						}
 					default:
 						return fmt.Errorf("unhandled env var index: %d", index)
 					}
@@ -287,6 +324,13 @@ func arrayEach(value []byte, callback func(value []byte, index int) error) error
 	return nil
 }
 
-func unquote(b []byte) string {
-	return string(b[1 : len(b)-1])
+func unquote(b []byte) (string, error) {
+	s := string(b)
+
+	unquoted, err := strconv.Unquote(s)
+	if err != nil {
+		return "", fmt.Errorf("error during unquote of %v: %s", s, err)
+	}
+
+	return unquoted, nil
 }
