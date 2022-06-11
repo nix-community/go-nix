@@ -19,4 +19,7 @@ type Store interface {
 
 	// Has returns whether the derivation (by drv path) exists.
 	Has(context.Context, string) (bool, error)
+
+	// Close closes the store.
+	Close() error
 }

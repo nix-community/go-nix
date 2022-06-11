@@ -106,3 +106,8 @@ func (ms *MemoryStore) Has(ctx context.Context, derivationPath string) (bool, er
 
 	return false, nil
 }
+
+// Close is a no-op.
+func (ms *MemoryStore) Close() error {
+	return nil
+}
