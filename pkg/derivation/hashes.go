@@ -36,8 +36,10 @@ func (d *Derivation) getMaskedATermHash(inputDrvReplacements map[string]string) 
 // CalculateOutputPaths calculates the output paths of all outputs
 // It consumes a list of input derivation path replacements.
 func (d *Derivation) CalculateOutputPaths(inputDrvReplacements map[string]string) (map[string]string, error) {
-	derivationName, ok := d.Env["name"]
-	if !ok {
+	derivationName := d.Name()
+
+	if derivationName == "" {
+		// asserted by Validate
 		panic("env 'name' not found")
 	}
 

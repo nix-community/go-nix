@@ -54,8 +54,9 @@ func (d *Derivation) DrvPath() (string, error) {
 	h.Write([]byte(hex.EncodeToString(atermDigest) + ":"))
 	h.Write([]byte(nixpath.StoreDir + ":"))
 
-	name, ok := d.Env["name"]
-	if !ok {
+	name := d.Name()
+
+	if name == "" {
 		// asserted by Validate
 		panic("env 'name' not found")
 	}
