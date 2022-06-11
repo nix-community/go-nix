@@ -41,7 +41,11 @@ func (ms *MemoryStore) Put(ctx context.Context, drv *derivation.Derivation) (str
 	// when we try to use them from a child.
 	for inputDerivationPath := range drv.InputDerivations {
 		// lookup
-		if _, err := ms.Get(ctx, inputDerivationPath); err != nil {
+		found, err := ms.Has(ctx, inputDerivationPath)
+		if err != nil {
+			return "", fmt.Errorf("error checking if input derivation exists: %w", err)
+		}
+		if !found {
 			return "", fmt.Errorf("unable to find referred input drv path %v", inputDerivationPath)
 		}
 	}
@@ -92,4 +96,13 @@ func (ms *MemoryStore) Get(ctx context.Context, derivationPath string) (*derivat
 	}
 
 	return nil, fmt.Errorf("derivation path not found: %s", derivationPath)
+}
+
+// Has returns whether the derivation (by drv path) exists.
+func (ms *MemoryStore) Has(ctx context.Context, derivationPath string) (bool, error) {
+	if _, ok := ms.drvs[derivationPath]; ok {
+		return true, nil
+	}
+
+	return false, nil
 }

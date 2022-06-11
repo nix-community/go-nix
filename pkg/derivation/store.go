@@ -16,4 +16,7 @@ type Store interface {
 	// The second return argument specifies if the derivation could be found,
 	// similar to how acessing from a map works.
 	Get(context.Context, string) (*Derivation, error)
+
+	// Has returns whether the derivation (by drv path) exists.
+	Has(context.Context, string) (bool, error)
 }
