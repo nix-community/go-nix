@@ -1,8 +1,7 @@
 package store_test
 
 import (
-	"bytes"
-	"io"
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -54,7 +53,7 @@ func TestOutputPaths(t *testing.T) {
 
 			// This verifies hashes internally
 			// TODO: write a bad-case test?
-			drvPath, err := store.Put(drv)
+			drvPath, err := store.Put(context.Background(), drv)
 			assert.NoError(t, err, "Put()'ing the derivation shouldn't cause an error")
 			assert.Equal(t, nixpath.Absolute(c.DerivationFile), drvPath)
 		})

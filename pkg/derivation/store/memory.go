@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/nix-community/go-nix/pkg/derivation"
@@ -27,7 +28,7 @@ type MemoryStore struct {
 }
 
 // Put inserts a new Derivation into the Derivation Store.
-func (ms *MemoryStore) Put(drv *derivation.Derivation) (string, error) {
+func (ms *MemoryStore) Put(ctx context.Context, drv *derivation.Derivation) (string, error) {
 	// Validate the derivation, we don't bother with costly calculations
 	// if it's obviously wrong.
 	if err := drv.Validate(); err != nil {
@@ -40,7 +41,7 @@ func (ms *MemoryStore) Put(drv *derivation.Derivation) (string, error) {
 	// when we try to use them from a child.
 	for inputDerivationPath := range drv.InputDerivations {
 		// lookup
-		if _, err := ms.Get(inputDerivationPath); err != nil {
+		if _, err := ms.Get(ctx, inputDerivationPath); err != nil {
 			return "", fmt.Errorf("unable to find referred input drv path %v", inputDerivationPath)
 		}
 	}
@@ -85,7 +86,7 @@ func (ms *MemoryStore) Put(drv *derivation.Derivation) (string, error) {
 }
 
 // Get retrieves a Derivation by drv path from the Derivation Store.
-func (ms *MemoryStore) Get(derivationPath string) (*derivation.Derivation, error) {
+func (ms *MemoryStore) Get(ctx context.Context, derivationPath string) (*derivation.Derivation, error) {
 	if drv, ok := ms.drvs[derivationPath]; ok {
 		return drv, nil
 	}
