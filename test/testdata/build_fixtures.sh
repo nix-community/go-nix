@@ -16,3 +16,15 @@ foo=$(nix-instantiate derivation_sha256.nix -A foo)
 cp $foo .
 foo_json_path=$(basename $foo).json
 nix show-derivation $foo > $foo_json_path
+
+# /nix/store/ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv
+bar=$(nix-instantiate derivation_sha1.nix -A bar)
+cp $bar .
+bar_json_path=$(basename $bar).json
+nix show-derivation $bar > $bar_json_path
+
+# /nix/store/ch49594n9avinrf8ip0aslidkc4lxkqv-foo.drv
+foo=$(nix-instantiate derivation_sha1.nix -A foo)
+cp $foo .
+foo_json_path=$(basename $foo).json
+nix show-derivation $foo > $foo_json_path
