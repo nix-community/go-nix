@@ -1,0 +1,25 @@
+{
+  "/nix/store/h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv": {
+    "outputs": {
+      "lib": {
+        "path": "/nix/store/2vixb94v0hy2xc6p7mbnxxcyc095yyia-has-multi-out-lib"
+      },
+      "out": {
+        "path": "/nix/store/55lwldka5nyxa08wnvlizyqw02ihy8ic-has-multi-out"
+      }
+    },
+    "inputSrcs": [],
+    "inputDrvs": {},
+    "system": ":",
+    "builder": ":",
+    "args": [],
+    "env": {
+      "builder": ":",
+      "lib": "/nix/store/2vixb94v0hy2xc6p7mbnxxcyc095yyia-has-multi-out-lib",
+      "name": "has-multi-out",
+      "out": "/nix/store/55lwldka5nyxa08wnvlizyqw02ihy8ic-has-multi-out",
+      "outputs": "out lib",
+      "system": ":"
+    }
+  }
+}

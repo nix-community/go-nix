@@ -28,3 +28,9 @@ foo=$(nix-instantiate derivation_sha1.nix -A foo)
 cp $foo .
 foo_json_path=$(basename $foo).json
 nix show-derivation $foo > $foo_json_path
+
+# /nix/store/h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv
+multi_out=$(nix-instantiate derivation_multi-outputs.nix)
+cp $multi_out .
+multi_out_json_path=$(basename $multi_out).json
+nix show-derivation $multi_out > $multi_out_json_path
