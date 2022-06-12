@@ -82,6 +82,8 @@ func (d *Derivation) CalculateOutputPaths(inputDrvReplacements map[string]string
 			"-" + outputPathName)
 
 		outputPaths[outputName] = calculatedPath
+
+		h.Reset()
 	}
 
 	return outputPaths, nil
