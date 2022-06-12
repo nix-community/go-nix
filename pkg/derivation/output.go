@@ -6,8 +6,8 @@ import (
 
 type Output struct {
 	Path          string `json:"path"`
-	HashAlgorithm string `json:"hashAlgo"`
-	Hash          string `json:"hash"`
+	HashAlgorithm string `json:"hashAlgo,omitempty"`
+	Hash          string `json:"hash,omitempty"`
 }
 
 func (o *Output) Validate() error {

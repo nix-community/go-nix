@@ -45,6 +45,10 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 
 	drv := &Derivation{}
 
+	// https://github.com/golang/go/issues/37711
+	drv.InputSources = []string{}
+	drv.Arguments = []string{}
+
 	err := arrayEach(derivationBytes[6:], func(value []byte, index int) error {
 		var err error
 
