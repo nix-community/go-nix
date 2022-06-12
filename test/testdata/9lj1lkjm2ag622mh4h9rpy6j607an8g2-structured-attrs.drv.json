@@ -1,0 +1,18 @@
+{
+  "/nix/store/9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv": {
+    "outputs": {
+      "out": {
+        "path": "/nix/store/6a39dl014j57bqka7qx25k0vb20vkqm6-structured-attrs"
+      }
+    },
+    "inputSrcs": [],
+    "inputDrvs": {},
+    "system": ":",
+    "builder": ":",
+    "args": [],
+    "env": {
+      "__json": "{\"builder\":\":\",\"name\":\"structured-attrs\",\"system\":\":\"}",
+      "out": "/nix/store/6a39dl014j57bqka7qx25k0vb20vkqm6-structured-attrs"
+    }
+  }
+}
