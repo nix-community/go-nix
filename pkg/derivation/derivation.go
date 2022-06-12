@@ -10,20 +10,24 @@ import (
 // Nix requires some stronger properties w.r.t. order of elements, so we can internally use
 // maps for some of the fields, and convert to the canonical representation when encoding back
 // to ATerm format.
-// The field names also match the json structure that the `nix show-derivation /path/to.drv` is using.
+// The field names (and order of fields) also match the json structure
+// that the `nix show-derivation /path/to.drv` is using
+// (even though this might change in the future)
 type Derivation struct {
 	// Outputs are always lexicographically sorted by their name (key in this map)
 	Outputs map[string]*Output `json:"outputs"`
+
+	// InputSources are always lexicographically sorted.
+	InputSources []string `json:"inputSrcs"`
 
 	// InputDerivations are always lexicographically sorted by their path (key in this map)
 	// the []string returns the output names (out, …) of this input derivation that are used.
 	InputDerivations map[string][]string `json:"inputDrvs"`
 
-	// InputSources are always lexicographically sorted.
-	InputSources []string `json:"inputSrcs"`
+	Platform string `json:"system"`
 
-	Platform  string   `json:"system"`
-	Builder   string   `json:"builder"`
+	Builder string `json:"builder"`
+
 	Arguments []string `json:"args"`
 
 	// Env must be lexicographically sorted by their key.
