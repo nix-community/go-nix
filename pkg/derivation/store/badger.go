@@ -11,11 +11,16 @@ import (
 
 var _ derivation.Store = &BadgerStore{}
 
+func buildDefaultBadgerOptions(path string) badger.Options {
+	// set log level for badger to WARN, as it spams with INFO:
+	// https://github.com/dgraph-io/badger/issues/556#issuecomment-536145162
+	return badger.DefaultOptions(path).WithLoggingLevel(badger.WARNING)
+}
+
 // NewBadgerStore opens a store that stores its data
 // in the path specified by path.
 func NewBadgerStore(path string) (*BadgerStore, error) {
-	db, err := badger.Open(badger.DefaultOptions(path).
-		WithLoggingLevel(badger.DEBUG))
+	db, err := badger.Open(buildDefaultBadgerOptions(path))
 	if err != nil {
 		return nil, fmt.Errorf("error opening badger store: %w", err)
 	}
@@ -27,7 +32,7 @@ func NewBadgerStore(path string) (*BadgerStore, error) {
 
 // NewBadgerMemoryStore opens a store that entirely resides in memory.
 func NewBadgerMemoryStore() (*BadgerStore, error) {
-	db, err := badger.Open(badger.DefaultOptions("").WithInMemory(true))
+	db, err := badger.Open(buildDefaultBadgerOptions("").WithInMemory(true))
 	if err != nil {
 		return nil, fmt.Errorf("error opening badger store: %w", err)
 	}
