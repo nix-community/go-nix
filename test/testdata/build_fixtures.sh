@@ -34,3 +34,9 @@ multi_out=$(nix-instantiate derivation_multi-outputs.nix)
 cp $multi_out .
 multi_out_json_path=$(basename $multi_out).json
 nix show-derivation $multi_out > $multi_out_json_path
+
+# /nix/store/292w8yzv5nn7nhdpxcs8b7vby2p27s09-nested-json.drv
+nested_json=$(nix-instantiate derivation_nested-json.nix)
+cp $nested_json .
+nested_json_json_path=$(basename $nested_json).json
+nix show-derivation $nested_json > $nested_json_json_path
