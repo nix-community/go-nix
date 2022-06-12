@@ -2,6 +2,7 @@ package derivation_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -69,6 +70,25 @@ func TestParser(t *testing.T) {
 				assert.Equal(t, c.Env, drv.Env)
 			})
 		}
+	})
+
+	t.Run("NestedJson", func(t *testing.T) {
+		derivationFile, err := os.Open("../../test/testdata/292w8yzv5nn7nhdpxcs8b7vby2p27s09-nested-json.drv")
+		if err != nil {
+			panic(err)
+		}
+
+		drv, err := derivation.ReadDerivation(derivationFile)
+		assert.NoError(t, err, "reading a derivation with nested JSON shouldn't panic")
+
+		nested := &struct {
+			Hello string
+		}{}
+
+		err = json.Unmarshal([]byte(drv.Env["json"]), &nested)
+		assert.NoError(t, err, "It should still be possible to parse the JSON afterwards")
+
+		assert.Equal(t, "moto\n", nested.Hello)
 	})
 }
 
