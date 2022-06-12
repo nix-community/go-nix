@@ -84,6 +84,10 @@ func TestStores(t *testing.T) {
 			Title:          "simple-sha1",
 			DerivationFile: "ch49594n9avinrf8ip0aslidkc4lxkqv-foo.drv",
 		},
+		{
+			Title:          "multiple-outputs",
+			DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
+		},
 	}
 
 	for _, s := range stores {

@@ -115,6 +115,10 @@ func TestEncoder(t *testing.T) {
 			Title:          "has-file-and-drv-dependency",
 			DerivationFile: "z8dajq053b2bxc3ncqp8p8y3nfwafh3p-foo-file.drv",
 		},
+		{
+			Title:          "multiple-outputs",
+			DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
+		},
 	}
 
 	t.Run("WriteDerivation", func(t *testing.T) {
@@ -345,6 +349,10 @@ func TestDrvPath(t *testing.T) {
 		{
 			Title:          "has-file-and-drv-dependency",
 			DerivationFile: "z8dajq053b2bxc3ncqp8p8y3nfwafh3p-foo-file.drv",
+		},
+		{
+			Title:          "multiple-outputs",
+			DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
 		},
 	}
 
