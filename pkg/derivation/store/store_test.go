@@ -88,6 +88,10 @@ func TestStores(t *testing.T) {
 			Title:          "multiple-outputs",
 			DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
 		},
+		{
+			Title:          "structured-attrs",
+			DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
+		},
 	}
 
 	for _, s := range stores {
