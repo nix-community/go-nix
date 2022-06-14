@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"reflect"
 	"sort"
 	"strings"
+	"unsafe"
 )
 
 // nolint:gochecknoglobals
@@ -17,22 +19,23 @@ var stringEscaper = strings.NewReplacer(
 	"\"", "\\\"",
 )
 
+func unsafeGetBytes(s string) []byte {
+	return unsafe.Slice(
+		(*byte)(
+			unsafe.Pointer(
+				(*reflect.StringHeader)(unsafe.Pointer(&s)).Data,
+			),
+		),
+		len(s),
+	)
+}
+
 // Adds quotation marks around a string.
 // This is primarily meant for non-user provided strings.
 func quoteString(s string) []byte {
 	s = stringEscaper.Replace(s)
 
-	buf := make([]byte, len(s)+2)
-
-	buf[0] = '"'
-
-	for i := 0; i < len(s); i++ {
-		buf[i+1] = s[i]
-	}
-
-	buf[len(s)+1] = '"'
-
-	return buf
+	return unsafeGetBytes("\"" + s + "\"")
 }
 
 // Convert a slice of strings to a slice of byte slices.
@@ -40,7 +43,7 @@ func stringsToBytes(elems []string) [][]byte {
 	b := make([][]byte, len(elems))
 
 	for i, s := range elems {
-		b[i] = []byte(s)
+		b[i] = unsafeGetBytes(s)
 	}
 
 	return b
