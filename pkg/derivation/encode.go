@@ -217,7 +217,7 @@ func (d *Derivation) writeDerivation(
 		}
 	}
 
-	_, err := writer.Write([]byte("Derive"))
+	_, err := writer.Write(derivationPrefix)
 	if err != nil {
 		return err
 	}
