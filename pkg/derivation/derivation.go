@@ -71,7 +71,7 @@ func (d *Derivation) Validate() error {
 	}
 
 	for inputDerivationPath := range d.InputDerivations {
-		_, err := nixpath.FromString(inputDerivationPath)
+		err := nixpath.Validate(inputDerivationPath)
 		if err != nil {
 			return err
 		}
@@ -93,7 +93,7 @@ func (d *Derivation) Validate() error {
 	}
 
 	for i, is := range d.InputSources {
-		_, err := nixpath.FromString(is)
+		err := nixpath.Validate(is)
 		if err != nil {
 			return fmt.Errorf("error validating input source '%s': %w", is, err)
 		}

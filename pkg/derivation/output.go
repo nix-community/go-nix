@@ -11,10 +11,5 @@ type Output struct {
 }
 
 func (o *Output) Validate() error {
-	_, err := nixpath.FromString(o.Path)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return nixpath.Validate(o.Path)
 }
