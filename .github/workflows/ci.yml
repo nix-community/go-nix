@@ -7,6 +7,20 @@ on:
   pull_request:
 
 jobs:
+  fixtures:
+    name: fixtures-up-to-date
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v17
+    - uses: actions/setup-go@v2
+      with:
+        go-version: '1.17'
+    - name: Build fixtures
+      run: bash -c 'cd test/testdata && ./build-fixtures.go'
+    - name: Diff fixtures
+      run: git diff --exit-code test/testdata
+
   build:
     strategy:
       matrix:
