@@ -14,6 +14,7 @@ const (
 	PathHashSize = 20
 )
 
+// nolint:gochecknoglobals
 var (
 	NameRe = regexp.MustCompile(`[a-zA-Z0-9+\-_?=][.a-zA-Z0-9+\-_?=]*`)
 	PathRe = regexp.MustCompile(fmt.Sprintf(
@@ -22,6 +23,14 @@ var (
 		nixbase32.EncodedLen(PathHashSize),
 		NameRe,
 	))
+
+	// Length of the hash portion of the store path in base32.
+	encodedPathHashSize = nixbase32.EncodedLen(PathHashSize)
+
+	// Offset in path string to name.
+	nameOffset = len(StoreDir) + 1 + encodedPathHashSize + 1
+	// Offset in path string to hash.
+	hashOffset = len(StoreDir) + 1
 )
 
 // NixPath represents a bare nix store path, without any paths underneath `/nix/store/…-…`.
@@ -38,18 +47,17 @@ func (n *NixPath) String() string {
 // verifying it's syntactically valid
 // It returns an error if it fails to parse.
 func FromString(s string) (*NixPath, error) {
-	m := PathRe.FindStringSubmatch(s)
-	if m == nil {
+	if m := PathRe.MatchString(s); !m {
 		return nil, fmt.Errorf("unable to parse path %v", s)
 	}
 
-	digest, err := nixbase32.DecodeString(m[1])
+	digest, err := nixbase32.DecodeString(s[hashOffset : hashOffset+encodedPathHashSize])
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode hash: %v", err)
 	}
 
 	return &NixPath{
-		Name:   m[2],
+		Name:   s[nameOffset:],
 		Digest: digest,
 	}, nil
 }
