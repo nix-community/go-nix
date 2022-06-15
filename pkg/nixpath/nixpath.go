@@ -43,12 +43,16 @@ func (n *NixPath) String() string {
 	return Absolute(fmt.Sprintf("%v-%v", nixbase32.EncodeToString(n.Digest), n.Name))
 }
 
+func (n *NixPath) Validate() error {
+	return Validate(n.String())
+}
+
 // FromString parses a path string into a nix path,
 // verifying it's syntactically valid
 // It returns an error if it fails to parse.
 func FromString(s string) (*NixPath, error) {
-	if m := PathRe.MatchString(s); !m {
-		return nil, fmt.Errorf("unable to parse path %v", s)
+	if err := Validate(s); err != nil {
+		return nil, err
 	}
 
 	digest, err := nixbase32.DecodeString(s[hashOffset : hashOffset+encodedPathHashSize])
@@ -70,4 +74,42 @@ func FromString(s string) (*NixPath, error) {
 // slashes to construct them.
 func Absolute(name string) string {
 	return path.Join(StoreDir, name)
+}
+
+// Validate validates a path string, verifying it's syntactically valid.
+func Validate(s string) error {
+	if len(s) < nameOffset+1 {
+		return fmt.Errorf("unable to parse path: invalid path length %d for path %v", len(s), s)
+	}
+
+	if s[:len(StoreDir)] != StoreDir {
+		return fmt.Errorf("unable to parse path: mismatching store path prefix for path %v", s)
+	}
+
+	if err := nixbase32.ValidateString(s[hashOffset : hashOffset+encodedPathHashSize]); err != nil {
+		return fmt.Errorf("unable to parse path: error validating path nixbase32 %v: %v", err, s)
+	}
+
+	for _, c := range s[nameOffset:] {
+		if (c < 'a' || c > 'z') && (c < 'A' || c > 'Z') && (c < '0' || c > '9') {
+			switch c {
+			case '-':
+				continue
+			case '_':
+				continue
+			case '.':
+				continue
+			case '+':
+				continue
+			case '?':
+				continue
+			case '=':
+				continue
+			}
+
+			return fmt.Errorf("unable to parse path: invalid character in path: %v", s)
+		}
+	}
+
+	return nil
 }
