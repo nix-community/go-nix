@@ -143,6 +143,10 @@ func TestEncoder(t *testing.T) {
 			Title:          "structured-attrs",
 			DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
 		},
+		{
+			Title:          "unicode",
+			DerivationFile: "52a9id8hx688hvlnz4d1n25ml1jdykz0-unicode.drv",
+		},
 	}
 
 	t.Run("WriteDerivation", func(t *testing.T) {
@@ -381,6 +385,10 @@ func TestDrvPath(t *testing.T) {
 		{
 			Title:          "structured-attrs",
 			DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
+		},
+		{
+			Title:          "unicode",
+			DerivationFile: "52a9id8hx688hvlnz4d1n25ml1jdykz0-unicode.drv",
 		},
 	}
 

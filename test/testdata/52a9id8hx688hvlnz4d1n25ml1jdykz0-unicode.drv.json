@@ -1,0 +1,21 @@
+{
+  "/nix/store/52a9id8hx688hvlnz4d1n25ml1jdykz0-unicode.drv": {
+    "outputs": {
+      "out": {
+        "path": "/nix/store/vgvdj6nf7s8kvfbl2skbpwz9kc7xjazc-unicode"
+      }
+    },
+    "inputSrcs": [],
+    "inputDrvs": {},
+    "system": ":",
+    "builder": ":",
+    "args": [],
+    "env": {
+      "builder": ":",
+      "letters": "räksmörgås\nrødgrød med fløde\nLübeck\n肥猪\nこんにちは / 今日は\n🌮\n",
+      "name": "unicode",
+      "out": "/nix/store/vgvdj6nf7s8kvfbl2skbpwz9kc7xjazc-unicode",
+      "system": ":"
+    }
+  }
+}
