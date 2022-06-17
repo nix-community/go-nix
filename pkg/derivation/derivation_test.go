@@ -151,6 +151,10 @@ func TestEncoder(t *testing.T) {
 			Title:          "latin1",
 			DerivationFile: "x6p0hg79i3wg0kkv7699935f7rrj9jf3-latin1.drv",
 		},
+		{
+			Title:          "cp1252",
+			DerivationFile: "m1vfixn8iprlf0v9abmlrz7mjw1xj8kp-cp1252.drv",
+		},
 	}
 
 	t.Run("WriteDerivation", func(t *testing.T) {
@@ -397,6 +401,10 @@ func TestDrvPath(t *testing.T) {
 		{
 			Title:          "latin1",
 			DerivationFile: "x6p0hg79i3wg0kkv7699935f7rrj9jf3-latin1.drv",
+		},
+		{
+			Title:          "cp1252",
+			DerivationFile: "m1vfixn8iprlf0v9abmlrz7mjw1xj8kp-cp1252.drv",
 		},
 	}
 
