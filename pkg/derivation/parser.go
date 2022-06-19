@@ -2,6 +2,7 @@ package derivation
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -236,6 +237,21 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	// Handle structured attrs which doesn' have the name variable in the env directly
+	// but in the nested JSON object.
+	if structuredJSON, ok := drv.Env["__json"]; ok {
+		attrs := &struct {
+			Name string
+		}{}
+
+		err := json.Unmarshal([]byte(structuredJSON), &attrs)
+		if err != nil {
+			return nil, err
+		}
+
+		drv.name = attrs.Name
 	}
 
 	return drv, nil

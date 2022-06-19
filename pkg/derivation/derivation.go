@@ -14,6 +14,11 @@ import (
 // that the `nix show-derivation /path/to.drv` is using,
 // even though this might change in the future.
 type Derivation struct {
+	// Structured don't have the env name right in the regular spot but in the nested JSON object.
+	// This is an internal variable only used for structured attrs derivations, which can currently only be created
+	// from an existing drv file.
+	name string
+
 	// Outputs are always lexicographically sorted by their name (key in this map)
 	Outputs map[string]*Output `json:"outputs"`
 
@@ -122,6 +127,11 @@ func (d *Derivation) Validate() error {
 		if k == "name" {
 			hasNameEnv = true
 		}
+
+		// Structured attrs
+		if k == "__json" {
+			hasNameEnv = d.name != ""
+		}
 	}
 
 	if !hasNameEnv {
@@ -129,4 +139,17 @@ func (d *Derivation) Validate() error {
 	}
 
 	return nil
+}
+
+func (d *Derivation) Name() string {
+	if _, ok := d.Env["__json"]; ok {
+		return d.name
+	}
+
+	name, ok := d.Env["name"]
+	if ok {
+		return name
+	}
+
+	return ""
 }
