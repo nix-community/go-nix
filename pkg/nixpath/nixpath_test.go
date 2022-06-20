@@ -27,17 +27,32 @@ func TestNixPath(t *testing.T) {
 	})
 
 	t.Run("invalid hash length", func(t *testing.T) {
-		_, err := nixpath.FromString("/nix/store/00bgd045z0d4icpbc2yy-net-tools-1.60_p20170221182432")
+		s := "/nix/store/00bgd045z0d4icpbc2yy-net-tools-1.60_p20170221182432"
+
+		_, err := nixpath.FromString(s)
+		assert.Error(t, err)
+
+		err = nixpath.Validate(s)
 		assert.Error(t, err)
 	})
 
 	t.Run("invalid encoding in hash", func(t *testing.T) {
-		_, err := nixpath.FromString("/nix/store/00bgd045z0d4icpbc2yyz4gx48aku4la-net-tools-1.60_p20170221182432")
+		s := "/nix/store/00bgd045z0d4icpbc2yyz4gx48aku4la-net-tools-1.60_p20170221182432"
+
+		_, err := nixpath.FromString(s)
+		assert.Error(t, err)
+
+		err = nixpath.Validate(s)
 		assert.Error(t, err)
 	})
 
 	t.Run("more than just the bare nix store path", func(t *testing.T) {
-		_, err := nixpath.FromString("/nix/store/00bgd045z0d4icpbc2yyz4gx48aku4la-net-tools-1.60_p20170221182432/bin/arp")
+		s := "/nix/store/00bgd045z0d4icpbc2yyz4gx48aku4la-net-tools-1.60_p20170221182432/bin/arp"
+
+		_, err := nixpath.FromString(s)
+		assert.Error(t, err)
+
+		err = nixpath.Validate(s)
 		assert.Error(t, err)
 	})
 }

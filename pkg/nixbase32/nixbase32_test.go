@@ -41,6 +41,14 @@ func TestDecode(t *testing.T) {
 	}
 }
 
+func TestValidate(t *testing.T) {
+	for i := range tt {
+		err := nixbase32.ValidateString(tt[i].enc)
+
+		assert.NoError(t, err)
+	}
+}
+
 func TestMustDecodeString(t *testing.T) {
 	for i := range tt {
 		b := nixbase32.MustDecodeString(tt[i].enc)
@@ -59,6 +67,9 @@ func TestDecodeInvalid(t *testing.T) {
 
 	for _, c := range invalidEncodings {
 		_, err := nixbase32.DecodeString(c)
+		assert.Error(t, err)
+
+		err = nixbase32.ValidateString(c)
 		assert.Error(t, err)
 
 		assert.Panics(t, func() {

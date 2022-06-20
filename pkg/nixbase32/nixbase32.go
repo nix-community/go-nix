@@ -8,6 +8,58 @@ import (
 // Alphabet contains the list of valid characters for the Nix base32 alphabet.
 const Alphabet = "0123456789abcdfghijklmnpqrsvwxyz"
 
+func decodeString(s string, dst []byte) error {
+	var dstLen int
+	if dst != nil {
+		dstLen = len(dst)
+	} else {
+		dstLen = DecodedLen(len(s))
+	}
+
+	for n := 0; n < len(s); n++ {
+		c := s[len(s)-n-1]
+
+		digit := strings.IndexByte(Alphabet, c)
+		if digit == -1 {
+			return fmt.Errorf("character %v not in alphabet", c)
+		}
+
+		b := uint(n * 5)
+		i := b / 8
+		j := b % 8
+
+		// OR the main pattern
+		if dst != nil {
+			dst[i] |= byte(digit) << j
+		}
+
+		// calculate the "carry pattern"
+		carry := byte(digit) >> (8 - j)
+
+		// if we're at the end of dst…
+		if i == uint(dstLen-1) {
+			// but have a nonzero carry, the encoding is invalid.
+			if carry != 0 {
+				return fmt.Errorf("invalid encoding")
+			}
+		} else if dst != nil {
+			dst[i+1] |= carry
+		}
+	}
+
+	return nil
+}
+
+// ValidateBytes validates if a byte slice is valid nixbase32.
+func ValidateBytes(b []byte) error {
+	return ValidateString(string(b))
+}
+
+// ValidateString validates if a string is valid nixbase32.
+func ValidateString(s string) error {
+	return decodeString(s, nil)
+}
+
 // EncodedLen returns the length in bytes of the base32 encoding of an input
 // buffer of length n.
 func EncodedLen(n int) int {
@@ -56,36 +108,7 @@ func EncodeToString(src []byte) string {
 func DecodeString(s string) ([]byte, error) {
 	dst := make([]byte, DecodedLen(len(s)))
 
-	for n := 0; n < len(s); n++ {
-		c := s[len(s)-n-1]
-
-		digit := strings.IndexByte(Alphabet, c)
-		if digit == -1 {
-			return nil, fmt.Errorf("character %v not in alphabet", c)
-		}
-
-		b := uint(n * 5)
-		i := b / 8
-		j := b % 8
-
-		// OR the main pattern
-		dst[i] |= byte(digit) << j
-
-		// calculate the "carry pattern"
-		carry := byte(digit) >> (8 - j)
-
-		// if we're at the end of dst…
-		if i == uint(len(dst)-1) {
-			// but have a nonzero carry, the encoding is invalid.
-			if carry != 0 {
-				return nil, fmt.Errorf("invalid encoding")
-			}
-		} else {
-			dst[i+1] |= carry
-		}
-	}
-
-	return dst, nil
+	return dst, decodeString(s, dst)
 }
 
 // MustDecodeString returns the bytes represented by the nixbase32 string s or
