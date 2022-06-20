@@ -5,12 +5,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"strconv"
+	"strings"
+	"unsafe"
 )
 
 var (
 	derivationPrefix  = []byte("Derive") // nolint:gochecknoglobals
 	errArrayNotClosed = fmt.Errorf("array not closed")
+)
+
+// nolint:gochecknoglobals
+var stringUnescaper = strings.NewReplacer(
+	"\\\\", "\\",
+	"\\n", "\n",
+	"\\r", "\r",
+	"\\t", "\t",
+	"\\\"", "\"",
 )
 
 // ReadDerivation parses a Derivation in ATerm format and returns the Derivation struct,
@@ -70,7 +80,7 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 					var err error
 					switch index {
 					case 0:
-						outputName, err = unquote(value)
+						outputName, err = unquoteSlice(value)
 						if err != nil {
 							return err
 						}
@@ -78,17 +88,17 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 							return fmt.Errorf("invalid output order, %s <= %s", outputName, prevOutputName)
 						}
 					case 1:
-						output.Path, err = unquote(value)
+						output.Path, err = unquoteSlice(value)
 						if err != nil {
 							return err
 						}
 					case 2:
-						output.HashAlgorithm, err = unquote(value)
+						output.HashAlgorithm, err = unquoteSlice(value)
 						if err != nil {
 							return err
 						}
 					case 3:
-						output.Hash, err = unquote(value)
+						output.Hash, err = unquoteSlice(value)
 						if err != nil {
 							return err
 						}
@@ -123,7 +133,7 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 					var err error
 					switch index {
 					case 0:
-						inputDrvPath, err = unquote(value)
+						inputDrvPath, err = unquoteSlice(value)
 						if err != nil {
 							return err
 						}
@@ -133,7 +143,7 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 
 					case 1:
 						err := arrayEach(value, func(value []byte, index int) error {
-							unquoted, err := unquote(value)
+							unquoted, err := unquoteSlice(value)
 							if err != nil {
 								return err
 							}
@@ -163,7 +173,7 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 
 		case 2: // InputSources
 			err = arrayEach(value, func(value []byte, index int) error {
-				unquoted, err := unquote(value)
+				unquoted, err := unquoteSlice(value)
 				if err != nil {
 					return err
 				}
@@ -173,14 +183,14 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 			})
 
 		case 3: // Platform
-			drv.Platform, err = unquote(value)
+			drv.Platform, err = unquoteSlice(value)
 
 		case 4: // Builder
-			drv.Builder, err = unquote(value)
+			drv.Builder, err = unquoteSlice(value)
 
 		case 5: // Arguments
 			err = arrayEach(value, func(value []byte, index int) error {
-				unquoted, err := unquote(value)
+				unquoted, err := unquoteSlice(value)
 				if err != nil {
 					return err
 				}
@@ -201,7 +211,7 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 					var err error
 					switch index {
 					case 0:
-						envKey, err = unquote(value)
+						envKey, err = unquoteSlice(value)
 						if err != nil {
 							return err
 						}
@@ -340,13 +350,33 @@ func arrayEach(value []byte, callback func(value []byte, index int) error) error
 	return nil
 }
 
+// Unquote a byte slice.
 func unquote(b []byte) (string, error) {
-	s := string(b)
-
-	unquoted, err := strconv.Unquote(s)
+	s, err := unquoteSlice(b)
 	if err != nil {
-		return "", fmt.Errorf("error during unquote of %v: %s", s, err)
+		return "", err
 	}
 
-	return unquoted, nil
+	// If the value doesn't contain escaped sequences avoid some extra allocations
+	if !bytes.ContainsRune(b, '\\') {
+		return s, nil
+	}
+
+	return stringUnescaper.Replace(s), nil
+}
+
+// Unquote a byte slice by simply removing the first and last characters.
+// This should only be used in places where an escaped character is invalid.
+func unquoteSlice(b []byte) (string, error) {
+	if len(b) < 2 {
+		return "", fmt.Errorf("invalid quoted string length: %d", len(b))
+	}
+
+	if b[0] != '"' || b[len(b)-1] != '"' {
+		return "", fmt.Errorf("string not quoted: %s", string(b))
+	}
+
+	b = b[1 : len(b)-1]
+
+	return *(*string)(unsafe.Pointer(&b)), nil
 }

@@ -143,6 +143,18 @@ func TestEncoder(t *testing.T) {
 			Title:          "structured-attrs",
 			DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
 		},
+		{
+			Title:          "unicode",
+			DerivationFile: "52a9id8hx688hvlnz4d1n25ml1jdykz0-unicode.drv",
+		},
+		{
+			Title:          "latin1",
+			DerivationFile: "x6p0hg79i3wg0kkv7699935f7rrj9jf3-latin1.drv",
+		},
+		{
+			Title:          "cp1252",
+			DerivationFile: "m1vfixn8iprlf0v9abmlrz7mjw1xj8kp-cp1252.drv",
+		},
 	}
 
 	t.Run("WriteDerivation", func(t *testing.T) {
@@ -381,6 +393,18 @@ func TestDrvPath(t *testing.T) {
 		{
 			Title:          "structured-attrs",
 			DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
+		},
+		{
+			Title:          "unicode",
+			DerivationFile: "52a9id8hx688hvlnz4d1n25ml1jdykz0-unicode.drv",
+		},
+		{
+			Title:          "latin1",
+			DerivationFile: "x6p0hg79i3wg0kkv7699935f7rrj9jf3-latin1.drv",
+		},
+		{
+			Title:          "cp1252",
+			DerivationFile: "m1vfixn8iprlf0v9abmlrz7mjw1xj8kp-cp1252.drv",
 		},
 	}
 
