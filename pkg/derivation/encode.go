@@ -1,7 +1,6 @@
 package derivation
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"reflect"
@@ -19,6 +18,16 @@ var stringEscaper = strings.NewReplacer(
 	"\"", "\\\"",
 )
 
+// nolint:gochecknoglobals
+var (
+	comma        = []byte{','}
+	parenOpen    = []byte{'('}
+	parenClose   = []byte{')'}
+	bracketOpen  = []byte{'['}
+	bracketClose = []byte{']'}
+	quoteC       = []byte{'"'}
+)
+
 func unsafeGetBytes(s string) []byte {
 	return unsafe.Slice(
 		(*byte)(
@@ -30,67 +39,55 @@ func unsafeGetBytes(s string) []byte {
 	)
 }
 
-// Adds quotation marks around a string.
-// This is primarily meant for non-user provided strings.
-func quoteString(s string) []byte {
+// Adds quotation marks around a string while escaping it.
+func escapeString(s string) string {
 	s = stringEscaper.Replace(s)
 
-	return unsafeGetBytes("\"" + s + "\"")
+	return "\"" + s + "\""
 }
 
-// Convert a slice of strings to a slice of byte slices.
-func stringsToBytes(elems []string) [][]byte {
-	b := make([][]byte, len(elems))
-
-	for i, s := range elems {
-		b[i] = unsafeGetBytes(s)
-	}
-
-	return b
+// Like escapeString but returns the underlying byte slice.
+func escapeStringB(s string) []byte {
+	return unsafeGetBytes(escapeString(s))
 }
 
-// Encode a list of elements staring with `opening` character and ending with a `closing` character.
-func encodeArray(opening byte, closing byte, quote bool, elems ...[]byte) []byte {
-	if len(elems) == 0 {
-		return []byte{opening, closing}
+// Write a list of elements staring with `opening` character and ending with a `closing` character.
+func writeArrayElems(writer io.Writer, quote bool, open []byte, closing []byte, elems ...string) error {
+	var err error
+
+	if _, err = writer.Write(open); err != nil {
+		return err
 	}
 
-	n := 3 * (len(elems) - 1)
-	if quote {
-		n += 2
-	}
-
-	for i := 0; i < len(elems); i++ {
-		n += len(elems[i])
-	}
-
-	var buf bytes.Buffer
-
-	buf.Grow(n)
-	buf.WriteByte(opening)
-
-	writeElem := func(b []byte) {
-		if quote {
-			buf.WriteByte('"')
+	for i, elem := range elems {
+		if i > 0 {
+			if _, err = writer.Write(comma); err != nil {
+				return err
+			}
 		}
 
-		buf.Write(b)
+		if quote {
+			if _, err = writer.Write(quoteC); err != nil {
+				return err
+			}
+		}
+
+		if _, err = writer.Write(unsafeGetBytes(elem)); err != nil {
+			return err
+		}
 
 		if quote {
-			buf.WriteByte('"')
+			if _, err = writer.Write(quoteC); err != nil {
+				return err
+			}
 		}
 	}
 
-	writeElem(elems[0])
-
-	for _, s := range elems[1:] {
-		buf.WriteByte(',')
-		writeElem(s)
+	if _, err = writer.Write(closing); err != nil {
+		return err
 	}
 
-	buf.WriteByte(closing)
-
-	return buf.Bytes()
+	return nil
 }
 
 // WriteDerivation writes the ATerm representation of the derivation to the passed writer.
@@ -129,27 +126,6 @@ func (d *Derivation) writeDerivation(
 		sort.Strings(outputNames)
 	}
 
-	encOutputs := make([][]byte, len(d.Outputs))
-	{
-		for i, outputName := range outputNames {
-			o := d.Outputs[outputName]
-
-			encPath := o.Path
-			if stripOutputs {
-				encPath = ""
-			}
-
-			encOutputs[i] = encodeArray(
-				'(', ')',
-				true,
-				[]byte(outputName),
-				[]byte(encPath),
-				[]byte(o.HashAlgorithm),
-				[]byte(o.Hash),
-			)
-		}
-	}
-
 	// If inputDrvReplacements are provided, populate a new map
 	// if they are not, provide an alias to the existing one
 	var inputDerivations map[string][]string
@@ -182,14 +158,6 @@ func (d *Derivation) writeDerivation(
 		sort.Strings(inputDerivationPaths)
 	}
 
-	encInputDerivations := make([][]byte, len(inputDerivations))
-	{
-		for i, inputDerivationPath := range inputDerivationPaths {
-			names := encodeArray('[', ']', true, stringsToBytes(inputDerivations[inputDerivationPath])...)
-			encInputDerivations[i] = encodeArray('(', ')', false, quoteString(inputDerivationPath), names)
-		}
-	}
-
 	// environment variables need to be sorted by their key.
 	// extract the list of keys, sort them, then add each one by one
 	envKeys := make([]string, len(d.Env))
@@ -202,37 +170,199 @@ func (d *Derivation) writeDerivation(
 		sort.Strings(envKeys)
 	}
 
-	encEnv := make([][]byte, len(d.Env))
-	{
-		for i, k := range envKeys {
-			encEnvV := d.Env[k]
-			// when stripOutputs is set, we need to strip all env keys
-			// that are named like an output.
-			if stripOutputs {
-				if _, ok := d.Outputs[k]; ok {
-					encEnvV = ""
-				}
-			}
-			encEnv[i] = encodeArray('(', ')', false, quoteString(k), quoteString(encEnvV))
-		}
-	}
-
-	_, err := writer.Write(derivationPrefix)
-	if err != nil {
+	// Derivation prefix (Derive)
+	if _, err := writer.Write(derivationPrefix); err != nil {
 		return err
 	}
 
-	_, err = writer.Write(
-		encodeArray('(', ')', false,
-			encodeArray('[', ']', false, encOutputs...),
-			encodeArray('[', ']', false, encInputDerivations...),
-			encodeArray('[', ']', true, stringsToBytes(d.InputSources)...),
-			quoteString(d.Platform),
-			quoteString(d.Builder),
-			encodeArray('[', ']', true, stringsToBytes(d.Arguments)...),
-			encodeArray('[', ']', false, encEnv...),
-		),
-	)
+	// Open Derive call
+	if _, err := writer.Write(parenOpen); err != nil {
+		return err
+	}
 
-	return err
+	// Outputs
+	{
+		if _, err := writer.Write(bracketOpen); err != nil {
+			return err
+		}
+
+		for i, outputName := range outputNames {
+			if i > 0 {
+				_, err := writer.Write(comma)
+				if err != nil {
+					return err
+				}
+			}
+
+			o := d.Outputs[outputName]
+
+			encPath := o.Path
+			if stripOutputs {
+				encPath = ""
+			}
+
+			if err := writeArrayElems(
+				writer,
+				true,
+				parenOpen,
+				parenClose,
+				outputName,
+				encPath,
+				o.HashAlgorithm,
+				o.Hash,
+			); err != nil {
+				return err
+			}
+		}
+
+		if _, err := writer.Write(bracketClose); err != nil {
+			return err
+		}
+	}
+
+	// Input derivations
+	{
+		if _, err := writer.Write(comma); err != nil {
+			return err
+		}
+
+		if _, err := writer.Write(bracketOpen); err != nil {
+			return err
+		}
+
+		{
+			for i, inputDerivationPath := range inputDerivationPaths {
+				if i > 0 {
+					if _, err := writer.Write(comma); err != nil {
+						return err
+					}
+				}
+
+				if _, err := writer.Write(parenOpen); err != nil {
+					return err
+				}
+
+				if _, err := writer.Write(quoteC); err != nil {
+					return err
+				}
+
+				if _, err := writer.Write(unsafeGetBytes(inputDerivationPath)); err != nil {
+					return err
+				}
+
+				if _, err := writer.Write(quoteC); err != nil {
+					return err
+				}
+
+				if _, err := writer.Write(comma); err != nil {
+					return err
+				}
+
+				if err := writeArrayElems(
+					writer,
+					true,
+					bracketOpen,
+					bracketClose,
+					inputDerivations[inputDerivationPath]...,
+				); err != nil {
+					return err
+				}
+
+				if _, err := writer.Write(parenClose); err != nil {
+					return err
+				}
+			}
+		}
+
+		if _, err := writer.Write(bracketClose); err != nil {
+			return err
+		}
+	}
+
+	// Input sources
+	{
+		if _, err := writer.Write(comma); err != nil {
+			return err
+		}
+
+		if err := writeArrayElems(writer, true, bracketOpen, bracketClose, d.InputSources...); err != nil {
+			return err
+		}
+	}
+
+	// Platform
+	{
+		if _, err := writer.Write(comma); err != nil {
+			return err
+		}
+
+		if _, err := writer.Write(escapeStringB(d.Platform)); err != nil {
+			return err
+		}
+	}
+
+	// Builder
+	{
+		if _, err := writer.Write(comma); err != nil {
+			return err
+		}
+
+		if _, err := writer.Write(escapeStringB(d.Builder)); err != nil {
+			return err
+		}
+	}
+
+	// Arguments
+	{
+		if _, err := writer.Write(comma); err != nil {
+			return err
+		}
+
+		if err := writeArrayElems(writer, true, bracketOpen, bracketClose, d.Arguments...); err != nil {
+			return err
+		}
+	}
+
+	// Env
+	{
+		if _, err := writer.Write(comma); err != nil {
+			return err
+		}
+
+		if _, err := writer.Write(bracketOpen); err != nil {
+			return err
+		}
+
+		for i, key := range envKeys {
+			if i > 0 {
+				if _, err := writer.Write(comma); err != nil {
+					return err
+				}
+			}
+
+			value := d.Env[key]
+			// when stripOutputs is set, we need to strip all env keys
+			// that are named like an output.
+			if stripOutputs {
+				if _, ok := d.Outputs[key]; ok {
+					value = ""
+				}
+			}
+
+			if err := writeArrayElems(writer, false, parenOpen, parenClose, "\""+key+"\"", escapeString(value)); err != nil {
+				return err
+			}
+		}
+
+		if _, err := writer.Write(bracketClose); err != nil {
+			return err
+		}
+	}
+
+	// Close Derive call
+	if _, err := writer.Write(parenClose); err != nil {
+		return err
+	}
+
+	return nil
 }
