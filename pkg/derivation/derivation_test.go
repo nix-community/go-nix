@@ -79,15 +79,24 @@ var cases = []struct {
 	},
 }
 
-func getDerivation(derivationFile string) *derivation.Derivation {
-	f, err := os.Open(filepath.FromSlash("../../test/testdata/" + derivationFile))
-	if err != nil {
-		panic(err)
-	}
+// Memoise drv path -> []byte mapping.
+// This is important for benchmarks where we don't want to measure disk access.
+var drvMemo = make(map[string][]byte) // nolint:gochecknoglobals
 
-	derivationBytes, err := io.ReadAll(f)
-	if err != nil {
-		panic(err)
+func getDerivation(derivationFile string) *derivation.Derivation {
+	derivationBytes, ok := drvMemo[derivationFile]
+	if !ok {
+		f, err := os.Open(filepath.FromSlash("../../test/testdata/" + derivationFile))
+		if err != nil {
+			panic(err)
+		}
+
+		derivationBytes, err = io.ReadAll(f)
+		if err != nil {
+			panic(err)
+		}
+
+		drvMemo[derivationFile] = derivationBytes
 	}
 
 	drv, err := derivation.ReadDerivation(bytes.NewReader(derivationBytes))
@@ -165,6 +174,21 @@ func TestParser(t *testing.T) {
 	})
 }
 
+func BenchmarkParser(b *testing.B) {
+	// Trigger memoisation
+	for _, c := range cases {
+		getDerivation(c.DerivationFile)
+	}
+
+	for _, c := range cases {
+		b.Run(c.Title, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				getDerivation(c.DerivationFile)
+			}
+		})
+	}
+}
+
 func TestEncoder(t *testing.T) {
 	t.Run("WriteDerivation", func(t *testing.T) {
 		for _, c := range cases {
@@ -200,6 +224,21 @@ func TestEncoder(t *testing.T) {
 			})
 		}
 	})
+}
+
+func BenchmarkWriter(b *testing.B) {
+	for _, c := range cases {
+		drv := getDerivation(c.DerivationFile)
+
+		b.Run(c.Title, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				err := drv.WriteDerivation(io.Discard)
+				if err != nil {
+					panic(err)
+				}
+			}
+		})
+	}
 }
 
 func TestValidate(t *testing.T) {
