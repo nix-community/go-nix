@@ -4,7 +4,6 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"fmt"
-	"strings"
 )
 
 // Signature is used to sign a NarInfo (parts of it, to be precise).
@@ -16,16 +15,16 @@ type Signature struct {
 
 // ParseSignatureLine parses a signature line and returns a Signature struct, or error.
 func ParseSignatureLine(signatureLine string) (*Signature, error) {
-	fields := strings.Split(signatureLine, ":")
-	if len(fields) != 2 {
-		return nil, fmt.Errorf("unexpected number of colons: %v", signatureLine)
+	field0, field1, err := splitOnce(signatureLine, ":")
+	if err != nil {
+		return nil, err
 	}
 
 	var sig [ed25519.SignatureSize]byte
 
-	n, err := base64.StdEncoding.Decode(sig[:], []byte(fields[1]))
+	n, err := base64.StdEncoding.Decode(sig[:], []byte(field1))
 	if err != nil {
-		return nil, fmt.Errorf("unable to decode base64: %v", fields[1])
+		return nil, fmt.Errorf("unable to decode base64: %v", field1)
 	}
 
 	if n != len(sig) {
@@ -33,7 +32,7 @@ func ParseSignatureLine(signatureLine string) (*Signature, error) {
 	}
 
 	return &Signature{
-		KeyName: fields[0],
+		KeyName: field0,
 		Digest:  sig[:],
 	}, nil
 }
@@ -50,5 +49,5 @@ func MustParseSignatureLine(signatureLine string) *Signature {
 
 // String returns the string representation of a signature, which is `KeyName:base`.
 func (s *Signature) String() string {
-	return fmt.Sprintf("%v:%v", s.KeyName, base64.StdEncoding.EncodeToString(s.Digest))
+	return s.KeyName + ":" + base64.StdEncoding.EncodeToString(s.Digest)
 }
