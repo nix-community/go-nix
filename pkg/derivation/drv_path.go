@@ -16,7 +16,6 @@ var (
 	sha256Colon   = []byte("sha256:")
 	storeDirColon = []byte(nixpath.StoreDir + ":")
 	dotDrv        = []byte(".drv")
-	colon         = []byte{':'}
 )
 
 func (d *Derivation) DrvPath() (string, error) {

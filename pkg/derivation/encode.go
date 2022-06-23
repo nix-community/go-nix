@@ -3,10 +3,8 @@ package derivation
 import (
 	"fmt"
 	"io"
-	"reflect"
 	"sort"
 	"strings"
-	"unsafe"
 )
 
 // nolint:gochecknoglobals
@@ -27,17 +25,6 @@ var (
 	bracketClose = []byte{']'}
 	quoteC       = []byte{'"'}
 )
-
-func unsafeGetBytes(s string) []byte {
-	return unsafe.Slice(
-		(*byte)(
-			unsafe.Pointer(
-				(*reflect.StringHeader)(unsafe.Pointer(&s)).Data,
-			),
-		),
-		len(s),
-	)
-}
 
 // Adds quotation marks around a string while escaping it.
 func escapeString(s string) string {
