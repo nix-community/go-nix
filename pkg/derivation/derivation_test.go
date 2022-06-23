@@ -189,7 +189,7 @@ func BenchmarkParser(b *testing.B) {
 	}
 }
 
-func TestEncoder(t *testing.T) {
+func TestWriter(t *testing.T) {
 	t.Run("WriteDerivation", func(t *testing.T) {
 		for _, c := range cases {
 			t.Run(c.Title, func(t *testing.T) {
