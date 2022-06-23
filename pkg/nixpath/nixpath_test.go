@@ -117,5 +117,4 @@ func BenchmarkNixPath(b *testing.B) {
 			}
 		})
 	}
-
 }

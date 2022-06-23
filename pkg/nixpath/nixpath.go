@@ -40,7 +40,7 @@ type NixPath struct {
 }
 
 func (n *NixPath) String() string {
-	return Absolute(fmt.Sprintf("%v-%v", nixbase32.EncodeToString(n.Digest), n.Name))
+	return Absolute(nixbase32.EncodeToString(n.Digest) + "-" + n.Name)
 }
 
 func (n *NixPath) Validate() error {
