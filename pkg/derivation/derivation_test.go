@@ -419,3 +419,28 @@ func TestDrvPath(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkDrvPath(b *testing.B) {
+	cases := []struct {
+		Title          string
+		DerivationFile string
+	}{
+		{
+			Title:          "jq",
+			DerivationFile: "cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv",
+		},
+	}
+
+	for _, c := range cases {
+		drv := getDerivation(c.DerivationFile)
+
+		b.Run(c.Title, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_, err := drv.DrvPath()
+				if err != nil {
+					panic(err)
+				}
+			}
+		})
+	}
+}
