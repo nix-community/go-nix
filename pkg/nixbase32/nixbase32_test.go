@@ -1,6 +1,8 @@
 package nixbase32_test
 
 import (
+	"math/rand"
+	"strconv"
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/nixbase32"
@@ -74,6 +76,40 @@ func TestDecodeInvalid(t *testing.T) {
 
 		assert.Panics(t, func() {
 			_ = nixbase32.MustDecodeString(c)
+		})
+	}
+}
+
+func BenchmarkEncode(b *testing.B) {
+	sizes := []int{32, 64, 128}
+
+	for _, s := range sizes {
+		bytes := make([]byte, s)
+		rand.Read(bytes) // nolint:gosec
+
+		b.Run(strconv.Itoa(s), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				nixbase32.EncodeToString(bytes)
+			}
+		})
+	}
+}
+
+func BenchmarkDecode(b *testing.B) {
+	sizes := []int{32, 64, 128}
+
+	for _, s := range sizes {
+		bytes := make([]byte, s)
+		rand.Read(bytes) // nolint:gosec
+		input := nixbase32.EncodeToString(bytes)
+
+		b.Run(strconv.Itoa(s), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_, err := nixbase32.DecodeString(input)
+				if err != nil {
+					b.Fatal("error: %w", err)
+				}
+			}
 		})
 	}
 }
