@@ -14,6 +14,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func getDerivation(derivationFile string) *derivation.Derivation {
+	f, err := os.Open(filepath.FromSlash("../../test/testdata/" + derivationFile))
+	if err != nil {
+		panic(err)
+	}
+
+	derivationBytes, err := io.ReadAll(f)
+	if err != nil {
+		panic(err)
+	}
+
+	drv, err := derivation.ReadDerivation(bytes.NewReader(derivationBytes))
+	if err != nil {
+		panic(err)
+	}
+
+	return drv
+}
+
 func TestParser(t *testing.T) {
 	cases := []struct {
 		Title          string
@@ -58,13 +77,8 @@ func TestParser(t *testing.T) {
 	t.Run("ParseDerivations", func(t *testing.T) {
 		for _, c := range cases {
 			t.Run(c.Title, func(t *testing.T) {
-				derivationFile, err := os.Open("../../test/testdata/" + c.DerivationFile)
-				if err != nil {
-					panic(err)
-				}
+				drv := getDerivation(c.DerivationFile)
 
-				drv, err := derivation.ReadDerivation(derivationFile)
-				assert.NoError(t, err, "parsing derivation %s shouldn't fail", derivationFile)
 				assert.Equal(t, c.Outputs, drv.Outputs)
 				assert.Equal(t, c.Builder, drv.Builder)
 				assert.Equal(t, c.Env, drv.Env)
@@ -73,19 +87,13 @@ func TestParser(t *testing.T) {
 	})
 
 	t.Run("NestedJson", func(t *testing.T) {
-		derivationFile, err := os.Open("../../test/testdata/292w8yzv5nn7nhdpxcs8b7vby2p27s09-nested-json.drv")
-		if err != nil {
-			panic(err)
-		}
-
-		drv, err := derivation.ReadDerivation(derivationFile)
-		assert.NoError(t, err, "reading a derivation with nested JSON shouldn't panic")
+		drv := getDerivation("292w8yzv5nn7nhdpxcs8b7vby2p27s09-nested-json.drv")
 
 		nested := &struct {
 			Hello string
 		}{}
 
-		err = json.Unmarshal([]byte(drv.Env["json"]), &nested)
+		err := json.Unmarshal([]byte(drv.Env["json"]), &nested)
 		assert.NoError(t, err, "It should still be possible to parse the JSON afterwards")
 
 		assert.Equal(t, "moto\n", nested.Hello)
@@ -195,17 +203,7 @@ func TestEncoder(t *testing.T) {
 
 func TestValidate(t *testing.T) {
 	getDerivation := func() *derivation.Derivation {
-		derivationFile, err := os.Open("../../test/testdata/cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv")
-		if err != nil {
-			panic(err)
-		}
-
-		drv, err := derivation.ReadDerivation(derivationFile)
-		if err != nil {
-			panic(err)
-		}
-
-		return drv
+		return getDerivation("cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv")
 	}
 
 	t.Run("InvalidOutput", func(t *testing.T) {
@@ -410,20 +408,7 @@ func TestDrvPath(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Title, func(t *testing.T) {
-			derivationFile, err := os.Open(filepath.FromSlash("../../test/testdata/" + c.DerivationFile))
-			if err != nil {
-				panic(err)
-			}
-
-			derivationBytes, err := io.ReadAll(derivationFile)
-			if err != nil {
-				panic(err)
-			}
-
-			drv, err := derivation.ReadDerivation(bytes.NewReader(derivationBytes))
-			if err != nil {
-				panic(err)
-			}
+			drv := getDerivation(c.DerivationFile)
 
 			drvPath, err := drv.DrvPath()
 			if err != nil {
