@@ -10,6 +10,15 @@ import (
 	"github.com/nix-community/go-nix/pkg/nixpath"
 )
 
+//nolint:gochecknoglobals
+var (
+	textColon     = []byte("text:")
+	sha256Colon   = []byte("sha256:")
+	storeDirColon = []byte(nixpath.StoreDir + ":")
+	dotDrv        = []byte(".drv")
+	colon         = []byte{':'}
+)
+
 func (d *Derivation) DrvPath() (string, error) {
 	// calculate the sha256 digest of the ATerm representation
 	h := sha256.New()
@@ -22,9 +31,9 @@ func (d *Derivation) DrvPath() (string, error) {
 	atermDigest := h.Sum(nil)
 
 	// reset the sha256 calculator
-	h = sha256.New()
+	h.Reset()
 
-	h.Write([]byte("text:"))
+	h.Write(textColon)
 
 	// Write references (lexicographically ordered)
 	{
@@ -45,23 +54,30 @@ func (d *Derivation) DrvPath() (string, error) {
 		sort.Strings(references)
 
 		for _, ref := range references {
-			h.Write([]byte(ref))
-			h.Write([]byte{':'})
+			h.Write(unsafeGetBytes(ref))
+			h.Write(colon)
 		}
 	}
 
-	h.Write([]byte("sha256:"))
-	h.Write([]byte(hex.EncodeToString(atermDigest) + ":"))
-	h.Write([]byte(nixpath.StoreDir + ":"))
+	h.Write(sha256Colon)
+
+	{
+		encoded := make([]byte, hex.EncodedLen(sha256.Size))
+		hex.Encode(encoded, atermDigest)
+		h.Write(encoded)
+	}
+
+	h.Write(colon)
+	h.Write(storeDirColon)
 
 	name := d.Name()
-
 	if name == "" {
 		// asserted by Validate
 		panic("env 'name' not found")
 	}
 
-	h.Write([]byte(name + ".drv"))
+	h.Write(unsafeGetBytes(name))
+	h.Write(dotDrv)
 
 	atermDigest = h.Sum(nil)
 
