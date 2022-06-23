@@ -12,6 +12,74 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// nolint:gochecknoglobals
+var stores = []struct {
+	Title string
+	// a function that creates a new store on the fly
+	// a temporary folder (t.TempDir()) is passed to it
+	NewStore (func(string) derivation.Store)
+}{
+	{
+		Title: "MemoryStore",
+		NewStore: func(tmpDir string) derivation.Store {
+			return store.NewMapStore()
+		},
+	}, {
+		Title: "BadgerStore (tmpdir)",
+		NewStore: func(tmpDir string) derivation.Store {
+			store, err := store.NewBadgerStore(tmpDir)
+			if err != nil {
+				panic(err)
+			}
+
+			return store
+		},
+	}, {
+		Title: "Badger Store (memory)",
+		NewStore: func(_ string) derivation.Store {
+			store, err := store.NewBadgerMemoryStore()
+			if err != nil {
+				panic(err)
+			}
+
+			return store
+		},
+	},
+}
+
+// nolint:gochecknoglobals
+var cases = []struct {
+	Title          string
+	DerivationFile string
+}{
+	{
+		Title:          "fixed-sha256",
+		DerivationFile: "0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv",
+	},
+	{
+		// Has a single fixed-output dependency
+		Title:          "simple-sha256",
+		DerivationFile: "4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv",
+	},
+	{
+		Title:          "fixed-sha1",
+		DerivationFile: "ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv",
+	},
+	{
+		// Has a single fixed-output dependency
+		Title:          "simple-sha1",
+		DerivationFile: "ch49594n9avinrf8ip0aslidkc4lxkqv-foo.drv",
+	},
+	{
+		Title:          "multiple-outputs",
+		DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
+	},
+	{
+		Title:          "structured-attrs",
+		DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
+	},
+}
+
 // fixtureToDrvStruct opens a fixture from //test/testdata, and returns a *Derivation struct
 // it panics in case of parsing errors.
 func fixtureToDrvStruct(fixtureFilename string) *derivation.Derivation {
@@ -29,71 +97,6 @@ func fixtureToDrvStruct(fixtureFilename string) *derivation.Derivation {
 }
 
 func TestStores(t *testing.T) {
-	stores := []struct {
-		Title string
-		// a function that creates a new store on the fly
-		// a temporary folder (t.TempDir()) is passed to it
-		NewStore (func(string) derivation.Store)
-	}{
-		{
-			Title: "MemoryStore",
-			NewStore: func(tmpDir string) derivation.Store {
-				return store.NewMapStore()
-			},
-		}, {
-			Title: "BadgerStore (tmpdir)",
-			NewStore: func(tmpDir string) derivation.Store {
-				store, err := store.NewBadgerStore(tmpDir)
-				if err != nil {
-					panic(err)
-				}
-
-				return store
-			},
-		}, {
-			Title: "Badger Store (memory)",
-			NewStore: func(_ string) derivation.Store {
-				store, err := store.NewBadgerMemoryStore()
-				if err != nil {
-					panic(err)
-				}
-
-				return store
-			},
-		},
-	}
-	cases := []struct {
-		Title          string
-		DerivationFile string
-	}{
-		{
-			Title:          "fixed-sha256",
-			DerivationFile: "0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv",
-		},
-		{
-			// Has a single fixed-output dependency
-			Title:          "simple-sha256",
-			DerivationFile: "4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv",
-		},
-		{
-			Title:          "fixed-sha1",
-			DerivationFile: "ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv",
-		},
-		{
-			// Has a single fixed-output dependency
-			Title:          "simple-sha1",
-			DerivationFile: "ch49594n9avinrf8ip0aslidkc4lxkqv-foo.drv",
-		},
-		{
-			Title:          "multiple-outputs",
-			DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
-		},
-		{
-			Title:          "structured-attrs",
-			DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
-		},
-	}
-
 	for _, s := range stores {
 		t.Run(s.Title, func(t *testing.T) {
 			t.Run("open and close", func(t *testing.T) {
@@ -174,6 +177,32 @@ func TestStores(t *testing.T) {
 				_, err := store.Put(context.Background(), drv)
 				assert.Error(t, err, "inserting a derivation should fail validation already")
 				assert.Containsf(t, err.Error(), "unable to validate derivation", "error should complain about validate")
+			})
+		})
+	}
+}
+
+func BenchmarkStores(b *testing.B) {
+	for _, s := range stores {
+		s := s
+		b.Run(s.Title, func(b *testing.B) {
+			store := s.NewStore(b.TempDir())
+			defer store.Close()
+
+			b.Run("Put", func(b *testing.B) {
+				for _, c := range cases {
+					ctx := context.Background()
+					drv := fixtureToDrvStruct(c.DerivationFile)
+
+					b.Run(c.Title, func(b *testing.B) {
+						for i := 0; i < b.N; i++ {
+							_, err := store.Put(ctx, drv)
+							if err != nil {
+								panic(err)
+							}
+						}
+					})
+				}
 			})
 		})
 	}
