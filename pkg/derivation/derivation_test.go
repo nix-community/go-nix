@@ -393,6 +393,21 @@ func TestValidate(t *testing.T) {
 	})
 }
 
+func BenchmarkValidate(b *testing.B) {
+	for _, c := range cases {
+		drv := getDerivation(c.DerivationFile)
+
+		b.Run(c.Title, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				err := drv.Validate()
+				if err != nil {
+					panic(err)
+				}
+			}
+		})
+	}
+}
+
 func TestDrvPath(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.Title, func(t *testing.T) {
