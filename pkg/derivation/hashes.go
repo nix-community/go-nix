@@ -38,11 +38,11 @@ func (d *Derivation) getMaskedATermHash(inputDrvReplacements map[string]string) 
 }
 
 func hashStrings(h chash.Hash, strings ...string) []byte {
-	h.Write(unsafeGetBytes(strings[0]))
+	h.Write(unsafeBytes(strings[0]))
 
 	for _, s := range strings[1:] {
 		h.Write(colon)
-		h.Write(unsafeGetBytes(s))
+		h.Write(unsafeBytes(s))
 	}
 
 	return h.Sum(nil)

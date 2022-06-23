@@ -53,7 +53,7 @@ func (d *Derivation) DrvPath() (string, error) {
 		sort.Strings(references)
 
 		for _, ref := range references {
-			h.Write(unsafeGetBytes(ref))
+			h.Write(unsafeBytes(ref))
 			h.Write(colon)
 		}
 	}
@@ -75,7 +75,7 @@ func (d *Derivation) DrvPath() (string, error) {
 		panic("env 'name' not found")
 	}
 
-	h.Write(unsafeGetBytes(name))
+	h.Write(unsafeBytes(name))
 	h.Write(dotDrv)
 
 	atermDigest = h.Sum(nil)

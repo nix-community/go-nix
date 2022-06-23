@@ -35,7 +35,7 @@ func escapeString(s string) string {
 
 // Like escapeString but returns the underlying byte slice.
 func escapeStringB(s string) []byte {
-	return unsafeGetBytes(escapeString(s))
+	return unsafeBytes(escapeString(s))
 }
 
 // Write a list of elements staring with `opening` character and ending with a `closing` character.
@@ -59,7 +59,7 @@ func writeArrayElems(writer io.Writer, quote bool, open []byte, closing []byte, 
 			}
 		}
 
-		if _, err = writer.Write(unsafeGetBytes(elem)); err != nil {
+		if _, err = writer.Write(unsafeBytes(elem)); err != nil {
 			return err
 		}
 
@@ -233,7 +233,7 @@ func (d *Derivation) writeDerivation(
 					return err
 				}
 
-				if _, err := writer.Write(unsafeGetBytes(inputDerivationPath)); err != nil {
+				if _, err := writer.Write(unsafeBytes(inputDerivationPath)); err != nil {
 					return err
 				}
 
