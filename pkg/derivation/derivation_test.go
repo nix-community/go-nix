@@ -14,6 +14,71 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// nolint:gochecknoglobals
+var cases = []struct {
+	Title          string
+	DerivationFile string
+}{
+	{
+		Title:          "Basic",
+		DerivationFile: "m5j1yp47lw1psd9n6bzina1167abbprr-bash44-023.drv",
+	},
+	{
+		Title:          "Complex",
+		DerivationFile: "cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv",
+	},
+	{
+		Title:          "Builder Nixpath",
+		DerivationFile: "0zhkga32apid60mm7nh92z2970im5837-bootstrap-tools.drv",
+	},
+	{
+		Title:          "fixed-sha256",
+		DerivationFile: "0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv",
+	},
+	{
+		// Has a single fixed-output dependency
+		Title:          "simple-sha256",
+		DerivationFile: "4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv",
+	},
+	{
+		Title:          "fixed-sha1",
+		DerivationFile: "ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv",
+	},
+	{
+		// Has a single fixed-output dependency
+		Title:          "simple-sha1",
+		DerivationFile: "ch49594n9avinrf8ip0aslidkc4lxkqv-foo.drv",
+	},
+	{
+		Title:          "has-file-dependency",
+		DerivationFile: "385bniikgs469345jfsbw24kjfhxrsi0-foo-file.drv",
+	},
+	{
+		Title:          "has-file-and-drv-dependency",
+		DerivationFile: "z8dajq053b2bxc3ncqp8p8y3nfwafh3p-foo-file.drv",
+	},
+	{
+		Title:          "multiple-outputs",
+		DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
+	},
+	{
+		Title:          "structured-attrs",
+		DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
+	},
+	{
+		Title:          "unicode",
+		DerivationFile: "52a9id8hx688hvlnz4d1n25ml1jdykz0-unicode.drv",
+	},
+	{
+		Title:          "latin1",
+		DerivationFile: "x6p0hg79i3wg0kkv7699935f7rrj9jf3-latin1.drv",
+	},
+	{
+		Title:          "cp1252",
+		DerivationFile: "m1vfixn8iprlf0v9abmlrz7mjw1xj8kp-cp1252.drv",
+	},
+}
+
 func getDerivation(derivationFile string) *derivation.Derivation {
 	f, err := os.Open(filepath.FromSlash("../../test/testdata/" + derivationFile))
 	if err != nil {
@@ -101,70 +166,6 @@ func TestParser(t *testing.T) {
 }
 
 func TestEncoder(t *testing.T) {
-	cases := []struct {
-		Title          string
-		DerivationFile string
-	}{
-		{
-			Title:          "Basic",
-			DerivationFile: "m5j1yp47lw1psd9n6bzina1167abbprr-bash44-023.drv",
-		},
-		{
-			Title:          "Complex",
-			DerivationFile: "cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv",
-		},
-		{
-			Title:          "Builder Nixpath",
-			DerivationFile: "0zhkga32apid60mm7nh92z2970im5837-bootstrap-tools.drv",
-		},
-		{
-			Title:          "fixed-sha256",
-			DerivationFile: "0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv",
-		},
-		{
-			// Has a single fixed-output dependency
-			Title:          "simple-sha256",
-			DerivationFile: "4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv",
-		},
-		{
-			Title:          "fixed-sha1",
-			DerivationFile: "ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv",
-		},
-		{
-			// Has a single fixed-output dependency
-			Title:          "simple-sha1",
-			DerivationFile: "ch49594n9avinrf8ip0aslidkc4lxkqv-foo.drv",
-		},
-		{
-			Title:          "has-file-dependency",
-			DerivationFile: "385bniikgs469345jfsbw24kjfhxrsi0-foo-file.drv",
-		},
-		{
-			Title:          "has-file-and-drv-dependency",
-			DerivationFile: "z8dajq053b2bxc3ncqp8p8y3nfwafh3p-foo-file.drv",
-		},
-		{
-			Title:          "multiple-outputs",
-			DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
-		},
-		{
-			Title:          "structured-attrs",
-			DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
-		},
-		{
-			Title:          "unicode",
-			DerivationFile: "52a9id8hx688hvlnz4d1n25ml1jdykz0-unicode.drv",
-		},
-		{
-			Title:          "latin1",
-			DerivationFile: "x6p0hg79i3wg0kkv7699935f7rrj9jf3-latin1.drv",
-		},
-		{
-			Title:          "cp1252",
-			DerivationFile: "m1vfixn8iprlf0v9abmlrz7mjw1xj8kp-cp1252.drv",
-		},
-	}
-
 	t.Run("WriteDerivation", func(t *testing.T) {
 		for _, c := range cases {
 			t.Run(c.Title, func(t *testing.T) {
@@ -354,58 +355,6 @@ func TestValidate(t *testing.T) {
 }
 
 func TestDrvPath(t *testing.T) {
-	cases := []struct {
-		Title          string
-		DerivationFile string
-	}{
-		{
-			Title:          "fixed-sha256",
-			DerivationFile: "0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv",
-		},
-		{
-			// Has a single fixed-output dependency
-			Title:          "simple-sha256",
-			DerivationFile: "4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv",
-		},
-		{
-			Title:          "fixed-sha1",
-			DerivationFile: "ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv",
-		},
-		{
-			// Has a single fixed-output dependency
-			Title:          "simple-sha1",
-			DerivationFile: "ch49594n9avinrf8ip0aslidkc4lxkqv-foo.drv",
-		},
-		{
-			Title:          "has-file-dependency",
-			DerivationFile: "385bniikgs469345jfsbw24kjfhxrsi0-foo-file.drv",
-		},
-		{
-			Title:          "has-file-and-drv-dependency",
-			DerivationFile: "z8dajq053b2bxc3ncqp8p8y3nfwafh3p-foo-file.drv",
-		},
-		{
-			Title:          "multiple-outputs",
-			DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
-		},
-		{
-			Title:          "structured-attrs",
-			DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
-		},
-		{
-			Title:          "unicode",
-			DerivationFile: "52a9id8hx688hvlnz4d1n25ml1jdykz0-unicode.drv",
-		},
-		{
-			Title:          "latin1",
-			DerivationFile: "x6p0hg79i3wg0kkv7699935f7rrj9jf3-latin1.drv",
-		},
-		{
-			Title:          "cp1252",
-			DerivationFile: "m1vfixn8iprlf0v9abmlrz7mjw1xj8kp-cp1252.drv",
-		},
-	}
-
 	for _, c := range cases {
 		t.Run(c.Title, func(t *testing.T) {
 			drv := getDerivation(c.DerivationFile)
@@ -421,16 +370,6 @@ func TestDrvPath(t *testing.T) {
 }
 
 func BenchmarkDrvPath(b *testing.B) {
-	cases := []struct {
-		Title          string
-		DerivationFile string
-	}{
-		{
-			Title:          "jq",
-			DerivationFile: "cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv",
-		},
-	}
-
 	for _, c := range cases {
 		drv := getDerivation(c.DerivationFile)
 
