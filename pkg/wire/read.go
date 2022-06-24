@@ -7,7 +7,9 @@ import (
 
 // ReadUint64 consumes exactly 8 bytes and returns a uint64.
 func ReadUint64(r io.Reader) (n uint64, err error) {
-	var buf [8]byte
+	buf := bufPool.Get().(*[8]byte)
+	defer bufPool.Put(buf)
+
 	if _, err := io.ReadFull(r, buf[:]); err != nil {
 		return 0, err
 	}
@@ -38,15 +40,18 @@ func readPadding(r io.Reader, contentLength uint64) error {
 		return nil
 	}
 
-	var buf [8]byte
+	buf := bufPool.Get().(*[8]byte)
+	defer bufPool.Put(buf)
 
 	// we read the padding contents into the tail of the buf slice
 	if _, err := io.ReadFull(r, buf[n:]); err != nil {
 		return err
 	}
 	// … and check if it's only null bytes
-	if buf != [8]byte{} {
-		return fmt.Errorf("invalid padding, should be null bytes, found %v", buf[n:])
+	for _, b := range buf[n:] {
+		if b != 0 {
+			return fmt.Errorf("invalid padding, should be null bytes, found %v", buf[n:])
+		}
 	}
 
 	return nil
