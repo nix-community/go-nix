@@ -3,7 +3,6 @@ package nar_test
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -131,7 +130,7 @@ func TestDumpPathRecursion(t *testing.T) {
 		}, hdr)
 
 		// read in contents
-		contents, err := ioutil.ReadAll(nr)
+		contents, err := io.ReadAll(nr)
 		assert.NoError(t, err)
 		assert.Equal(t, []byte{0x1}, contents)
 
