@@ -1,6 +1,8 @@
 package narinfo_test
 
 import (
+	"bytes"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -129,4 +131,36 @@ func TestBigNarinfo(t *testing.T) {
 
 	_, err = narinfo.Parse(f)
 	assert.NoError(t, err, "Parsing big .narinfo files shouldn't fail")
+}
+
+func BenchmarkNarInfo(b *testing.B) {
+	b.Run("Regular", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_, err := narinfo.Parse(strings.NewReader(strNarinfoSample))
+			assert.NoError(b, err)
+		}
+	})
+
+	{
+		f, err := os.Open("../../../test/testdata/big.narinfo")
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+
+		var buf bytes.Buffer
+		_, err = io.ReadAll(&buf)
+		if err != nil {
+			panic(err)
+		}
+
+		big := buf.Bytes()
+
+		b.Run("Big", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_, err := narinfo.Parse(bytes.NewReader(big))
+				assert.NoError(b, err)
+			}
+		})
+	}
 }

@@ -14,6 +14,99 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// nolint:gochecknoglobals
+var cases = []struct {
+	Title          string
+	DerivationFile string
+}{
+	{
+		Title:          "Basic",
+		DerivationFile: "m5j1yp47lw1psd9n6bzina1167abbprr-bash44-023.drv",
+	},
+	{
+		Title:          "Complex",
+		DerivationFile: "cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv",
+	},
+	{
+		Title:          "Builder Nixpath",
+		DerivationFile: "0zhkga32apid60mm7nh92z2970im5837-bootstrap-tools.drv",
+	},
+	{
+		Title:          "fixed-sha256",
+		DerivationFile: "0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv",
+	},
+	{
+		// Has a single fixed-output dependency
+		Title:          "simple-sha256",
+		DerivationFile: "4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv",
+	},
+	{
+		Title:          "fixed-sha1",
+		DerivationFile: "ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv",
+	},
+	{
+		// Has a single fixed-output dependency
+		Title:          "simple-sha1",
+		DerivationFile: "ch49594n9avinrf8ip0aslidkc4lxkqv-foo.drv",
+	},
+	{
+		Title:          "has-file-dependency",
+		DerivationFile: "385bniikgs469345jfsbw24kjfhxrsi0-foo-file.drv",
+	},
+	{
+		Title:          "has-file-and-drv-dependency",
+		DerivationFile: "z8dajq053b2bxc3ncqp8p8y3nfwafh3p-foo-file.drv",
+	},
+	{
+		Title:          "multiple-outputs",
+		DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
+	},
+	{
+		Title:          "structured-attrs",
+		DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
+	},
+	{
+		Title:          "unicode",
+		DerivationFile: "52a9id8hx688hvlnz4d1n25ml1jdykz0-unicode.drv",
+	},
+	{
+		Title:          "latin1",
+		DerivationFile: "x6p0hg79i3wg0kkv7699935f7rrj9jf3-latin1.drv",
+	},
+	{
+		Title:          "cp1252",
+		DerivationFile: "m1vfixn8iprlf0v9abmlrz7mjw1xj8kp-cp1252.drv",
+	},
+}
+
+// Memoise drv path -> []byte mapping.
+// This is important for benchmarks where we don't want to measure disk access.
+var drvMemo = make(map[string][]byte) // nolint:gochecknoglobals
+
+func getDerivation(derivationFile string) *derivation.Derivation {
+	derivationBytes, ok := drvMemo[derivationFile]
+	if !ok {
+		f, err := os.Open(filepath.FromSlash("../../test/testdata/" + derivationFile))
+		if err != nil {
+			panic(err)
+		}
+
+		derivationBytes, err = io.ReadAll(f)
+		if err != nil {
+			panic(err)
+		}
+
+		drvMemo[derivationFile] = derivationBytes
+	}
+
+	drv, err := derivation.ReadDerivation(bytes.NewReader(derivationBytes))
+	if err != nil {
+		panic(err)
+	}
+
+	return drv
+}
+
 func TestParser(t *testing.T) {
 	cases := []struct {
 		Title          string
@@ -58,13 +151,8 @@ func TestParser(t *testing.T) {
 	t.Run("ParseDerivations", func(t *testing.T) {
 		for _, c := range cases {
 			t.Run(c.Title, func(t *testing.T) {
-				derivationFile, err := os.Open("../../test/testdata/" + c.DerivationFile)
-				if err != nil {
-					panic(err)
-				}
+				drv := getDerivation(c.DerivationFile)
 
-				drv, err := derivation.ReadDerivation(derivationFile)
-				assert.NoError(t, err, "parsing derivation %s shouldn't fail", derivationFile)
 				assert.Equal(t, c.Outputs, drv.Outputs)
 				assert.Equal(t, c.Builder, drv.Builder)
 				assert.Equal(t, c.Env, drv.Env)
@@ -73,90 +161,35 @@ func TestParser(t *testing.T) {
 	})
 
 	t.Run("NestedJson", func(t *testing.T) {
-		derivationFile, err := os.Open("../../test/testdata/292w8yzv5nn7nhdpxcs8b7vby2p27s09-nested-json.drv")
-		if err != nil {
-			panic(err)
-		}
-
-		drv, err := derivation.ReadDerivation(derivationFile)
-		assert.NoError(t, err, "reading a derivation with nested JSON shouldn't panic")
+		drv := getDerivation("292w8yzv5nn7nhdpxcs8b7vby2p27s09-nested-json.drv")
 
 		nested := &struct {
 			Hello string
 		}{}
 
-		err = json.Unmarshal([]byte(drv.Env["json"]), &nested)
+		err := json.Unmarshal([]byte(drv.Env["json"]), &nested)
 		assert.NoError(t, err, "It should still be possible to parse the JSON afterwards")
 
 		assert.Equal(t, "moto\n", nested.Hello)
 	})
 }
 
-func TestEncoder(t *testing.T) {
-	cases := []struct {
-		Title          string
-		DerivationFile string
-	}{
-		{
-			Title:          "Basic",
-			DerivationFile: "m5j1yp47lw1psd9n6bzina1167abbprr-bash44-023.drv",
-		},
-		{
-			Title:          "Complex",
-			DerivationFile: "cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv",
-		},
-		{
-			Title:          "Builder Nixpath",
-			DerivationFile: "0zhkga32apid60mm7nh92z2970im5837-bootstrap-tools.drv",
-		},
-		{
-			Title:          "fixed-sha256",
-			DerivationFile: "0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv",
-		},
-		{
-			// Has a single fixed-output dependency
-			Title:          "simple-sha256",
-			DerivationFile: "4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv",
-		},
-		{
-			Title:          "fixed-sha1",
-			DerivationFile: "ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv",
-		},
-		{
-			// Has a single fixed-output dependency
-			Title:          "simple-sha1",
-			DerivationFile: "ch49594n9avinrf8ip0aslidkc4lxkqv-foo.drv",
-		},
-		{
-			Title:          "has-file-dependency",
-			DerivationFile: "385bniikgs469345jfsbw24kjfhxrsi0-foo-file.drv",
-		},
-		{
-			Title:          "has-file-and-drv-dependency",
-			DerivationFile: "z8dajq053b2bxc3ncqp8p8y3nfwafh3p-foo-file.drv",
-		},
-		{
-			Title:          "multiple-outputs",
-			DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
-		},
-		{
-			Title:          "structured-attrs",
-			DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
-		},
-		{
-			Title:          "unicode",
-			DerivationFile: "52a9id8hx688hvlnz4d1n25ml1jdykz0-unicode.drv",
-		},
-		{
-			Title:          "latin1",
-			DerivationFile: "x6p0hg79i3wg0kkv7699935f7rrj9jf3-latin1.drv",
-		},
-		{
-			Title:          "cp1252",
-			DerivationFile: "m1vfixn8iprlf0v9abmlrz7mjw1xj8kp-cp1252.drv",
-		},
+func BenchmarkParser(b *testing.B) {
+	// Trigger memoisation
+	for _, c := range cases {
+		getDerivation(c.DerivationFile)
 	}
 
+	for _, c := range cases {
+		b.Run(c.Title, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				getDerivation(c.DerivationFile)
+			}
+		})
+	}
+}
+
+func TestWriter(t *testing.T) {
 	t.Run("WriteDerivation", func(t *testing.T) {
 		for _, c := range cases {
 			t.Run(c.Title, func(t *testing.T) {
@@ -193,19 +226,24 @@ func TestEncoder(t *testing.T) {
 	})
 }
 
+func BenchmarkWriter(b *testing.B) {
+	for _, c := range cases {
+		drv := getDerivation(c.DerivationFile)
+
+		b.Run(c.Title, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				err := drv.WriteDerivation(io.Discard)
+				if err != nil {
+					panic(err)
+				}
+			}
+		})
+	}
+}
+
 func TestValidate(t *testing.T) {
 	getDerivation := func() *derivation.Derivation {
-		derivationFile, err := os.Open("../../test/testdata/cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv")
-		if err != nil {
-			panic(err)
-		}
-
-		drv, err := derivation.ReadDerivation(derivationFile)
-		if err != nil {
-			panic(err)
-		}
-
-		return drv
+		return getDerivation("cl5fr6hlr6hdqza2vgb9qqy5s26wls8i-jq-1.6.drv")
 	}
 
 	t.Run("InvalidOutput", func(t *testing.T) {
@@ -355,75 +393,25 @@ func TestValidate(t *testing.T) {
 	})
 }
 
-func TestDrvPath(t *testing.T) {
-	cases := []struct {
-		Title          string
-		DerivationFile string
-	}{
-		{
-			Title:          "fixed-sha256",
-			DerivationFile: "0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv",
-		},
-		{
-			// Has a single fixed-output dependency
-			Title:          "simple-sha256",
-			DerivationFile: "4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv",
-		},
-		{
-			Title:          "fixed-sha1",
-			DerivationFile: "ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv",
-		},
-		{
-			// Has a single fixed-output dependency
-			Title:          "simple-sha1",
-			DerivationFile: "ch49594n9avinrf8ip0aslidkc4lxkqv-foo.drv",
-		},
-		{
-			Title:          "has-file-dependency",
-			DerivationFile: "385bniikgs469345jfsbw24kjfhxrsi0-foo-file.drv",
-		},
-		{
-			Title:          "has-file-and-drv-dependency",
-			DerivationFile: "z8dajq053b2bxc3ncqp8p8y3nfwafh3p-foo-file.drv",
-		},
-		{
-			Title:          "multiple-outputs",
-			DerivationFile: "h32dahq0bx5rp1krcdx3a53asj21jvhk-has-multi-out.drv",
-		},
-		{
-			Title:          "structured-attrs",
-			DerivationFile: "9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
-		},
-		{
-			Title:          "unicode",
-			DerivationFile: "52a9id8hx688hvlnz4d1n25ml1jdykz0-unicode.drv",
-		},
-		{
-			Title:          "latin1",
-			DerivationFile: "x6p0hg79i3wg0kkv7699935f7rrj9jf3-latin1.drv",
-		},
-		{
-			Title:          "cp1252",
-			DerivationFile: "m1vfixn8iprlf0v9abmlrz7mjw1xj8kp-cp1252.drv",
-		},
-	}
+func BenchmarkValidate(b *testing.B) {
+	for _, c := range cases {
+		drv := getDerivation(c.DerivationFile)
 
+		b.Run(c.Title, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				err := drv.Validate()
+				if err != nil {
+					panic(err)
+				}
+			}
+		})
+	}
+}
+
+func TestDrvPath(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.Title, func(t *testing.T) {
-			derivationFile, err := os.Open(filepath.FromSlash("../../test/testdata/" + c.DerivationFile))
-			if err != nil {
-				panic(err)
-			}
-
-			derivationBytes, err := io.ReadAll(derivationFile)
-			if err != nil {
-				panic(err)
-			}
-
-			drv, err := derivation.ReadDerivation(bytes.NewReader(derivationBytes))
-			if err != nil {
-				panic(err)
-			}
+			drv := getDerivation(c.DerivationFile)
 
 			drvPath, err := drv.DrvPath()
 			if err != nil {
@@ -431,6 +419,21 @@ func TestDrvPath(t *testing.T) {
 			}
 
 			assert.Equal(t, nixpath.Absolute(c.DerivationFile), drvPath)
+		})
+	}
+}
+
+func BenchmarkDrvPath(b *testing.B) {
+	for _, c := range cases {
+		drv := getDerivation(c.DerivationFile)
+
+		b.Run(c.Title, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				_, err := drv.DrvPath()
+				if err != nil {
+					panic(err)
+				}
+			}
 		})
 	}
 }

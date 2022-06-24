@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"unsafe"
 )
 
 var (
@@ -378,5 +377,5 @@ func unquoteSlice(b []byte) (string, error) {
 
 	b = b[1 : len(b)-1]
 
-	return *(*string)(unsafe.Pointer(&b)), nil
+	return unsafeString(b), nil
 }

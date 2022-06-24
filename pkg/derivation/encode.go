@@ -3,10 +3,8 @@ package derivation
 import (
 	"fmt"
 	"io"
-	"reflect"
 	"sort"
 	"strings"
-	"unsafe"
 )
 
 // nolint:gochecknoglobals
@@ -28,17 +26,6 @@ var (
 	quoteC       = []byte{'"'}
 )
 
-func unsafeGetBytes(s string) []byte {
-	return unsafe.Slice(
-		(*byte)(
-			unsafe.Pointer(
-				(*reflect.StringHeader)(unsafe.Pointer(&s)).Data,
-			),
-		),
-		len(s),
-	)
-}
-
 // Adds quotation marks around a string while escaping it.
 func escapeString(s string) string {
 	s = stringEscaper.Replace(s)
@@ -48,7 +35,7 @@ func escapeString(s string) string {
 
 // Like escapeString but returns the underlying byte slice.
 func escapeStringB(s string) []byte {
-	return unsafeGetBytes(escapeString(s))
+	return unsafeBytes(escapeString(s))
 }
 
 // Write a list of elements staring with `opening` character and ending with a `closing` character.
@@ -72,7 +59,7 @@ func writeArrayElems(writer io.Writer, quote bool, open []byte, closing []byte, 
 			}
 		}
 
-		if _, err = writer.Write(unsafeGetBytes(elem)); err != nil {
+		if _, err = writer.Write(unsafeBytes(elem)); err != nil {
 			return err
 		}
 
@@ -246,7 +233,7 @@ func (d *Derivation) writeDerivation(
 					return err
 				}
 
-				if _, err := writer.Write(unsafeGetBytes(inputDerivationPath)); err != nil {
+				if _, err := writer.Write(unsafeBytes(inputDerivationPath)); err != nil {
 					return err
 				}
 

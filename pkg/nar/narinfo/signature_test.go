@@ -40,3 +40,9 @@ func TestMustParseSignatureLine(t *testing.T) {
 		_ = narinfo.MustParseSignatureLine(expectedKeyName)
 	})
 }
+
+func BenchmarkParseSignatureLine(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		narinfo.MustParseSignatureLine(dummySigLine)
+	}
+}

@@ -80,3 +80,41 @@ func TestNixPathAbsolute(t *testing.T) {
 			"path shouldn't have the full storedir as prefix anymore (/nix)")
 	})
 }
+
+func BenchmarkNixPath(b *testing.B) {
+	path := "/nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432"
+
+	b.Run("FromString", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			_, err := nixpath.FromString(path)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("Validate", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			err := nixpath.Validate(path)
+			if err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	{
+		p, err := nixpath.FromString(path)
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		b.Run("ValidateStruct", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				err := p.Validate()
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+}

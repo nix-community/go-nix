@@ -32,14 +32,10 @@ func Parse(r io.Reader) (*NarInfo, error) {
 			continue
 		}
 
-		parts := strings.Split(line, ": ")
-
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("unable to split line %v", line)
+		k, v, err := splitOnce(line, ": ")
+		if err != nil {
+			return nil, err
 		}
-
-		k := parts[0]
-		v := parts[1]
 
 		switch k {
 		case "StorePath":
@@ -106,4 +102,18 @@ func Parse(r io.Reader) (*NarInfo, error) {
 	}
 
 	return narInfo, nil
+}
+
+// splitOnce - Split a string and make sure it's only splittable once.
+func splitOnce(s string, sep string) (string, string, error) {
+	idx := strings.Index(s, sep)
+	if idx == -1 {
+		return "", "", fmt.Errorf("unable to find separator '%s' in %v", sep, s)
+	}
+
+	if strings.Contains(s[:idx], sep) {
+		return "", "", fmt.Errorf("found separator '%s' twice or more in %v", sep, s)
+	}
+
+	return s[0:idx], s[idx+len(sep):], nil
 }
