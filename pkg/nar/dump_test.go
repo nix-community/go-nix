@@ -182,3 +182,14 @@ func TestDumpPathFilter(t *testing.T) {
 		}
 	})
 }
+
+func BenchmarkDumpPath(b *testing.B) {
+	b.Run("testdata", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			err := nar.DumpPath(io.Discard, "../../test/testdata")
+			if err != nil {
+				panic(err)
+			}
+		}
+	})
+}
