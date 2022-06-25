@@ -42,7 +42,7 @@ type ReferenceScanner struct {
 func NewReferenceScanner(storePathCandidates []string) (*ReferenceScanner, error) {
 	var buf [refLength]byte
 
-	hashes := make(map[string]string)
+	hashes := make(map[string]string, len(storePathCandidates))
 
 	for _, storePath := range storePathCandidates {
 		if !strings.HasPrefix(storePath, nixpath.StoreDir) {
