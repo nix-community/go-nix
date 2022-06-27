@@ -3,7 +3,6 @@ package nar_test
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -63,7 +62,7 @@ func TestReaderOneByteRegular(t *testing.T) {
 	}, hdr)
 
 	// read contents
-	contents, err := ioutil.ReadAll(nr)
+	contents, err := io.ReadAll(nr)
 	assert.NoError(t, err)
 	assert.Equal(t, []byte{0x1}, contents)
 
@@ -92,7 +91,7 @@ func TestReaderSymlink(t *testing.T) {
 	}, hdr)
 
 	// read contents should only return an empty byte slice
-	contents, err := ioutil.ReadAll(nr)
+	contents, err := io.ReadAll(nr)
 	assert.NoError(t, err)
 	assert.Equal(t, []byte{}, contents)
 
@@ -334,10 +333,10 @@ func TestReaderSmoketest(t *testing.T) {
 
 			defer f.Close()
 
-			expectedContents, err := ioutil.ReadAll(f)
+			expectedContents, err := io.ReadAll(f)
 			assert.NoError(t, err)
 
-			actualContents, err := ioutil.ReadAll(nr)
+			actualContents, err := io.ReadAll(nr)
 			if assert.NoError(t, err) {
 				assert.Equal(t, expectedContents, actualContents)
 			}
@@ -347,7 +346,7 @@ func TestReaderSmoketest(t *testing.T) {
 		// we pick examples that previously returned a regular file, so there might
 		// previously have been a reader pointing to something.
 		if hdr.Path == "/bin/dnsdomainname" || hdr.Path == "/share/man/man5" {
-			actualContents, err := ioutil.ReadAll(nr)
+			actualContents, err := io.ReadAll(nr)
 			if assert.NoError(t, err) {
 				assert.Equal(t, []byte{}, actualContents)
 			}

@@ -3,7 +3,6 @@ package nar_test
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -131,7 +130,7 @@ func TestDumpPathRecursion(t *testing.T) {
 		}, hdr)
 
 		// read in contents
-		contents, err := ioutil.ReadAll(nr)
+		contents, err := io.ReadAll(nr)
 		assert.NoError(t, err)
 		assert.Equal(t, []byte{0x1}, contents)
 
@@ -180,6 +179,17 @@ func TestDumpPathFilter(t *testing.T) {
 		})
 		if assert.NoError(t, err) {
 			assert.NotEqual(t, genOneByteRegularNar(), buf.Bytes())
+		}
+	})
+}
+
+func BenchmarkDumpPath(b *testing.B) {
+	b.Run("testdata", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			err := nar.DumpPath(io.Discard, "../../test/testdata")
+			if err != nil {
+				panic(err)
+			}
 		}
 	})
 }

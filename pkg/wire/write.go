@@ -2,11 +2,24 @@ package wire
 
 import (
 	"io"
+	"sync"
+)
+
+// nolint:gochecknoglobals
+var (
+	padding [8]byte
+
+	bufPool = sync.Pool{
+		New: func() interface{} {
+			return new([8]byte)
+		},
+	}
 )
 
 // WriteUint64 writes an uint64 in Nix wire format.
 func WriteUint64(w io.Writer, n uint64) error {
-	var buf [8]byte
+	buf := bufPool.Get().(*[8]byte)
+	defer bufPool.Put(buf)
 
 	byteOrder.PutUint64(buf[:], n)
 	_, err := w.Write(buf[:])
@@ -54,7 +67,6 @@ func WriteString(w io.Writer, s string) error {
 // writePadding writes the appropriate amount of padding.
 func writePadding(w io.Writer, contentLength uint64) error {
 	if m := contentLength % 8; m != 0 {
-		var padding [8]byte
 		_, err := w.Write(padding[m:])
 
 		return err
