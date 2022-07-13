@@ -44,7 +44,8 @@ func NewBadgerMemoryStore() (*BadgerStore, error) {
 	}
 
 	return &BadgerStore{
-		db:     db,
+		db: db,
+		// TODO: make hasher thread-safe
 		hasher: sha256.New(),
 	}, nil
 }
