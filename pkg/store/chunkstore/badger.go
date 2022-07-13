@@ -3,12 +3,10 @@ package chunkstore
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
 	"fmt"
-	"hash"
+	"sync"
 
 	"github.com/dgraph-io/badger/v3"
-	"github.com/multiformats/go-multihash"
 	"github.com/nix-community/go-nix/pkg/store"
 )
 
@@ -20,42 +18,47 @@ func buildDefaultBadgerOptions(path string) badger.Options {
 	return badger.DefaultOptions(path).WithLoggingLevel(badger.WARNING)
 }
 
-// FUTUREWORK: make hash function configurable? use multiple hash functions?
-
 // NewBadgerStore opens a store that stores its data
-// in the path specified by path.
-func NewBadgerStore(path string) (*BadgerStore, error) {
-	db, err := badger.Open(buildDefaultBadgerOptions(path))
+// in the path specified by path (or in memory, if inMemory is set to true)
+// hashName needs to be one of the hash algorithms supported by go-multihash,
+// and will be used to identify new hashes being uploaded.
+func NewBadgerStore(hashName string, path string, inMemory bool) (*BadgerStore, error) {
+	badgerOpts := buildDefaultBadgerOptions(path)
+	if inMemory {
+		badgerOpts = badgerOpts.WithInMemory(true)
+	}
+
+	db, err := badger.Open(badgerOpts)
 	if err != nil {
 		return nil, fmt.Errorf("error opening badger store: %w", err)
 	}
 
+	hasherPool, err := store.NewHasherPool(hashName)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new hasher pool for %v: %w", hashName, err)
+	}
+
 	return &BadgerStore{
-		db:     db,
-		hasher: sha256.New(),
+		db:         db,
+		hasherPool: hasherPool,
 	}, nil
 }
 
 // NewBadgerMemoryStore opens a store that entirely resides in memory.
-func NewBadgerMemoryStore() (*BadgerStore, error) {
-	db, err := badger.Open(buildDefaultBadgerOptions("").WithInMemory(true))
-	if err != nil {
-		return nil, fmt.Errorf("error opening badger store: %w", err)
-	}
-
-	return &BadgerStore{
-		db: db,
-		// TODO: make hasher thread-safe
-		hasher: sha256.New(),
-	}, nil
+func NewBadgerMemoryStore(hashName string) (*BadgerStore, error) {
+	return NewBadgerStore(hashName, "", true)
 }
 
 // BadgerStore stores chunks using badger.
 type BadgerStore struct {
-	db     *badger.DB
-	hasher hash.Hash
+	db         *badger.DB
+	hasherPool *sync.Pool
 }
 
+// Get retrieves a chunk by its identifier.
+// The chunks are not checked to match the checksum,
+// as the local badger store is considered trusted.
+// FUTUREWORK: make configurable?
 func (bs *BadgerStore) Get(
 	ctx context.Context,
 	id store.ChunkIdentifier,
@@ -85,6 +88,7 @@ func (bs *BadgerStore) Get(
 	return data, nil
 }
 
+// Has checks if a certain chunk exists in a local chunk store.
 func (bs *BadgerStore) Has(
 	ctx context.Context,
 	id store.ChunkIdentifier,
@@ -116,18 +120,20 @@ func (bs *BadgerStore) Has(
 	return found, nil
 }
 
+// Put inserts a chunk into the store.
+// The identifier/hash is returned.
 func (bs *BadgerStore) Put(
 	ctx context.Context,
 	data []byte,
 ) (store.ChunkIdentifier, error) {
-	_, err := bs.hasher.Write(data)
+	hasher := bs.hasherPool.Get().(*store.Hasher)
+
+	_, err := hasher.Write(data)
 	if err != nil {
 		return nil, fmt.Errorf("error hashing data: %w", err)
 	}
-	dgst := bs.hasher.Sum(nil)
-	bs.hasher.Reset()
-	id, err := multihash.EncodeName(dgst, "sha2-256")
 
+	id, err := hasher.Sum()
 	if err != nil {
 		return nil, fmt.Errorf("error calculating multihash: %w", err)
 	}
