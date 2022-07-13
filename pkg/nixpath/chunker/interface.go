@@ -1,9 +1,6 @@
 package chunker
 
-type Chunk struct {
-	Offset uint64
-	Data   []byte
-}
+type Chunk []byte
 
 // Chunker describes the interface that a given chunker needs to implement.
 // Next() is periodically called until io.EOF is encountered.
@@ -13,5 +10,5 @@ type Chunk struct {
 // to the interface? Look at how it's used in pkg/store/import.go
 
 type Chunker interface {
-	Next() (*Chunk, error)
+	Next() (Chunk, error)
 }

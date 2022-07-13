@@ -71,14 +71,14 @@ func FromNarinfo(
 				}
 
 				// upload to chunk store. We get the identifier back.
-				chunkId, err := chunkStore.Put(ctx, chunk.Data)
+				chunkID, err := chunkStore.Put(ctx, chunk)
 				if err != nil {
 					return nil, fmt.Errorf("error uploading to chunk store: %w", err)
 				}
 
 				regularEntry.Chunks = append(regularEntry.Chunks, &ChunkMeta{
-					Identifier: chunkId,
-					Size:       uint64(len(chunk.Data)),
+					Identifier: chunkID,
+					Size:       uint64(len(chunk)),
 				})
 			}
 

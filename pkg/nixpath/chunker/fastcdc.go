@@ -31,7 +31,7 @@ type FastCDCChunker struct {
 	c *fastcdc.Chunker
 }
 
-func (f *FastCDCChunker) Next() (*Chunk, error) {
+func (f *FastCDCChunker) Next() (Chunk, error) {
 	chunk, err := f.c.Next()
 	if err != nil {
 		if errors.Is(err, io.EOF) {
@@ -41,8 +41,5 @@ func (f *FastCDCChunker) Next() (*Chunk, error) {
 		return nil, fmt.Errorf("error getting next chunk: %w", err)
 	}
 
-	return &Chunk{
-		Offset: chunk.Offset,
-		Data:   chunk.Data,
-	}, nil
+	return (Chunk)(chunk.Data), nil
 }

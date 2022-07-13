@@ -18,7 +18,7 @@ type SimpleChunker struct {
 	done bool
 }
 
-func (s *SimpleChunker) Next() (*Chunk, error) {
+func (s *SimpleChunker) Next() (Chunk, error) {
 	// if we already read everything, return io.EOF
 	if s.done {
 		return nil, io.EOF
@@ -32,8 +32,5 @@ func (s *SimpleChunker) Next() (*Chunk, error) {
 
 	s.done = true
 
-	return &Chunk{
-		Offset: 0,
-		Data:   buf.Bytes(),
-	}, nil
+	return buf.Bytes(), nil
 }

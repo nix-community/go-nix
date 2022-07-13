@@ -40,7 +40,6 @@ func TestChunkers(t *testing.T) {
 			// Ensure it matches testData.
 
 			var receivedData bytes.Buffer
-			offset := uint64(0)
 
 			for {
 				chunk, err := chunker.Chunker.Next()
@@ -50,14 +49,8 @@ func TestChunkers(t *testing.T) {
 					}
 					assert.NoError(t, err, "no other error other than EOF is accepted")
 				}
-
-				// check the offset is sane
-				assert.Equal(t, offset, chunk.Offset, "recorded offset size doesn't match passed offset size")
-
-				offset += uint64(len(chunk.Data))
-
 				// write the data into the receivedData buffer
-				if _, err := receivedData.Write(chunk.Data); err != nil {
+				if _, err := receivedData.Write(chunk); err != nil {
 					panic(err)
 				}
 			}
