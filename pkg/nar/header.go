@@ -32,11 +32,6 @@ func (h *Header) Validate() error {
 		return fmt.Errorf("path may not contain null bytes")
 	}
 
-	// Constructing a NAR with TypeUnknown is invalid
-	if h.Type == TypeUnknown {
-		return fmt.Errorf("type is unknown")
-	}
-
 	// Regular files and directories may not have LinkTarget set.
 	if h.Type == TypeRegular || h.Type == TypeDirectory {
 		if h.LinkTarget != "" {

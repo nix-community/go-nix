@@ -23,10 +23,6 @@ func (fi headerFileInfo) Mode() fs.FileMode {
 		mode |= (syscall.S_IXUSR | syscall.S_IXGRP | syscall.S_IXOTH)
 	case TypeSymlink:
 		mode = fs.ModePerm | fs.ModeSymlink
-	case TypeUnknown:
-		// It's not possible to create a NAR with a member of TypeUnknown using either
-		// the reader or the writer, only by manually populating structs.
-		panic("No mode for TypeUnknown")
 	}
 
 	return mode

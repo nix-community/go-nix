@@ -28,5 +28,5 @@ func TestDumpPathUnknown(t *testing.T) {
 
 	err = nar.DumpPath(&buf, p)
 	assert.Error(t, err)
-	assert.Containsf(t, err.Error(), "invalid mode", "error should complain about invalid mode")
+	assert.Containsf(t, err.Error(), "unknown type", "error should complain about unknown type")
 }

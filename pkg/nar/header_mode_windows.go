@@ -19,10 +19,6 @@ func (fi headerFileInfo) Mode() fs.FileMode {
 		mode = fs.ModeDir
 	case TypeSymlink:
 		mode = fs.ModeSymlink
-	case TypeUnknown:
-		// It's not possible to create a NAR with a member of TypeUnknown using either
-		// the reader or the writer, only by manually populating structs.
-		panic("No mode for TypeUnknown")
 	}
 
 	return mode & ^fs.FileMode(0200)
