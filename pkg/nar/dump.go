@@ -59,7 +59,7 @@ func dumpPath(nw *Writer, path string, subpath string, filter SourceFilterFunc) 
 	} else if fi.Mode().IsRegular() {
 		nodeType = TypeRegular
 	} else {
-		nodeType = TypeUnknown
+		return fmt.Errorf("unknown type for %v", p)
 	}
 
 	if filter != nil && !filter(p, nodeType) {
@@ -144,9 +144,7 @@ func dumpPath(nw *Writer, path string, subpath string, filter SourceFilterFunc) 
 		}
 
 		return nil
-
-	case TypeUnknown:
 	}
 
-	return fmt.Errorf("invalid mode for file %v", p)
+	return fmt.Errorf("unknown type for file %v", p)
 }

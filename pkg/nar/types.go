@@ -12,8 +12,6 @@ const (
 	TypeDirectory = NodeType("directory")
 	// TypeSymlink represents a file symlink.
 	TypeSymlink = NodeType("symlink")
-	// TypeUnknown represents an unknown file (such as device nodes or fifos).
-	TypeUnknown = NodeType("unknown")
 )
 
 func (t NodeType) String() string {
