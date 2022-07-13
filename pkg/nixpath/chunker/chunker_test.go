@@ -14,35 +14,56 @@ import (
 //go:embed simple.go
 var testData []byte
 
-func TestChunkers(t *testing.T) {
-	fastCDCChunker, err := chunker.NewFastCDCChunker(bytes.NewReader(testData))
-	if err != nil {
-		panic(err)
-	}
-
-	chunkers := []struct {
-		Name    string
-		Chunker chunker.Chunker
-	}{
-		{
-			"Simple",
-			chunker.NewSimpleChunker(bytes.NewReader(testData)),
+// nolint:gochecknoglobals
+var chunkers = []struct {
+	Name string
+	New  func([]byte) chunker.Chunker
+}{
+	{
+		"Simple",
+		func(data []byte) chunker.Chunker {
+			return chunker.NewSimpleChunker(bytes.NewReader(data))
 		},
-		{
-			"FastCDC",
-			fastCDCChunker,
-		},
-	}
+	},
+	{
+		"FastCDC",
+		func(data []byte) chunker.Chunker {
+			c, err := chunker.NewFastCDCChunker(bytes.NewReader(data))
+			if err != nil {
+				panic(err)
+			}
 
+			return c
+		},
+	},
+}
+
+func TestEmptySlice(t *testing.T) {
 	for _, chunker := range chunkers {
 		t.Run(chunker.Name, func(t *testing.T) {
-			// grab data out of the chunker.
-			// Ensure it matches testData.
+			// create a new chunker with the testData
+			c := chunker.New([]byte{})
+
+			_, err := c.Next()
+			if assert.Error(t, err, "c.Next should return an error") {
+				assert.ErrorIs(t, err, io.EOF, "it should be EOF")
+			}
+		})
+	}
+}
+
+func TestSimple(t *testing.T) {
+	for _, chunker := range chunkers {
+		// grab data out of the chunker.
+		// Ensure it matches testData.
+		t.Run(chunker.Name, func(t *testing.T) {
+			// create a new chunker with the testData
+			c := chunker.New(testData)
 
 			var receivedData bytes.Buffer
 
 			for {
-				chunk, err := chunker.Chunker.Next()
+				chunk, err := c.Next()
 				if err != nil {
 					if errors.Is(err, io.EOF) {
 						break

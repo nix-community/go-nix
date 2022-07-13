@@ -26,11 +26,17 @@ func (s *SimpleChunker) Next() (Chunk, error) {
 
 	var buf bytes.Buffer
 
-	if _, err := io.Copy(&buf, s.r); err != nil {
+	w, err := io.Copy(&buf, s.r)
+	if err != nil {
 		return nil, fmt.Errorf("error returning from reader: %w", err)
 	}
 
 	s.done = true
+
+	// if we got passed an empty slice, return io.EOF
+	if w == 0 {
+		return nil, io.EOF
+	}
 
 	return buf.Bytes(), nil
 }

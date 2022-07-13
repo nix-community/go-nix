@@ -27,6 +27,7 @@ type SymlinkEntry struct {
 	Target string
 }
 
+// TODO: add Validate() function, require Size to be > 0!
 type ChunkMeta struct {
 	Identifier ChunkIdentifier
 	Size       uint64
