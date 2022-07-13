@@ -1,7 +1,6 @@
 package store
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -19,7 +18,7 @@ import (
 func FromNarinfo(
 	ctx context.Context,
 	ni *narinfo.NarInfo,
-	n *bytes.Reader,
+	n io.Reader,
 	chunkStore ChunkStore,
 ) (*PathInfo, error) {
 	// populate the NarInfo with what we know
@@ -72,7 +71,7 @@ func FromNarinfo(
 				}
 
 				// upload to chunk store. We get the identifier back.
-				chunkId, err := chunkStore.Put(ctx, bytes.NewReader(chunk.Data))
+				chunkId, err := chunkStore.Put(ctx, chunk.Data)
 				if err != nil {
 					return nil, fmt.Errorf("error uploading to chunk store: %w", err)
 				}

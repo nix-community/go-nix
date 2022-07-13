@@ -28,7 +28,10 @@ type SymlinkEntry struct {
 }
 
 type ChunkMeta struct {
-	// https://multiformats.io/multihash/
-	Identifier []byte
+	Identifier ChunkIdentifier
 	Size       uint64
 }
+
+// ChunkIdentifier is used to identify chunks.
+// We use https://multiformats.io/multihash/ as encoding.
+type ChunkIdentifier []byte
