@@ -18,8 +18,9 @@ const (
 var (
 	NameRe = regexp.MustCompile(`[a-zA-Z0-9+\-_?=][.a-zA-Z0-9+\-_?=]*`)
 	PathRe = regexp.MustCompile(fmt.Sprintf(
-		`^%v/([0-9a-z]{%d})-(%v)$`,
+		`^%v/([%v]{%d})-(%v)$`,
 		regexp.QuoteMeta(StoreDir),
+		nixbase32.Alphabet,
 		nixbase32.EncodedLen(PathHashSize),
 		NameRe,
 	))
