@@ -7,26 +7,30 @@ import (
 	"io"
 
 	"github.com/nix-community/go-nix/pkg/nar"
-	"github.com/nix-community/go-nix/pkg/nar/narinfo"
 	"github.com/nix-community/go-nix/pkg/nixpath/chunker"
 )
 
-// FromNarInfo consumes a narinfo.NarInfo,
-// and a bytes.Reader to a NAR file
+// Import consumes:
+// - a storePath (string)
+// - a list of references ([]string)
+// - a io.Reader to a NAR file
+// - a pointer to a chunk store
 // It will save the chunks it came up with into the passed chunk store
 // and return a PathInfo object.
-func FromNarinfo(
+func Import(
 	ctx context.Context,
-	ni *narinfo.NarInfo,
+	storePath string,
+	references []string,
 	n io.Reader,
 	chunkStore ChunkStore,
 ) (*PathInfo, error) {
-	// populate the NarInfo with what we know
+	// populate the PathInfo with storePath and references
 	pathInfo := &PathInfo{
-		OutputName: ni.StorePath,
-		References: ni.References,
+		OutputName: storePath,
+		References: references,
 	}
 
+	// read through the NAR file.
 	nr, err := nar.NewReader(n)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read nar: %w", err)

@@ -82,7 +82,7 @@ func TestFromNarInfo(t *testing.T) {
 		panic(err)
 	}
 
-	pi, err := store.FromNarinfo(context.Background(), ni, f, cs)
+	pi, err := store.Import(context.Background(), ni.StorePath, ni.References, f, cs)
 	assert.NoError(t, err)
 
 	t.Run("check PathInfo", func(t *testing.T) {
