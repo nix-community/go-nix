@@ -12,8 +12,17 @@ type PathInfo struct {
 	// TODO: preserve NARHash, NarSize, Nar-sigs for backwards compat?
 }
 
+// entryWithPath requires the struct to provide a GetPath() string method.
+type entryWithPath interface {
+	GetPath() string
+}
+
 type DirectoryEntry struct {
 	Path string
+}
+
+func (de *DirectoryEntry) GetPath() string {
+	return de.Path
 }
 
 type RegularEntry struct {
@@ -22,9 +31,17 @@ type RegularEntry struct {
 	Chunks     []*ChunkMeta
 }
 
+func (re *RegularEntry) GetPath() string {
+	return re.Path
+}
+
 type SymlinkEntry struct {
 	Path   string
 	Target string
+}
+
+func (se *SymlinkEntry) GetPath() string {
+	return se.Path
 }
 
 // TODO: add Validate() function, require Size to be > 0!
