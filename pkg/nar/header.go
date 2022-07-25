@@ -2,6 +2,7 @@ package nar
 
 import (
 	"fmt"
+	"io"
 	"io/fs"
 	"path/filepath"
 	"strings"
@@ -14,6 +15,7 @@ type Header struct {
 	Path       string   // Path of the file entry, relative inside the NAR
 	Type       NodeType // Typeflag is the type of header entry.
 	LinkTarget string   // Target of symlink (valid for TypeSymlink)
+	Offset     int64    // Offset in the uncompressed NAR file where the file starts
 	Size       int64    // Logical file size in bytes
 	Executable bool     // Set to true for files that are executable
 }
@@ -63,6 +65,18 @@ func (h *Header) Validate() error {
 // FileInfo returns an fs.FileInfo for the Header.
 func (h *Header) FileInfo() fs.FileInfo {
 	return headerFileInfo{h}
+}
+
+// Contents seeks rs to the header Offset and returns a LimitReader that
+// gives you access to the content of the file.
+func (h *Header) Contents(rs io.ReadSeeker) (io.Reader, error) {
+	// Start reader rs at Offset
+	_, err := rs.Seek(h.Offset, io.SeekStart)
+	if err != nil {
+		return nil, err
+	}
+	// Only allow to read up to Size bytes
+	return io.LimitReader(rs, h.Size), nil
 }
 
 type headerFileInfo struct {

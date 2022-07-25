@@ -29,7 +29,7 @@ var _ io.ReadCloser = &Reader{}
 // Reader.Next advances to the next file in the archive (including the first),
 // and then Reader can be treated as an io.Reader to access the file's data.
 type Reader struct {
-	r             io.Reader
+	r             *offsetReader
 	contentReader io.ReadCloser
 
 	// channels to communicate with the parser goroutine
@@ -63,7 +63,7 @@ func NewReader(r io.Reader) (*Reader, error) {
 	}
 
 	narReader := &Reader{
-		r: r,
+		r: newOffsetReader(r),
 		// create a dummy reader for lm, that'll return EOF immediately,
 		// so reading from Reader before Next is called won't oops.
 		contentReader: io.NopCloser(io.LimitReader(bytes.NewReader([]byte{}), 0)),
@@ -164,6 +164,7 @@ func (nr *Reader) parseNode(p string) error {
 			Path:       p,
 			Type:       TypeRegular,
 			LinkTarget: "",
+			Offset:     nr.r.Offset() + 24, // FIXME: why +24?
 			Size:       int64(contentLength),
 			Executable: executable,
 		}
@@ -382,4 +383,26 @@ func expectString(r io.Reader, expected string) error {
 	}
 
 	return nil
+}
+
+/// Utils
+
+// Wrap a io.Reader to keep track of the offset where it's at.
+func newOffsetReader(r io.Reader) *offsetReader {
+	return &offsetReader{r, 0}
+}
+
+type offsetReader struct {
+	io.Reader
+	offset int64
+}
+
+func (or *offsetReader) Read(b []byte) (n int, err error) {
+	n, err = or.Reader.Read(b)
+	or.offset += int64(n)
+	return n, err
+}
+
+func (or *offsetReader) Offset() int64 {
+	return or.offset
 }
