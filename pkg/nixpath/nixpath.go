@@ -14,7 +14,7 @@ const (
 	PathHashSize = 20
 )
 
-// nolint:gochecknoglobals
+//nolint:gochecknoglobals
 var (
 	NameRe = regexp.MustCompile(`[a-zA-Z0-9+\-_?=][.a-zA-Z0-9+\-_?=]*`)
 	PathRe = regexp.MustCompile(fmt.Sprintf(

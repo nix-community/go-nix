@@ -137,7 +137,7 @@ func (nw *Writer) emitNode(currentHeader *Header) (*Header, error) {
 
 	// The directory case doesn't write anything special after ( type directory .
 	// We need to inspect the next header before figuring out whether to list entries or not.
-	if currentType == TypeSymlink || currentType == TypeDirectory { // nolint:nestif
+	if currentType == TypeSymlink || currentType == TypeDirectory { //nolint:nestif
 		if currentType == TypeSymlink {
 			// write the target keyword
 			err = wire.WriteString(nw.w, "target")

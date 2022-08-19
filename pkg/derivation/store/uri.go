@@ -8,12 +8,12 @@ import (
 )
 
 // NewFromURI returns a derivation.Store by consuming a URI:
-//  - if no scheme is specified, FSStore is assumed
-//  - file:// also uses FSStore.
-//  - http:// and https:// initialize an HTTPStore
-//  - badger:// initializes an in-memory badger store.
-//  - badger:///path/to/badger initializes an on-disk badger store.
-func NewFromURI(uri string) (derivation.Store, error) { // nolint:ireturn
+//   - if no scheme is specified, FSStore is assumed
+//   - file:// also uses FSStore.
+//   - http:// and https:// initialize an HTTPStore
+//   - badger:// initializes an in-memory badger store.
+//   - badger:///path/to/badger initializes an on-disk badger store.
+func NewFromURI(uri string) (derivation.Store, error) { //nolint:ireturn
 	u, err := url.Parse(uri)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse uri: %w", err)

@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// nolint:gochecknoglobals
+//nolint:gochecknoglobals
 var (
 	padding [8]byte
 

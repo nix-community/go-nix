@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// nolint:gochecknoglobals
+//nolint:gochecknoglobals
 var stringEscaper = strings.NewReplacer(
 	"\\", "\\\\",
 	"\n", "\\n",
@@ -16,7 +16,7 @@ var stringEscaper = strings.NewReplacer(
 	"\"", "\\\"",
 )
 
-// nolint:gochecknoglobals
+//nolint:gochecknoglobals
 var (
 	comma        = []byte{','}
 	parenOpen    = []byte{'('}
@@ -85,14 +85,14 @@ func (d *Derivation) WriteDerivation(writer io.Writer) error {
 // writeDerivation writes the ATerm representation of the derivation to the passed writer.
 // Optionally, the following transformations can be made while writing out the ATerm:
 //
-// - stripOutput will replace output hashes in `Outputs` (`Output[$outputName]`),
-//   and `env[$outputName]` with empty strings
+//   - stripOutput will replace output hashes in `Outputs` (`Output[$outputName]`),
+//     and `env[$outputName]` with empty strings
 //
-// - inputDrvReplacements (map[$drvPath]$replacement) can be provided.
-//   If set, it must contain all derivation path in d.InputDerivations[*]
-//   These will be replaced with their replacement value.
-//   As this will change map keys, and map keys need to be serialized alphabetically sorted,
-//   this will shuffle the order of values.
+//   - inputDrvReplacements (map[$drvPath]$replacement) can be provided.
+//     If set, it must contain all derivation path in d.InputDerivations[*]
+//     These will be replaced with their replacement value.
+//     As this will change map keys, and map keys need to be serialized alphabetically sorted,
+//     this will shuffle the order of values.
 //
 // This replacement/stripping is only used when calculating output hashes.
 // Set to false / nil in normal mode.

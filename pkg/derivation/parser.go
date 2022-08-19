@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	derivationPrefix  = []byte("Derive") // nolint:gochecknoglobals
+	derivationPrefix  = []byte("Derive") //nolint:gochecknoglobals
 	errArrayNotClosed = fmt.Errorf("array not closed")
 )
 
-// nolint:gochecknoglobals
+//nolint:gochecknoglobals
 var stringUnescaper = strings.NewReplacer(
 	"\\\\", "\\",
 	"\\n", "\n",

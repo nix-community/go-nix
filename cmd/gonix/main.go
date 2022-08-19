@@ -8,7 +8,7 @@ import (
 	"github.com/nix-community/go-nix/cmd/gonix/nar"
 )
 
-// nolint:gochecknoglobals
+//nolint:gochecknoglobals
 var cli struct {
 	Nar nar.Cmd `kong:"cmd,name='nar',help='Create or inspect NAR files'"`
 	Drv drv.Cmd `kong:"cmd,name='drv',help='Inspect NAR files'"`
