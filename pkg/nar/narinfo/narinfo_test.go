@@ -38,13 +38,7 @@ Deriver: 10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv
 Sig: cache.nixos.org-1:sn5s/RrqEI+YG6/PjwdbPjcAC7rcta7sJU4mFOawGvJBLsWkyLtBrT2EuFt/LJjWkTZ+ZWOI9NTtjo/woMdvAg==
 Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7acJjLn3jofOtilAAwRILKIfVuyrbjAA==
 `
-	_NarHash = &hash.Hash{
-		HashType: "sha256",
-		Digest: []uint8{
-			0xc6, 0xe1, 0x55, 0xb3, 0x45, 0x6e, 0x30, 0xb7, 0x61, 0x22, 0x63, 0xec, 0x09, 0x50, 0x70, 0x81,
-			0x1c, 0xaf, 0x8a, 0xbf, 0xd5, 0x9f, 0xaa, 0x72, 0xab, 0x82, 0xa5, 0x92, 0xef, 0xde, 0xb2, 0x53,
-		},
-	}
+	_NarHash = hash.MustParseNixBase32("sha256:0lxjvvpr59c2mdram7ympy5ay741f180kv3349hvfc3f8nrmbqf6")
 
 	_Signatures = []*narinfo.Signature{
 		{
@@ -71,19 +65,13 @@ Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7ac
 		StorePath:   "/nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432",
 		URL:         "nar/1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar.xz",
 		Compression: "xz",
-		FileHash: &hash.Hash{
-			HashType: "sha256",
-			Digest: []byte{
-				0xed, 0x34, 0xdc, 0x8f, 0x36, 0x04, 0x7d, 0x68, 0x6d, 0xc2, 0x96, 0xb7, 0xb2, 0xe3, 0xf4, 0x27,
-				0x84, 0x88, 0xbe, 0x5b, 0x6a, 0x94, 0xa6, 0xf7, 0xa3, 0xdc, 0x92, 0x9f, 0xe0, 0xe5, 0x24, 0x81,
-			},
-		},
-		FileSize:   114980,
-		NarHash:    _NarHash,
-		NarSize:    464152,
-		References: []string{"7gx4kiv5m0i7d7qkixq2cwzbr10lvxwc-glibc-2.27"},
-		Deriver:    "10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv",
-		Signatures: _Signatures,
+		FileHash:    hash.MustParseNixBase32("sha256:1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d"),
+		FileSize:    114980,
+		NarHash:     _NarHash,
+		NarSize:     464152,
+		References:  []string{"7gx4kiv5m0i7d7qkixq2cwzbr10lvxwc-glibc-2.27"},
+		Deriver:     "10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv",
+		Signatures:  _Signatures,
 	}
 
 	narinfoSampleWithoutFileFields = &narinfo.NarInfo{

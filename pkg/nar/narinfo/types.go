@@ -48,11 +48,11 @@ func (n *NarInfo) String() string {
 	fmt.Fprintf(&buf, "Compression: %v\n", n.Compression)
 
 	if n.FileHash != nil && n.FileSize != 0 {
-		fmt.Fprintf(&buf, "FileHash: %v\n", n.FileHash)
+		fmt.Fprintf(&buf, "FileHash: %v\n", n.FileHash.NixString())
 		fmt.Fprintf(&buf, "FileSize: %d\n", n.FileSize)
 	}
 
-	fmt.Fprintf(&buf, "NarHash: %v\n", n.NarHash)
+	fmt.Fprintf(&buf, "NarHash: %v\n", n.NarHash.NixString())
 
 	fmt.Fprintf(&buf, "NarSize: %d\n", n.NarSize)
 
