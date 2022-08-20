@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// nolint:gochecknoglobals
+//nolint:gochecknoglobals
 var cases = []struct {
 	Title          string
 	DerivationFile string
@@ -81,7 +81,7 @@ var cases = []struct {
 
 // Memoise drv path -> []byte mapping.
 // This is important for benchmarks where we don't want to measure disk access.
-var drvMemo = make(map[string][]byte) // nolint:gochecknoglobals
+var drvMemo = make(map[string][]byte) //nolint:gochecknoglobals
 
 func getDerivation(derivationFile string) *derivation.Derivation {
 	derivationBytes, ok := drvMemo[derivationFile]

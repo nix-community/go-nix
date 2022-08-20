@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// nolint:gochecknoglobals
+//nolint:gochecknoglobals
 var cases = []struct {
 	path1    string
 	path2    string

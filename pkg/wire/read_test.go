@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// nolint:gochecknoglobals
+//nolint:gochecknoglobals
 var (
 	wireBytesFalse       = []byte{0, 0, 0, 0, 0, 0, 0, 0}
 	wireBytesTrue        = []byte{1, 0, 0, 0, 0, 0, 0, 0}

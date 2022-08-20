@@ -10,7 +10,7 @@ import (
 	"github.com/nix-community/go-nix/pkg/nixbase32"
 )
 
-// nolint:revive
+//nolint:revive
 type HashType string
 
 const (

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// nolint:gochecknoglobals
+//nolint:gochecknoglobals
 var stores = []struct {
 	Title string
 	// a function that creates a new store on the fly
@@ -47,7 +47,7 @@ var stores = []struct {
 	},
 }
 
-// nolint:gochecknoglobals
+//nolint:gochecknoglobals
 var cases = []struct {
 	Title          string
 	DerivationFile string

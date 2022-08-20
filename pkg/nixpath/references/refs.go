@@ -14,8 +14,9 @@ const (
 	refLength         = len(nixbase32.Alphabet) // Store path hash prefix length
 )
 
-// nolint:gochecknoglobals
 // This creates an array to check if a given byte is in the Nix base32 alphabet.
+//
+//nolint:gochecknoglobals
 var isNixBase32 = func() (arr [256]bool) {
 	for _, c := range nixbase32.Alphabet {
 		arr[c] = true
