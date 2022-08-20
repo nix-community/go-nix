@@ -38,7 +38,7 @@ Deriver: 10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv
 Sig: cache.nixos.org-1:sn5s/RrqEI+YG6/PjwdbPjcAC7rcta7sJU4mFOawGvJBLsWkyLtBrT2EuFt/LJjWkTZ+ZWOI9NTtjo/woMdvAg==
 Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7acJjLn3jofOtilAAwRILKIfVuyrbjAA==
 `
-	_NarHash = hash.MustParseNixBase32("sha256:0lxjvvpr59c2mdram7ympy5ay741f180kv3349hvfc3f8nrmbqf6")
+	_NarHash = mustParseNixBase32("sha256:0lxjvvpr59c2mdram7ympy5ay741f180kv3349hvfc3f8nrmbqf6")
 
 	_Signatures = []*narinfo.Signature{
 		{
@@ -65,7 +65,7 @@ Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7ac
 		StorePath:   "/nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432",
 		URL:         "nar/1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar.xz",
 		Compression: "xz",
-		FileHash:    hash.MustParseNixBase32("sha256:1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d"),
+		FileHash:    mustParseNixBase32("sha256:1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d"),
 		FileSize:    114980,
 		NarHash:     _NarHash,
 		NarSize:     464152,
@@ -85,6 +85,15 @@ Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7ac
 		Signatures:  _Signatures,
 	}
 )
+
+func mustParseNixBase32(s string) *hash.Hash {
+	h, err := hash.ParseNixBase32(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return h
+}
 
 func TestNarInfo(t *testing.T) {
 	ni, err := narinfo.Parse(strings.NewReader(strNarinfoSample))

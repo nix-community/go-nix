@@ -59,13 +59,3 @@ func ParseNixBase32(s string) (*Hash, error) {
 		digest: digest,
 	}, nil
 }
-
-// MustParseNixBase32 returns a new Hash struct, by parsing a hashtype:nixbase32 string, or panics on error.
-func MustParseNixBase32(s string) *Hash {
-	h, err := ParseNixBase32(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return h
-}
