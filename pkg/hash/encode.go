@@ -9,17 +9,15 @@ import (
 )
 
 //nolint:gochecknoglobals
-var hashtypeToNixHashString = genHashTypeToNixHashString()
+var hashtypeToNixHashString = func() map[int]string {
+	m := make(map[int]string)
 
-func genHashTypeToNixHashString() map[int]string {
-	hashtypeToNixHashString := make(map[int]string)
+	m[mh.SHA1] = "sha1"
+	m[mh.SHA2_256] = "sha256"
+	m[mh.SHA2_512] = "sha512"
 
-	hashtypeToNixHashString[mh.SHA1] = "sha1"
-	hashtypeToNixHashString[mh.SHA2_256] = "sha256"
-	hashtypeToNixHashString[mh.SHA2_512] = "sha512"
-
-	return hashtypeToNixHashString
-}
+	return m
+}()
 
 // Multihash returns the digest, in multihash format.
 func (h *Hash) Multihash() []byte {
