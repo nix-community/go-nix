@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/nix-community/go-nix/pkg/hash"
+	"github.com/nix-community/go-nix/pkg/nar/narinfo/signature"
 )
 
 // NarInfo represents a parsed .narinfo file.
@@ -34,7 +35,7 @@ type NarInfo struct {
 	System string
 
 	// Signatures, if any.
-	Signatures []*Signature
+	Signatures []signature.Signature
 
 	// TODO: Figure out the meaning of this
 	CA string

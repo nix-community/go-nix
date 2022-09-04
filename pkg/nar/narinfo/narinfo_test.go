@@ -9,6 +9,7 @@ import (
 
 	"github.com/nix-community/go-nix/pkg/hash"
 	"github.com/nix-community/go-nix/pkg/nar/narinfo"
+	"github.com/nix-community/go-nix/pkg/nar/narinfo/signature"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,7 +40,7 @@ Sig: cache.nixos.org-1:sn5s/RrqEI+YG6/PjwdbPjcAC7rcta7sJU4mFOawGvJBLsWkyLtBrT2Eu
 Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7acJjLn3jofOtilAAwRILKIfVuyrbjAA==
 `
 	//nolint:lll
-	strNarinfoSampleMultirefs = `
+	strNarinfoSample2Multirefs = `
 StorePath: /nix/store/syd87l2rxw8cbsxmxl853h0r6pdwhwjr-curl-7.82.0-bin
 URL: nar/05ra3y72i3qjri7xskf9qj8kb29r6naqy1sqpbs3azi3xcigmj56.nar.xz
 Compression: xz
@@ -55,25 +56,11 @@ Sig: test1:519iiVLx/c4Rdt5DNt6Y2Jm6hcWE9+XY69ygiWSZCNGVcmOcyL64uVAJ3cV8vaTusIZdb
 
 	_NarHash = mustParseNixBase32("sha256:0lxjvvpr59c2mdram7ympy5ay741f180kv3349hvfc3f8nrmbqf6")
 
-	_Signatures = []*narinfo.Signature{
-		{
-			KeyName: "cache.nixos.org-1",
-			Digest: []byte{
-				0xb2, 0x7e, 0x6c, 0xfd, 0x1a, 0xea, 0x10, 0x8f, 0x98, 0x1b, 0xaf, 0xcf, 0x8f, 0x07, 0x5b, 0x3e,
-				0x37, 0x00, 0x0b, 0xba, 0xdc, 0xb5, 0xae, 0xec, 0x25, 0x4e, 0x26, 0x14, 0xe6, 0xb0, 0x1a, 0xf2,
-				0x41, 0x2e, 0xc5, 0xa4, 0xc8, 0xbb, 0x41, 0xad, 0x3d, 0x84, 0xb8, 0x5b, 0x7f, 0x2c, 0x98, 0xd6,
-				0x91, 0x36, 0x7e, 0x65, 0x63, 0x88, 0xf4, 0xd4, 0xed, 0x8e, 0x8f, 0xf0, 0xa0, 0xc7, 0x6f, 0x02,
-			},
-		},
-		{
-			KeyName: "hydra.other.net-1",
-			Digest: []byte{
-				0x25, 0x74, 0x37, 0x67, 0xf3, 0xd7, 0x7f, 0x41, 0x19, 0x48, 0x59, 0x05, 0x8a, 0x86, 0xb8, 0x15,
-				0xbc, 0x98, 0xa5, 0xb6, 0xd3, 0x6c, 0x79, 0x45, 0x06, 0xd6, 0x5f, 0xe1, 0x5a, 0x94, 0xd2, 0xdb,
-				0x8c, 0x4d, 0x6c, 0xe1, 0x30, 0x3e, 0xe9, 0xf5, 0x0e, 0xda, 0x70, 0x98, 0xcb, 0x9f, 0x78, 0xe8,
-				0x7c, 0xeb, 0x62, 0x94, 0x00, 0x30, 0x44, 0x82, 0xca, 0x21, 0xf5, 0x6e, 0xca, 0xb6, 0xe3, 0x00,
-			},
-		},
+	_SignaturesNarinfoSample = []signature.Signature{
+		//nolint:lll
+		mustLoadSig("cache.nixos.org-1:sn5s/RrqEI+YG6/PjwdbPjcAC7rcta7sJU4mFOawGvJBLsWkyLtBrT2EuFt/LJjWkTZ+ZWOI9NTtjo/woMdvAg=="),
+		//nolint:lll
+		mustLoadSig("hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7acJjLn3jofOtilAAwRILKIfVuyrbjAA=="),
 	}
 
 	narinfoSample = &narinfo.NarInfo{
@@ -86,7 +73,7 @@ Sig: test1:519iiVLx/c4Rdt5DNt6Y2Jm6hcWE9+XY69ygiWSZCNGVcmOcyL64uVAJ3cV8vaTusIZdb
 		NarSize:     464152,
 		References:  []string{"7gx4kiv5m0i7d7qkixq2cwzbr10lvxwc-glibc-2.27"},
 		Deriver:     "10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv",
-		Signatures:  _Signatures,
+		Signatures:  _SignaturesNarinfoSample,
 	}
 
 	narinfoSampleWithoutFileFields = &narinfo.NarInfo{
@@ -97,7 +84,7 @@ Sig: test1:519iiVLx/c4Rdt5DNt6Y2Jm6hcWE9+XY69ygiWSZCNGVcmOcyL64uVAJ3cV8vaTusIZdb
 		NarSize:     464152,
 		References:  []string{"7gx4kiv5m0i7d7qkixq2cwzbr10lvxwc-glibc-2.27"},
 		Deriver:     "10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv",
-		Signatures:  _Signatures,
+		Signatures:  _SignaturesNarinfoSample,
 	}
 )
 
@@ -123,7 +110,7 @@ func TestNarInfo(t *testing.T) {
 }
 
 func TestFingerprint(t *testing.T) {
-	ni, err := narinfo.Parse(strings.NewReader(strNarinfoSampleMultirefs))
+	ni, err := narinfo.Parse(strings.NewReader(strNarinfoSample2Multirefs))
 	assert.NoError(t, err)
 
 	//nolint:lll
@@ -185,4 +172,13 @@ func BenchmarkNarInfo(b *testing.B) {
 			}
 		})
 	}
+}
+
+func mustLoadSig(s string) signature.Signature {
+	sig, err := signature.ParseSignature(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return sig
 }
