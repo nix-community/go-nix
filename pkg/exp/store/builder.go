@@ -24,7 +24,9 @@ type DirEntryPath interface {
 // buildTree consumes all (ordered) entries that are children of the passed prefix.
 // It returns a list of tree objects found in the child structure,
 // and a (smaller) slice of the remaining entries.
-func buildTree(h hash.Hash, prefix string, entries []DirEntryPath, trees []*Tree) ([]DirEntryPath, []*Tree, error) {
+func buildTree(
+	h hash.Hash, prefix string, entries []DirEntryPath, trees []*Tree,
+) ([]DirEntryPath, []*Tree, error) {
 	currentTree := &Tree{}
 
 	// this loops over all (remaining) entries and early-exits the loop
