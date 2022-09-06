@@ -47,6 +47,19 @@ var ttBlobStores = []struct {
 
 			return cs
 		},
+	}, {
+		Name: "Filesystem Store, sha1",
+		NewBlobStoreFunc: func(t *testing.T) blobstore.BlobStore {
+			cs, err := blobstore.NewFilesystemStore(
+				func() hash.Hash { return sha1.New() }, //nolint:gosec
+				t.TempDir(),
+			)
+			if err != nil {
+				panic(err)
+			}
+
+			return cs
+		},
 	},
 }
 
