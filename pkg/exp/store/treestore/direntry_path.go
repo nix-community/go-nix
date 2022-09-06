@@ -1,4 +1,4 @@
-package store
+package treestore
 
 import (
 	"io/fs"
@@ -6,11 +6,10 @@ import (
 	"time"
 )
 
-// dummyDirEntryPath provides paths.DirEntryPath.
+// simpleDirEntryPath provides paths.DirEntryPath.
 var _ DirEntryPath = &simpleDirEntryPath{}
 
-//nolint:ireturn
-func NewDirentryPath(id []byte, path string, fileInfo fs.FileInfo) DirEntryPath {
+func NewDirentryPath(id []byte, path string, fileInfo fs.FileInfo) DirEntryPath { //nolint:ireturn
 	return &simpleDirEntryPath{
 		id:       id,
 		path:     path,

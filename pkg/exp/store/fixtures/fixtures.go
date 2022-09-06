@@ -1,10 +1,12 @@
-package store_test
+package fixtures
 
-import "github.com/nix-community/go-nix/pkg/exp/store"
+import "github.com/nix-community/go-nix/pkg/exp/store/model"
 
 //nolint:gochecknoglobals
 var (
-	BlobEmptyStruct     = store.Blob{}
+	BlobEmptyStruct = model.Blob{
+		Contents: []byte{},
+	}
 	BlobEmptySerialized = []byte{
 		0x62, 0x6c, 0x6f, 0x62, // "blob"
 		0x20, // space
@@ -17,7 +19,7 @@ var (
 		0x29, 0xae, 0x77, 0x5a, 0xd8, 0xc2, 0xe4, 0x8c, 0x53, 0x91,
 	}
 
-	BlobBarStruct = store.Blob{
+	BlobBarStruct = model.Blob{
 		Contents: []byte("Hello World\n"),
 	}
 	BlobBarSerialized = []byte{
@@ -34,7 +36,7 @@ var (
 		0x8e, 0x1e, 0xbd, 0x3a, 0x1c, 0xeb, 0x22, 0x5b, 0xe2, 0x38,
 	}
 
-	BlobBazStruct = store.Blob{
+	BlobBazStruct = model.Blob{
 		Contents: []byte("foo"),
 	}
 	BlobBazSerialized = []byte{
@@ -49,7 +51,7 @@ var (
 		0x47, 0xe7, 0xa0, 0x19, 0x65, 0xdc, 0xdc, 0x96, 0x46, 0x8c,
 	}
 
-	BlobFooStruct = store.Blob{
+	BlobFooStruct = model.Blob{
 		Contents: []byte("bar"),
 	}
 	BlobFooSerialized = []byte{
@@ -72,35 +74,35 @@ var (
 	//  120000 blob 19102815663d23f8b75a47e7a01965dcdc96468c	baz
 	//  100755 blob ba0e162e1c47469e3fe4b393a8bf8c569f302116	foo
 
-	Tree1Struct = store.Tree{
-		Entries: []*store.Entry{
+	Tree1Struct = model.Tree{
+		Entries: []*model.Entry{
 			{
 				ID: []byte{
 					0x29, 0xa4, 0x22, 0xc1, 0x92, 0x51, 0xae, 0xae, 0xb9, 0x07,
 					0x17, 0x5e, 0x9b, 0x32, 0x19, 0xa9, 0xbe, 0xd6, 0xc6, 0x16,
 				},
-				Mode: store.TypeDirectory,
+				Mode: model.TypeDirectory,
 				Name: "bab",
 			}, {
 				ID: []byte{
 					0x55, 0x7d, 0xb0, 0x3d, 0xe9, 0x97, 0xc8, 0x6a, 0x4a, 0x02,
 					0x8e, 0x1e, 0xbd, 0x3a, 0x1c, 0xeb, 0x22, 0x5b, 0xe2, 0x38,
 				},
-				Mode: store.TypeFileRegular,
+				Mode: model.TypeFileRegular,
 				Name: "bar",
 			}, {
 				ID: []byte{
 					0x19, 0x10, 0x28, 0x15, 0x66, 0x3d, 0x23, 0xf8, 0xb7, 0x5a,
 					0x47, 0xe7, 0xa0, 0x19, 0x65, 0xdc, 0xdc, 0x96, 0x46, 0x8c,
 				},
-				Mode: store.TypeSymlink,
+				Mode: model.TypeSymlink,
 				Name: "baz",
 			}, {
 				ID: []byte{
 					0xba, 0x0e, 0x16, 0x2e, 0x1c, 0x47, 0x46, 0x9e, 0x3f, 0xe4,
 					0xb3, 0x93, 0xa8, 0xbf, 0x8c, 0x56, 0x9f, 0x30, 0x21, 0x16,
 				},
-				Mode: store.TypeFileExecutable,
+				Mode: model.TypeFileExecutable,
 				Name: "foo",
 			},
 		},
@@ -154,14 +156,14 @@ var (
 	//  git cat-file -p 29a422c19251aeaeb907175e9b3219a9bed6c616
 	//  100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391	.keep
 
-	Tree2Struct = store.Tree{
-		Entries: []*store.Entry{
+	Tree2Struct = model.Tree{
+		Entries: []*model.Entry{
 			{
 				ID: []byte{
 					0xe6, 0x9d, 0xe2, 0x9b, 0xb2, 0xd1, 0xd6, 0x43, 0x4b, 0x8b,
 					0x29, 0xae, 0x77, 0x5a, 0xd8, 0xc2, 0xe4, 0x8c, 0x53, 0x91,
 				},
-				Mode: store.TypeFileRegular,
+				Mode: model.TypeFileRegular,
 				Name: ".keep",
 			},
 		},

@@ -1,25 +1,26 @@
-package store_test
+package model_test
 
 import (
 	"bytes"
 	"crypto/sha1" //nolint:gosec
 	"testing"
 
-	"github.com/nix-community/go-nix/pkg/exp/store"
+	"github.com/nix-community/go-nix/pkg/exp/store/fixtures"
+	"github.com/nix-community/go-nix/pkg/exp/store/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSerializeBlob(t *testing.T) {
 	tt := []struct {
 		Title      string
-		Struct     store.Blob
+		Struct     model.Blob
 		Serialized []byte
 		Sha1Digest []byte
 	}{
-		{"Empty", BlobEmptyStruct, BlobEmptySerialized, BlobEmptySha1Digest},
-		{"Bar", BlobBarStruct, BlobBarSerialized, BlobBarSha1Digest},
-		{"Baz", BlobBazStruct, BlobBazSerialized, BlobBazSha1Digest},
-		{"Foo", BlobFooStruct, BlobFooSerialized, BlobFooSha1Digest},
+		{"Empty", fixtures.BlobEmptyStruct, fixtures.BlobEmptySerialized, fixtures.BlobEmptySha1Digest},
+		{"Bar", fixtures.BlobBarStruct, fixtures.BlobBarSerialized, fixtures.BlobBarSha1Digest},
+		{"Baz", fixtures.BlobBazStruct, fixtures.BlobBazSerialized, fixtures.BlobBazSha1Digest},
+		{"Foo", fixtures.BlobFooStruct, fixtures.BlobFooSerialized, fixtures.BlobFooSha1Digest},
 	}
 
 	for _, e := range tt {

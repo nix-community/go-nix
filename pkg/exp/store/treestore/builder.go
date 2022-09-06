@@ -1,4 +1,4 @@
-package store
+package treestore
 
 import (
 	"fmt"
@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/nix-community/go-nix/pkg/exp/store/model"
 )
 
 // DirEntryPath provides the same interface as fs.DirEntry,
@@ -25,9 +27,9 @@ type DirEntryPath interface {
 // It returns a list of tree objects found in the child structure,
 // and a (smaller) slice of the remaining entries.
 func buildTree(
-	h hash.Hash, prefix string, entries []DirEntryPath, trees []*Tree,
-) ([]DirEntryPath, []*Tree, error) {
-	currentTree := &Tree{}
+	h hash.Hash, prefix string, entries []DirEntryPath, trees []*model.Tree,
+) ([]DirEntryPath, []*model.Tree, error) {
+	currentTree := &model.Tree{}
 
 	// this loops over all (remaining) entries and early-exits the loop
 	for {
@@ -75,28 +77,28 @@ func buildTree(
 			}
 
 			// add the entry to the tree object we are building.
-			currentTree.Entries = append(currentTree.Entries, &Entry{
+			currentTree.Entries = append(currentTree.Entries, &model.Entry{
 				ID:   treeDgst,
-				Mode: TypeDirectory,
+				Mode: model.TypeDirectory,
 				Name: filepath.Base(top.Path()),
 			})
 		} else {
-			var mode EntryMode
+			var mode model.EntryMode
 
 			// check if file is an executable or a symlink
 			if top.Type().IsRegular() {
-				mode = TypeFileRegular
+				mode = model.TypeFileRegular
 				if top.Type().Perm()&0o100 != 0 {
-					mode = TypeFileExecutable
+					mode = model.TypeFileExecutable
 				}
 			} else if top.Type()&os.ModeSymlink == os.ModeSymlink {
-				mode = TypeSymlink
+				mode = model.TypeSymlink
 			} else {
 				return nil, nil, fmt.Errorf("invalid mode for %v: %x", topPath, top.Type())
 			}
 
 			// add the entry here, too. We keep the ID from symlinks and files.
-			currentTree.Entries = append(currentTree.Entries, &Entry{
+			currentTree.Entries = append(currentTree.Entries, &model.Entry{
 				ID:   top.ID(),
 				Mode: mode,
 				Name: filepath.Base(top.Path()),
@@ -122,7 +124,7 @@ func buildTree(
 // Due to the nature of Tree objects, the "first" entry needs to be a directory.
 // It is perfectly fine for it to describe a substructure only
 // (let's say only describe /nix/store/xxx-name and below).
-func BuildTree(h hash.Hash, entries []DirEntryPath) ([]*Tree, error) {
+func BuildTree(h hash.Hash, entries []DirEntryPath) ([]*model.Tree, error) {
 	// peek at the first entry. It needs to be the root, and it needs to be a directory,
 	// as that's the only way something can has a name.
 	if len(entries) == 0 {

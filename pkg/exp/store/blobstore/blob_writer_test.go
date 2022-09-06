@@ -1,11 +1,12 @@
-package store_test
+package blobstore_test
 
 import (
 	"bytes"
 	"crypto/sha1" //nolint:gosec
 	"testing"
 
-	"github.com/nix-community/go-nix/pkg/exp/store"
+	"github.com/nix-community/go-nix/pkg/exp/store/blobstore"
+	"github.com/nix-community/go-nix/pkg/exp/store/fixtures"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -13,17 +14,17 @@ import (
 func TestBlobWriter(t *testing.T) {
 	t.Run("Empty", func(t *testing.T) {
 		var buf bytes.Buffer
-		bw, err := store.NewBlobWriter(sha1.New(), &buf, 0, true) //nolint:gosec
+		bw, err := blobstore.NewBlobWriter(sha1.New(), &buf, 0, true) //nolint:gosec
 
 		require.NoError(t, err, "creating a blob hasher shouldn't error")
 		dgst, err := bw.Sum(nil)
 		require.NoError(t, err, "calling sum shouldn't error")
-		assert.Equal(t, BlobEmptySha1Digest, dgst)
+		assert.Equal(t, fixtures.BlobEmptySha1Digest, dgst)
 	})
 
 	t.Run("Bar", func(t *testing.T) {
 		var buf bytes.Buffer
-		bw, err := store.NewBlobWriter(sha1.New(), &buf, 12, true) //nolint:gosec
+		bw, err := blobstore.NewBlobWriter(sha1.New(), &buf, 12, true) //nolint:gosec
 
 		require.NoError(t, err, "creating a blob hasher shouldn't error")
 
@@ -42,6 +43,6 @@ func TestBlobWriter(t *testing.T) {
 
 		dgst, err := bw.Sum(nil)
 		require.NoError(t, err, "calling sum shouldn't error")
-		require.Equal(t, BlobBarSha1Digest, dgst)
+		require.Equal(t, fixtures.BlobBarSha1Digest, dgst)
 	})
 }

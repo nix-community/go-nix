@@ -1,23 +1,24 @@
-package store_test
+package model_test
 
 import (
 	"bytes"
 	"crypto/sha1" //nolint:gosec
 	"testing"
 
-	"github.com/nix-community/go-nix/pkg/exp/store"
+	"github.com/nix-community/go-nix/pkg/exp/store/fixtures"
+	"github.com/nix-community/go-nix/pkg/exp/store/model"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSerializeTree(t *testing.T) {
 	tt := []struct {
 		Title      string
-		Struct     store.Tree
+		Struct     model.Tree
 		Serialized []byte
 		Sha1Digest []byte
 	}{
-		{"Tree1", Tree1Struct, Tree1Serialized, Tree1Sha1Digest},
-		{"Tree2", Tree2Struct, Tree2Serialized, Tree2Sha1Digest},
+		{"Tree1", fixtures.Tree1Struct, fixtures.Tree1Serialized, fixtures.Tree1Sha1Digest},
+		{"Tree2", fixtures.Tree2Struct, fixtures.Tree2Serialized, fixtures.Tree2Sha1Digest},
 	}
 
 	for _, e := range tt {

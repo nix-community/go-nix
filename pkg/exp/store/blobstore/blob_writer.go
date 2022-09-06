@@ -1,4 +1,4 @@
-package store
+package blobstore
 
 import (
 	"fmt"
@@ -40,19 +40,22 @@ func (bw blobWriter) writeHeader(w io.Writer) error {
 	return nil
 }
 
-// NewBlobWriter is helpful for writing (and hashing) Blob objects
+// newBlobWriter is helpful for writing (and hashing) Blob objects
 // It's passed a hash.Hash to use as hashing function,
 // an underlying writer to write contents to,
 // the number of payload that are expected to be written,
 // and whether the header should also be written to the underlying writer.
 // When the exact number of payload was written, Sum() can be used to query
-// for the digest (and only then)
+// for the digest (and only then).
 func NewBlobWriter(
 	h hash.Hash,
 	w io.Writer,
 	expectedBytes uint64,
 	writeHeader bool,
-) (*blobWriter, error) {
+) (
+	*blobWriter, //nolint:revive
+	error,
+) {
 	bw := &blobWriter{
 		expectedBytes: expectedBytes,
 		writtenBytes:  0,
@@ -65,7 +68,9 @@ func NewBlobWriter(
 	var headerW io.Writer = h
 
 	// if writeHeader is set, the header is written to the backing writer, too
-	headerW = bw.mw
+	if writeHeader {
+		headerW = bw.mw
+	}
 
 	// write the header to the backing writer
 	if err := bw.writeHeader(headerW); err != nil {

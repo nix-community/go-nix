@@ -1,4 +1,4 @@
-package store
+package importer
 
 import (
 	"bytes"
@@ -13,20 +13,22 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/nix-community/go-nix/pkg/exp/store/blobstore"
+	"github.com/nix-community/go-nix/pkg/exp/store/treestore"
 	"golang.org/x/sync/errgroup"
 )
 
-// DumpFilesystem will traverse a given job.Path(),
+// FromFilesystemFilter will traverse a given job.Path(),
 // hash all blobs and return a list of DirEntryPath objects, or an error.
 // These objects are sorted lexically.
 // TODO: make this a method of a (local) store?
-func DumpFilesystemFilter(
+func FromFilesystemFilter(
 	ctx context.Context,
 	path string,
 	hasherFunc func() hash.Hash,
 	fn fs.WalkDirFunc,
-) ([]DirEntryPath, error) {
-	results := make(chan DirEntryPath)
+) ([]treestore.DirEntryPath, error) {
+	results := make(chan treestore.DirEntryPath)
 
 	// set up a pool of hashers
 	hasherPool := &sync.Pool{
@@ -51,7 +53,7 @@ func DumpFilesystemFilter(
 				return fmt.Errorf("unable to query FileInfo for %v: %w", p, err)
 			}
 
-			entry := NewDirentryPath(
+			entry := treestore.NewDirentryPath(
 				nil,
 				p,
 				fi)
@@ -82,7 +84,7 @@ func DumpFilesystemFilter(
 					h := hasherPool.Get().(hash.Hash)
 
 					var buf bytes.Buffer
-					bw, err := NewBlobWriter(h, &buf, uint64(len(target)), true)
+					bw, err := blobstore.NewBlobWriter(h, &buf, uint64(len(target)), true)
 					if err != nil {
 						return fmt.Errorf("error creating blob hasher %v: %w", entry.Path(), err)
 					}
@@ -104,7 +106,7 @@ func DumpFilesystemFilter(
 					if err != nil {
 						return fmt.Errorf("unable to get FileInfo at %v: %w", entry.Path(), err)
 					}
-					results <- NewDirentryPath(dgst, entry.Path(), fi)
+					results <- treestore.NewDirentryPath(dgst, entry.Path(), fi)
 
 					return nil
 				}
@@ -125,7 +127,7 @@ func DumpFilesystemFilter(
 				h := hasherPool.Get().(hash.Hash)
 
 				var buf bytes.Buffer
-				bw, err := NewBlobWriter(h, &buf, uint64(fi.Size()), true)
+				bw, err := blobstore.NewBlobWriter(h, &buf, uint64(fi.Size()), true)
 				if err != nil {
 					return fmt.Errorf("error creating blob hasher %v: %w", entry.Path(), err)
 				}
@@ -144,7 +146,7 @@ func DumpFilesystemFilter(
 				h.Reset()
 				hasherPool.Put(h)
 
-				results <- NewDirentryPath(dgst, entry.Path(), fi)
+				results <- treestore.NewDirentryPath(dgst, entry.Path(), fi)
 
 				return nil
 			})
@@ -156,12 +158,12 @@ func DumpFilesystemFilter(
 	})
 
 	// this holds the sorted entries
-	var sortedEntries []DirEntryPath
+	var sortedEntries []treestore.DirEntryPath
 
 	// This takes care of reading from results, and sorting when done.
 	collectorsGroup, _ := errgroup.WithContext(ctx)
 	collectorsGroup.Go(func() error {
-		resultsMap := make(map[string]DirEntryPath)
+		resultsMap := make(map[string]treestore.DirEntryPath)
 		var resultsKeys []string
 
 		// collect all results. Put them into a map, indexed by path,

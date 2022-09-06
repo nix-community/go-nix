@@ -1,4 +1,4 @@
-package store_test
+package importer_test
 
 import (
 	"context"
@@ -7,7 +7,10 @@ import (
 	"io/fs"
 	"testing"
 
-	"github.com/nix-community/go-nix/pkg/exp/store"
+	"github.com/nix-community/go-nix/pkg/exp/store/fixtures"
+	"github.com/nix-community/go-nix/pkg/exp/store/importer"
+	"github.com/nix-community/go-nix/pkg/exp/store/model"
+	"github.com/nix-community/go-nix/pkg/exp/store/treestore"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,19 +24,19 @@ func TestDumpFilesystem(t *testing.T) {
 
 		return nil
 	}
-	entries, err := store.DumpFilesystemFilter(
+	entries, err := importer.FromFilesystemFilter(
 		context.Background(),
-		"../../../test/testdata/git-demo",
+		"../../../../test/testdata/git-demo",
 		func() hash.Hash { return sha1.New() }, //nolint:gosec
 		fn,
 	)
 	assert.NoError(t, err, "calling DumpFilesystemFilter shouldn't error")
 
-	trees, err := store.BuildTree(sha1.New(), entries) //nolint:gosec
+	trees, err := treestore.BuildTree(sha1.New(), entries) //nolint:gosec
 	if assert.NoError(t, err, "calling BuildTree shouldn't error") {
-		assert.Equal(t, []*store.Tree{
-			&Tree2Struct,
-			&Tree1Struct,
+		assert.Equal(t, []*model.Tree{
+			&fixtures.Tree2Struct,
+			&fixtures.Tree1Struct,
 		}, trees)
 	}
 }
