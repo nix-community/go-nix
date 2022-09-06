@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/nix-community/go-nix/pkg/hash"
+	"github.com/nix-community/go-nix/pkg/nar/narinfo/signature"
 )
 
 // Parse reads a .narinfo file content
@@ -75,7 +76,7 @@ func Parse(r io.Reader) (*NarInfo, error) {
 		case "System":
 			narInfo.System = v
 		case "Sig":
-			signature, e := ParseSignatureLine(v)
+			signature, e := signature.ParseSignature(v)
 			if e != nil {
 				return nil, fmt.Errorf("unable to parse signature line %v: %v", v, err)
 			}
