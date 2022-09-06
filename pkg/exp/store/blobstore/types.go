@@ -2,11 +2,14 @@ package blobstore
 
 import (
 	"context"
+	"hash"
 	"io"
 )
 
 // BlobIdentifier is used to identify blobs.
 type BlobIdentifier []byte
+
+type HasherFunc func() hash.Hash
 
 type BlobStore interface {
 	// ReadBlob returns a reader to blob contents from the store,
