@@ -1,6 +1,7 @@
 package store
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"hash"
@@ -80,16 +81,17 @@ func DumpFilesystemFilter(
 					// get a hasher from the pool
 					h := hasherPool.Get().(hash.Hash)
 
-					bh, err := NewBlobHasher(h, uint64(len(target)))
+					var buf bytes.Buffer
+					bw, err := NewBlobWriter(h, &buf, uint64(len(target)), true)
 					if err != nil {
 						return fmt.Errorf("error creating blob hasher %v: %w", entry.Path(), err)
 					}
-					_, err = bh.Write([]byte(target))
+					_, err = bw.Write([]byte(target))
 					if err != nil {
 						return fmt.Errorf("unable to write target of %v to hasher: %w", entry.Path(), err)
 					}
 
-					dgst, err := bh.Sum(nil)
+					dgst, err := bw.Sum(nil)
 					if err != nil {
 						return fmt.Errorf("unable to calculate target digest of %v: %w", entry.Path(), err)
 					}
@@ -122,17 +124,18 @@ func DumpFilesystemFilter(
 				// get a hasher from the pool
 				h := hasherPool.Get().(hash.Hash)
 
-				bh, err := NewBlobHasher(h, uint64(fi.Size()))
+				var buf bytes.Buffer
+				bw, err := NewBlobWriter(h, &buf, uint64(fi.Size()), true)
 				if err != nil {
 					return fmt.Errorf("error creating blob hasher %v: %w", entry.Path(), err)
 				}
 
-				_, err = io.Copy(bh, f)
+				_, err = io.Copy(bw, f)
 				if err != nil {
 					return fmt.Errorf("unable to copy file contents of %v into hasher: %w", entry.Path(), err)
 				}
 
-				dgst, err := bh.Sum(nil)
+				dgst, err := bw.Sum(nil)
 				if err != nil {
 					return fmt.Errorf("unable to calculate target digest of %v: %w", entry.Path(), err)
 				}
