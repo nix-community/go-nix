@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/nix-community/go-nix/pkg/hash"
-	"github.com/nix-community/go-nix/pkg/nar/narinfo/signature"
+	"github.com/nix-community/go-nix/pkg/narinfo/signature"
 )
 
 // Parse reads a .narinfo file content

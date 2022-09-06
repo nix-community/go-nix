@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/hash"
-	"github.com/nix-community/go-nix/pkg/nar/narinfo"
-	"github.com/nix-community/go-nix/pkg/nar/narinfo/signature"
+	"github.com/nix-community/go-nix/pkg/narinfo"
+	"github.com/nix-community/go-nix/pkg/narinfo/signature"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -132,7 +132,7 @@ func TestNarInfoWithoutFileFields(t *testing.T) {
 }
 
 func TestBigNarinfo(t *testing.T) {
-	f, err := os.Open("../../../test/testdata/big.narinfo")
+	f, err := os.Open("../../test/testdata/big.narinfo")
 	if err != nil {
 		panic(err)
 	}
@@ -151,7 +151,7 @@ func BenchmarkNarInfo(b *testing.B) {
 	})
 
 	{
-		f, err := os.Open("../../../test/testdata/big.narinfo")
+		f, err := os.Open("../../test/testdata/big.narinfo")
 		if err != nil {
 			panic(err)
 		}
