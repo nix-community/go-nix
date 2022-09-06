@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nix-community/go-nix/pkg/nar/narinfo"
-	"github.com/nix-community/go-nix/pkg/nar/narinfo/signature"
+	"github.com/nix-community/go-nix/pkg/narinfo"
+	"github.com/nix-community/go-nix/pkg/narinfo/signature"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

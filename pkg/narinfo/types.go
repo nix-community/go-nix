@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/nix-community/go-nix/pkg/hash"
-	"github.com/nix-community/go-nix/pkg/nar/narinfo/signature"
+	"github.com/nix-community/go-nix/pkg/narinfo/signature"
 )
 
 // NarInfo represents a parsed .narinfo file.
