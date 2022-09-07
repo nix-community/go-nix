@@ -2,3 +2,6 @@
 # so git won't replace \n with \r\n on windows.
 test/testdata/* binary
 test/testdata/*.go binary diff
+
+# contains a newline
+test/testdata/git-demo/bar binary diff
