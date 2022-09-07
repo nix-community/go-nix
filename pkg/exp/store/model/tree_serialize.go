@@ -29,7 +29,16 @@ func (t *Tree) SerializeTo(w io.Writer) (uint64, error) {
 	for _, e := range t.Entries {
 		// write the mode.
 		// git writes actual octal numbers in ascii.
-		buf.Write([]byte(e.Mode))
+		switch e.Mode {
+		case Entry_MODE_FILE_REGULAR:
+			buf.Write([]byte("100644"))
+		case Entry_MODE_FILE_EXECUTABLE:
+			buf.Write([]byte("100755"))
+		case Entry_MODE_SYMLINK:
+			buf.Write([]byte("120000"))
+		case Entry_MODE_DIRECTORY:
+			buf.Write([]byte("40000"))
+		}
 
 		// write a space
 		buf.Write([]byte(" "))
@@ -42,7 +51,7 @@ func (t *Tree) SerializeTo(w io.Writer) (uint64, error) {
 
 		// write the hash
 		// there's no delimiter afterwards, the next entry (and its mode) comes immediately.
-		buf.Write(e.ID)
+		buf.Write(e.Id)
 	}
 
 	// write length field

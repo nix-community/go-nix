@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+// buf:lint:ignore PACKAGE_VERSION_SUFFIX
+package pkg.exp.store.model;
+
+option go_package = "pkg/exp/store/model;model";
+
+message Tree {
+  repeated Entry entries = 1;
+}
+
+message Entry {
+  // buf:lint:ignore ENUM_ZERO_VALUE_SUFFIX
+  enum Mode {
+    MODE_FILE_REGULAR = 0;
+    MODE_FILE_EXECUTABLE = 1;
+    MODE_SYMLINK = 2;
+    MODE_DIRECTORY = 3;
+  }
+
+  bytes id = 1;
+  Mode mode = 2;
+  string name = 3;
+}
+
+message Blob {
+  bytes contents = 1;
+}

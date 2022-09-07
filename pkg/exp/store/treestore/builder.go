@@ -78,28 +78,28 @@ func buildTree(
 
 			// add the entry to the tree object we are building.
 			currentTree.Entries = append(currentTree.Entries, &model.Entry{
-				ID:   treeDgst,
-				Mode: model.TypeDirectory,
+				Id:   treeDgst,
+				Mode: model.Entry_MODE_DIRECTORY,
 				Name: filepath.Base(top.Path()),
 			})
 		} else {
-			var mode model.EntryMode
+			var mode model.Entry_Mode
 
 			// check if file is an executable or a symlink
 			if top.Type().IsRegular() {
-				mode = model.TypeFileRegular
+				mode = model.Entry_MODE_FILE_REGULAR
 				if top.Type().Perm()&0o100 != 0 {
-					mode = model.TypeFileExecutable
+					mode = model.Entry_MODE_FILE_EXECUTABLE
 				}
 			} else if top.Type()&os.ModeSymlink == os.ModeSymlink {
-				mode = model.TypeSymlink
+				mode = model.Entry_MODE_SYMLINK
 			} else {
 				return nil, nil, fmt.Errorf("invalid mode for %v: %x", topPath, top.Type())
 			}
 
 			// add the entry here, too. We keep the ID from symlinks and files.
 			currentTree.Entries = append(currentTree.Entries, &model.Entry{
-				ID:   top.ID(),
+				Id:   top.ID(),
 				Mode: mode,
 				Name: filepath.Base(top.Path()),
 			})
