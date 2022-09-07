@@ -12,6 +12,7 @@ import (
 	"github.com/nix-community/go-nix/pkg/exp/store/model"
 	"github.com/nix-community/go-nix/pkg/exp/store/treestore"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDumpFilesystem(t *testing.T) {
@@ -30,13 +31,12 @@ func TestDumpFilesystem(t *testing.T) {
 		func() hash.Hash { return sha1.New() }, //nolint:gosec
 		fn,
 	)
-	assert.NoError(t, err, "calling DumpFilesystemFilter shouldn't error")
+	require.NoError(t, err, "calling DumpFilesystemFilter shouldn't error")
 
 	trees, err := treestore.BuildTree(sha1.New(), entries) //nolint:gosec
-	if assert.NoError(t, err, "calling BuildTree shouldn't error") {
-		assert.Equal(t, []*model.Tree{
-			fixtures.Tree2Struct,
-			fixtures.Tree1Struct,
-		}, trees)
-	}
+	require.NoError(t, err, "calling BuildTree shouldn't error")
+	assert.Equal(t, []*model.Tree{
+		fixtures.Tree2Struct,
+		fixtures.Tree1Struct,
+	}, trees)
 }
