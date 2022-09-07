@@ -16,8 +16,10 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: '1.17'
+    - name: Install the environment
+      run: nix-env -f nix -A env -i
     - name: Build fixtures
-      run: bash -c 'cd test/testdata && ./build-fixtures.go'
+      run: just fixtures
     - name: Diff fixtures
       run: git diff --exit-code test/testdata
 
@@ -30,9 +32,9 @@ jobs:
     - name: Install the environment
       run: nix-env -f nix -A env -i
     - name: Buf lint
-      run: buf lint
+      run: just proto-lint
     - name: Buf generate
-      run: buf generate
+      run: just proto-generate
     - name: Diff protos
       run: git diff --exit-code
 
@@ -49,5 +51,5 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go }}
-    - name: go test -race -bench='.+' -v ./...
-      run: go test -race -bench='.+' -v ./...
+    - name: go test and bench
+      run: just bench
