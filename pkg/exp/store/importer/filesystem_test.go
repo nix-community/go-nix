@@ -35,8 +35,8 @@ func TestDumpFilesystem(t *testing.T) {
 	trees, err := treestore.BuildTree(sha1.New(), entries) //nolint:gosec
 	if assert.NoError(t, err, "calling BuildTree shouldn't error") {
 		assert.Equal(t, []*model.Tree{
-			&fixtures.Tree2Struct,
-			&fixtures.Tree1Struct,
+			fixtures.Tree2Struct,
+			fixtures.Tree1Struct,
 		}, trees)
 	}
 }

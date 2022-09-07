@@ -45,7 +45,7 @@ func TestBuildTree(t *testing.T) {
 				treestore.NewDirentryPath(fixtures.BlobEmptySha1Digest, "/.keep", treestore.NewFileInfo(".keep", 0, 0o644)),
 			},
 			[]*model.Tree{
-				&fixtures.Tree2Struct,
+				fixtures.Tree2Struct,
 			},
 		}, {
 			"whole tree",
@@ -63,7 +63,7 @@ func TestBuildTree(t *testing.T) {
 					fixtures.BlobFooSha1Digest, "/foo", treestore.NewFileInfo("foo", 0, 0o700)),
 			},
 			[]*model.Tree{
-				&fixtures.Tree2Struct, &fixtures.Tree1Struct,
+				fixtures.Tree2Struct, fixtures.Tree1Struct,
 			},
 		},
 	}

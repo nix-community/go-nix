@@ -13,7 +13,7 @@ import (
 func TestSerializeTree(t *testing.T) {
 	tt := []struct {
 		Title      string
-		Struct     model.Tree
+		Struct     *model.Tree
 		Serialized []byte
 		Sha1Digest []byte
 	}{

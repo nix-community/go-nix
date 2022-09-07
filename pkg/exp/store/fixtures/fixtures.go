@@ -4,7 +4,7 @@ import "github.com/nix-community/go-nix/pkg/exp/store/model"
 
 //nolint:gochecknoglobals
 var (
-	BlobEmptyStruct = model.Blob{
+	BlobEmptyStruct = &model.Blob{
 		Contents: []byte{},
 	}
 	BlobEmptySerialized = []byte{
@@ -19,7 +19,7 @@ var (
 		0x29, 0xae, 0x77, 0x5a, 0xd8, 0xc2, 0xe4, 0x8c, 0x53, 0x91,
 	}
 
-	BlobBarStruct = model.Blob{
+	BlobBarStruct = &model.Blob{
 		Contents: []byte("Hello World\n"),
 	}
 	BlobBarSerialized = []byte{
@@ -36,7 +36,7 @@ var (
 		0x8e, 0x1e, 0xbd, 0x3a, 0x1c, 0xeb, 0x22, 0x5b, 0xe2, 0x38,
 	}
 
-	BlobBazStruct = model.Blob{
+	BlobBazStruct = &model.Blob{
 		Contents: []byte("foo"),
 	}
 	BlobBazSerialized = []byte{
@@ -51,7 +51,7 @@ var (
 		0x47, 0xe7, 0xa0, 0x19, 0x65, 0xdc, 0xdc, 0x96, 0x46, 0x8c,
 	}
 
-	BlobFooStruct = model.Blob{
+	BlobFooStruct = &model.Blob{
 		Contents: []byte("bar"),
 	}
 	BlobFooSerialized = []byte{
@@ -74,7 +74,7 @@ var (
 	//  120000 blob 19102815663d23f8b75a47e7a01965dcdc96468c	baz
 	//  100755 blob ba0e162e1c47469e3fe4b393a8bf8c569f302116	foo
 
-	Tree1Struct = model.Tree{
+	Tree1Struct = &model.Tree{
 		Entries: []*model.Entry{
 			{
 				Id: []byte{
@@ -156,7 +156,7 @@ var (
 	//  git cat-file -p 29a422c19251aeaeb907175e9b3219a9bed6c616
 	//  100644 blob e69de29bb2d1d6434b8b29ae775ad8c2e48c5391	.keep
 
-	Tree2Struct = model.Tree{
+	Tree2Struct = &model.Tree{
 		Entries: []*model.Entry{
 			{
 				Id: []byte{

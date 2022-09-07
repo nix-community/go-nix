@@ -13,7 +13,7 @@ import (
 func TestSerializeBlob(t *testing.T) {
 	tt := []struct {
 		Title      string
-		Struct     model.Blob
+		Struct     *model.Blob
 		Serialized []byte
 		Sha1Digest []byte
 	}{
