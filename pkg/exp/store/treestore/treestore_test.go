@@ -65,10 +65,10 @@ func TestTreeStores(t *testing.T) {
 				require.ErrorIs(t, err, os.ErrNotExist)
 			})
 
-			// t.Run("PutTree with missing ref", func(t *testing.T) {
-			// 	_, err := treeStore.PutTree(context.Background(), fixtures.Tree2Struct)
-			// 	require.Error(t, err, "inserting tree2 without tree1 being present should fail")
-			// })
+			t.Run("PutTree with missing ref", func(t *testing.T) {
+				_, err := store.PutTree(context.Background(), fixtures.Tree1Struct)
+				require.Error(t, err, "inserting tree1 without tree2 being present should fail")
+			})
 
 			t.Run("PutTree without missing ref", func(t *testing.T) {
 				id, err := store.PutTree(context.Background(), fixtures.Tree2Struct)

@@ -9,6 +9,7 @@ import (
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/nix-community/go-nix/pkg/exp/store/model"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -121,7 +122,35 @@ func (bs *BadgerStore) PutTree(ctx context.Context, tree *model.Tree) (TreeIdent
 		return nil, fmt.Errorf("unable to calculate identifier: %w", err)
 	}
 
-	// TODO: enforce other trees to exist
+	// FUTUREWORK: set a (global) limit, and make it configurable?
+	wg, wgCtx := errgroup.WithContext(ctx)
+
+	wg.Go(func() error {
+		// check entries for directories.
+		// for each of them, we make sure the referenced tree exists in the store
+		for _, entry := range tree.Entries {
+			if entry.Mode == model.Entry_MODE_DIRECTORY {
+				idToCheck := entry.Id
+				wg.Go(func() error {
+					has, err := bs.HasTree(wgCtx, idToCheck)
+					if err != nil {
+						return fmt.Errorf("unable to check if reference exist: %w", err)
+					}
+					if !has {
+						return fmt.Errorf("reference %x doesn't exist", idToCheck)
+					}
+
+					return nil
+				})
+			}
+		}
+
+		return nil
+	})
+
+	if err := wg.Wait(); err != nil {
+		return nil, fmt.Errorf("unable to insert %x, reference check failed: %w", id, err)
+	}
 
 	// marshal the tree
 	data, err := proto.Marshal(tree)
