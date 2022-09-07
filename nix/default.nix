@@ -17,6 +17,8 @@ let
 
       pkgs.niv
 
+      pkgs.just
+
       pkgs.buf
       pkgs.go_1_19
       pkgs.protobuf
