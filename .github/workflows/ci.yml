@@ -21,6 +21,21 @@ jobs:
     - name: Diff fixtures
       run: git diff --exit-code test/testdata
 
+  protos-up-to-date:
+    name: protos-up-to-date
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v17
+    - name: Install the environment
+      run: nix-env -f nix -A env -i
+    - name: Buf lint
+      run: buf lint
+    - name: Buf generate
+      run: buf generate
+    - name: Diff protos
+      run: git diff --exit-code
+
   build:
     strategy:
       matrix:
