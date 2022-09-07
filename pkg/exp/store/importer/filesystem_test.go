@@ -5,6 +5,7 @@ import (
 	"crypto/sha1" //nolint:gosec
 	"hash"
 	"io/fs"
+	"runtime"
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/exp/store/fixtures"
@@ -35,6 +36,14 @@ func TestDumpFilesystem(t *testing.T) {
 
 	trees, err := treestore.BuildTree(sha1.New(), entries) //nolint:gosec
 	require.NoError(t, err, "calling BuildTree shouldn't error")
+
+	// During checkout, the executable bit of git-demo/foo doesn't get preserved,
+	// so the importer will produce a regular file.
+	// Fixup that Mode manually if we run on windows, so we still test the rest.
+	if runtime.GOOS == "windows" {
+		trees[1].Entries[3].Mode = model.Entry_MODE_FILE_EXECUTABLE
+	}
+
 	assert.Equal(t, []*model.Tree{
 		fixtures.Tree2Struct,
 		fixtures.Tree1Struct,
