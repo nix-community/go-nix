@@ -1,6 +1,11 @@
 package fixtures
 
-import "github.com/nix-community/go-nix/pkg/exp/store/model"
+import (
+	"io/fs"
+
+	"github.com/nix-community/go-nix/pkg/exp/store/model"
+	"github.com/nix-community/go-nix/pkg/exp/store/treestore"
+)
 
 //nolint:gochecknoglobals
 var (
@@ -187,5 +192,43 @@ var (
 	Tree2Sha1Digest = []byte{
 		0x29, 0xa4, 0x22, 0xc1, 0x92, 0x51, 0xae, 0xae, 0xb9, 0x7,
 		0x17, 0x5e, 0x9b, 0x32, 0x19, 0xa9, 0xbe, 0xd6, 0xc6, 0x16,
+	}
+
+	Tree2Entries = []treestore.Entry{
+		{
+			Path:     "/",
+			DirEntry: NewMockDirEntry("/", 0, fs.ModePerm|fs.ModeDir),
+		}, {
+			ID:       BlobEmptySha1Digest,
+			Path:     "/.keep",
+			DirEntry: NewMockDirEntry(".keep", 0, 0o644),
+		},
+	}
+
+	WholeTreeEntries = []treestore.Entry{
+		{
+			Path:     "/",
+			DirEntry: NewMockDirEntry("/", 0, fs.ModePerm|fs.ModeDir),
+		}, {
+			ID:       Tree2Sha1Digest,
+			Path:     "/bab",
+			DirEntry: NewMockDirEntry("bab", 0, fs.ModePerm|fs.ModeDir),
+		}, {
+			ID:       BlobEmptySha1Digest,
+			Path:     "/bab/.keep",
+			DirEntry: NewMockDirEntry(".keep", 0, 0o644),
+		}, {
+			ID:       BlobBarSha1Digest,
+			Path:     "/bar",
+			DirEntry: NewMockDirEntry("bar", 12, 0o644),
+		}, {
+			ID:       BlobBazSha1Digest,
+			Path:     "/baz",
+			DirEntry: NewMockDirEntry("baz", 3, fs.ModePerm|fs.ModeSymlink),
+		}, {
+			ID:       BlobFooSha1Digest,
+			Path:     "/foo",
+			DirEntry: NewMockDirEntry("foo", 3, 0o700),
+		},
 	}
 )

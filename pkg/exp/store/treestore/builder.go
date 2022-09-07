@@ -11,24 +11,21 @@ import (
 	"github.com/nix-community/go-nix/pkg/exp/store/model"
 )
 
-// DirEntryPath provides the same interface as fs.DirEntry,
-// but also a Path() function returning the path,
-// and an ID() function returning the ID of the node.
-// It is meant to be used to communicate a Tree structure to BuildTree.
-// Files need to be hashed in a previous step, and the IDs point to the hash of the blob.
-// Similarly, symlinks need to be resolved and the ID point to a blob containing the target.
-type DirEntryPath interface {
-	fs.DirEntry
-	Path() string
-	ID() []byte
+// Entry bundles a fs.DirEntry, path and ID
+// It is meant to be used to communicate a Tree structure to BuildTree,
+// which assumes file contents and symlinks targets are already hashed and IDs provided.
+type Entry struct {
+	ID       []byte
+	Path     string
+	DirEntry fs.DirEntry
 }
 
 // buildTree consumes all (ordered) entries that are children of the passed prefix.
 // It returns a list of tree objects found in the child structure,
 // and a (smaller) slice of the remaining entries.
 func buildTree(
-	h hash.Hash, prefix string, entries []DirEntryPath, trees []*model.Tree,
-) ([]DirEntryPath, []*model.Tree, error) {
+	h hash.Hash, prefix string, entries []Entry, trees []*model.Tree,
+) ([]Entry, []*model.Tree, error) {
 	currentTree := &model.Tree{}
 
 	// this loops over all (remaining) entries and early-exits the loop
@@ -40,16 +37,16 @@ func buildTree(
 		// peek at the top of entries
 		top := entries[0]
 
-		// if we don't share a common prefix, we're done in this subtree
-		if !strings.HasPrefix(top.Path(), prefix) {
-			break
-		}
-
 		{
 			// convert top.Path() and prefix to slashes for traversal comparisons,
 			// so we don't need to deal with multiple separators.
-			topPathSlash := filepath.ToSlash(top.Path())
+			topPathSlash := filepath.ToSlash(top.Path)
 			prefixSlash := filepath.ToSlash(prefix)
+
+			// if we don't share a common prefix, we're done in this subtree
+			if !strings.HasPrefix(topPathSlash, prefixSlash) {
+				break
+			}
 
 			// We might share a common prefix, but still be different paths (`a/`, `aa/`).
 			// Make sure there's a / directly after the prefix part
@@ -66,50 +63,55 @@ func buildTree(
 		}
 
 		// check the current node for its type. If it's a directory, we need to recurse
-		if top.IsDir() { //nolint:nestif
+		if top.DirEntry.IsDir() { //nolint:nestif
 			var err error
 			// recurse into buildTree with the rest of the entries.
 			// when coming back, update entries and trees
 			// (adding to trees and removing from entries)
-			entries, trees, err = buildTree(h, top.Path(), entries[1:], trees)
+			entries, trees, err = buildTree(h, top.Path, entries[1:], trees)
 			if err != nil {
-				return nil, nil, fmt.Errorf("error in %v: %w", top.Path(), err)
+				return nil, nil, fmt.Errorf("error in %v: %w", top.Path, err)
 			}
 
 			// calculate the digest of the tree object returned
 			treeDgst, err := trees[len(trees)-1].Digest(h)
 			if err != nil {
-				return nil, nil, fmt.Errorf("error calculating digest of %v: %w", top.Path(), err)
+				return nil, nil, fmt.Errorf("error calculating digest of %v: %w", top.Path, err)
 			}
 
 			// add the entry to the tree object we are building.
 			currentTree.Entries = append(currentTree.Entries, &model.Entry{
 				Id:   treeDgst,
 				Mode: model.Entry_MODE_DIRECTORY,
-				// we need filepath.Base here, as top.Path() might contain backward slashes.
-				Name: filepath.Base(top.Path()),
+				// we need filepath.Base here, as top.Path might contain backward slashes.
+				Name: filepath.Base(top.Path),
 			})
 		} else {
 			var mode model.Entry_Mode
 
 			// check if file is an executable or a symlink
-			if top.Type().IsRegular() {
+			if top.DirEntry.Type().IsRegular() {
+				// retrieve file modes
+				fi, err := top.DirEntry.Info()
+				if err != nil {
+					return nil, nil, fmt.Errorf("unable to query fileinfo: %w", err)
+				}
 				mode = model.Entry_MODE_FILE_REGULAR
-				if top.Type().Perm()&0o100 != 0 {
+				if fi.Mode().Perm()&0o100 != 0 {
 					mode = model.Entry_MODE_FILE_EXECUTABLE
 				}
-			} else if top.Type()&os.ModeSymlink == os.ModeSymlink {
+			} else if top.DirEntry.Type()&os.ModeSymlink == os.ModeSymlink {
 				mode = model.Entry_MODE_SYMLINK
 			} else {
-				return nil, nil, fmt.Errorf("invalid mode for %v: %x", top.Path(), top.Type())
+				return nil, nil, fmt.Errorf("invalid mode for %v: %x", top.Path, top.DirEntry.Type())
 			}
 
 			// add the entry here, too. We keep the ID from symlinks and files.
 			currentTree.Entries = append(currentTree.Entries, &model.Entry{
-				Id:   top.ID(),
+				Id:   top.ID,
 				Mode: mode,
-				// we need filepath.Base here, as top.Path() might contain backward slashes.
-				Name: filepath.Base(top.Path()),
+				// we need filepath.Base here, as top.Path might contain backward slashes.
+				Name: filepath.Base(top.Path),
 			})
 
 			// pop the current entry from the stack
@@ -132,7 +134,7 @@ func buildTree(
 // Due to the nature of Tree objects, the "first" entry needs to be a directory.
 // It is perfectly fine for it to describe a substructure only
 // (let's say only describe /nix/store/xxx-name and below).
-func BuildTree(h hash.Hash, entries []DirEntryPath) ([]*model.Tree, error) {
+func BuildTree(h hash.Hash, entries []Entry) ([]*model.Tree, error) {
 	// peek at the first entry. It needs to be the root, and it needs to be a directory,
 	// as that's the only way something can has a name.
 	if len(entries) == 0 {
@@ -140,12 +142,12 @@ func BuildTree(h hash.Hash, entries []DirEntryPath) ([]*model.Tree, error) {
 	}
 
 	top := entries[0]
-	if !top.IsDir() {
+	if !top.DirEntry.IsDir() {
 		return nil, fmt.Errorf("root node is not directory")
 	}
 
 	// invoke buildTree for the root
-	leftoverEntries, trees, err := buildTree(h, top.Path(), entries[1:], nil)
+	leftoverEntries, trees, err := buildTree(h, top.Path, entries[1:], nil)
 	if err != nil {
 		return nil, err
 	}
