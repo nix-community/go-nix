@@ -121,6 +121,13 @@ func (fw *filesystemStoreWriter) Close() error {
 		return fmt.Errorf("unable to mkdir'ig parent directory for %v: %w", dstPath, err)
 	}
 
+	// check if the file already exists, and early exit if it does.
+	// windows doesn't like writing over opened files,
+	// and in general there's no reason for us to do this on other systems either.
+	if _, err := os.Stat(dstPath); err == nil {
+		return nil
+	}
+
 	// move blob file at the location
 	if err := os.Rename(fw.f.Name(), dstPath); err != nil {
 		return fmt.Errorf("error moving temporary file to its final location (%v): %w", dstPath, err)

@@ -162,6 +162,40 @@ func TestBlobStores(t *testing.T) {
 							_ = w.Close()
 						})
 					})
+
+					t.Run("ReadBlob while WriteBlob", func(t *testing.T) {
+						// request the same blob that we're about to insert, but don't actuall read or close yet
+						rd, err := blobStore.ReadBlob(context.Background(), dummyBlob.BlobID)
+						require.NoError(t, err, "ReadBlob call shouldn't fail")
+						defer rd.Close()
+
+						t.Run("WriteBlob", func(t *testing.T) {
+							w, err := blobStore.WriteBlob(context.Background(), uint64(len(dummyBlob.BlobContents)))
+							require.NoError(t, err, "WriteBlob call shouldn't fail")
+
+							// write out
+							n, err := io.Copy(w, bytes.NewReader(dummyBlob.BlobContents))
+							require.NoError(t, err, "writing out shouldn't error")
+							require.Equal(t, len(dummyBlob.BlobContents), int(n), "bytesWritten should match content length")
+
+							// verify sum
+							sum, err := w.Sum(nil)
+							require.NoError(t, err, "calling sum shouldn't error")
+							require.Equal(t, dummyBlob.BlobID, sum, "returned sum should match expectations")
+
+							// close
+							err = w.Close()
+							require.NoError(t, err, "closing shouldn't error")
+
+							// close second time shouldn't panic
+							require.NotPanics(t, func() {
+								_ = w.Close()
+							})
+						})
+
+						err = rd.Close()
+						require.NoError(t, err, "closing without reading shouldn't error")
+					})
 				})
 			}
 
