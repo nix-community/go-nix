@@ -39,24 +39,30 @@ func buildTree(
 
 		// peek at the top of entries
 		top := entries[0]
-		topPath := top.Path()
 
 		// if we don't share a common prefix, we're done in this subtree
-		if !strings.HasPrefix(topPath, prefix) {
+		if !strings.HasPrefix(top.Path(), prefix) {
 			break
 		}
 
-		// We might share a common prefix, but still be different paths (`a/`, `aa/`).
-		// Make sure there's a / directly after the prefix part
-		// if not, we're done here
-		if topPath[len(prefix)+1:len(prefix)+2] == "/" {
-			break
-		}
+		{
+			// convert top.Path() and prefix to slashes for traversal comparisons,
+			// so we don't need to deal with multiple separators.
+			topPathSlash := filepath.ToSlash(top.Path())
+			prefixSlash := filepath.ToSlash(prefix)
 
-		// Make sure there's no other `/` after that one - we need intermediate directory objects
-		restPath := topPath[len(prefix)+1:]
-		if strings.Contains(restPath, "/") {
-			return nil, nil, fmt.Errorf("invalid traversal: %v contains '/'", restPath)
+			// We might share a common prefix, but still be different paths (`a/`, `aa/`).
+			// Make sure there's a / directly after the prefix part
+			// if not, we're done here.
+			if topPathSlash[len(prefixSlash)+1:len(prefixSlash)+2] == "/" {
+				break
+			}
+
+			// Make sure there's no other `/` after that one - we need intermediate directory objects
+			rest := topPathSlash[len(prefixSlash)+1:]
+			if strings.Contains(rest, "/") {
+				return nil, nil, fmt.Errorf("invalid traversal: %v contains '/'", rest)
+			}
 		}
 
 		// check the current node for its type. If it's a directory, we need to recurse
@@ -65,9 +71,9 @@ func buildTree(
 			// recurse into buildTree with the rest of the entries.
 			// when coming back, update entries and trees
 			// (adding to trees and removing from entries)
-			entries, trees, err = buildTree(h, topPath, entries[1:], trees)
+			entries, trees, err = buildTree(h, top.Path(), entries[1:], trees)
 			if err != nil {
-				return nil, nil, fmt.Errorf("error in %v: %w", topPath, err)
+				return nil, nil, fmt.Errorf("error in %v: %w", top.Path(), err)
 			}
 
 			// calculate the digest of the tree object returned
@@ -80,6 +86,7 @@ func buildTree(
 			currentTree.Entries = append(currentTree.Entries, &model.Entry{
 				Id:   treeDgst,
 				Mode: model.Entry_MODE_DIRECTORY,
+				// we need filepath.Base here, as top.Path() might contain backward slashes.
 				Name: filepath.Base(top.Path()),
 			})
 		} else {
@@ -94,13 +101,14 @@ func buildTree(
 			} else if top.Type()&os.ModeSymlink == os.ModeSymlink {
 				mode = model.Entry_MODE_SYMLINK
 			} else {
-				return nil, nil, fmt.Errorf("invalid mode for %v: %x", topPath, top.Type())
+				return nil, nil, fmt.Errorf("invalid mode for %v: %x", top.Path(), top.Type())
 			}
 
 			// add the entry here, too. We keep the ID from symlinks and files.
 			currentTree.Entries = append(currentTree.Entries, &model.Entry{
 				Id:   top.ID(),
 				Mode: mode,
+				// we need filepath.Base here, as top.Path() might contain backward slashes.
 				Name: filepath.Base(top.Path()),
 			})
 
