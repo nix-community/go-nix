@@ -38,9 +38,11 @@ func (cmd *ShowCmd) Run(drvCmd *Cmd) error {
 	switch cmd.Format {
 	case "json":
 		enc := json.NewEncoder(os.Stdout)
+		enc.SetEscapeHTML(false)
 		err = enc.Encode(container)
 	case "json-pretty":
 		enc := json.NewEncoder(os.Stdout)
+		enc.SetEscapeHTML(false)
 		enc.SetIndent("", "  ")
 		err = enc.Encode(container)
 	case "aterm":
