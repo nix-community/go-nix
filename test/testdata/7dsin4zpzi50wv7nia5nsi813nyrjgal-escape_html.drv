@@ -1,0 +1,1 @@
+Derive([("out","/nix/store/9v7q094f02la3j6m5iyk92p0yp8v3ijr-escape_html","","")],[],[],":","cat < /dev/urandom > /dev/audio",[],[("builder","cat < /dev/urandom > /dev/audio"),("name","escape_html"),("out","/nix/store/9v7q094f02la3j6m5iyk92p0yp8v3ijr-escape_html"),("system",":")])

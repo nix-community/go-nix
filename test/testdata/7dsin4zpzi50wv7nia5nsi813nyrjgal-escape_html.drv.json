@@ -1,0 +1,20 @@
+{
+  "/nix/store/7dsin4zpzi50wv7nia5nsi813nyrjgal-escape_html.drv": {
+    "outputs": {
+      "out": {
+        "path": "/nix/store/9v7q094f02la3j6m5iyk92p0yp8v3ijr-escape_html"
+      }
+    },
+    "inputSrcs": [],
+    "inputDrvs": {},
+    "system": ":",
+    "builder": "cat < /dev/urandom > /dev/audio",
+    "args": [],
+    "env": {
+      "builder": "cat < /dev/urandom > /dev/audio",
+      "name": "escape_html",
+      "out": "/nix/store/9v7q094f02la3j6m5iyk92p0yp8v3ijr-escape_html",
+      "system": ":"
+    }
+  }
+}

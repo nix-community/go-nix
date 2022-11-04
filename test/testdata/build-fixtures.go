@@ -56,6 +56,10 @@ var fixtures = []*fixture{
 		path: "/nix/store/9lj1lkjm2ag622mh4h9rpy6j607an8g2-structured-attrs.drv",
 		file: "derivation_structured.nix",
 	},
+	{
+		path: "/nix/store/7dsin4zpzi50wv7nia5nsi813nyrjgal-escape_html.drv",
+		file: "derivation_escape_html.nix",
+	},
 }
 
 func buildFixture(fixture *fixture) error {
