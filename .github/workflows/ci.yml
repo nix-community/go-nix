@@ -34,5 +34,7 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go }}
+    - name: ensure fixtures are in /nix/store
+      run: bash -c 'cd test/testdata && ./build-fixtures.go'
     - name: go test -race -bench='.+' -v ./...
       run: go test -race -bench='.+' -v ./...
