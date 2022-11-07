@@ -21,10 +21,10 @@ func TestDrvShow(t *testing.T) {
 		oldOut := os.Stdout
 		os.Stdout = pw
 		var buf bytes.Buffer
-		err_pipe := make(chan error, 1)
+		errPipe := make(chan error, 1)
 		go func() {
 			_, err := io.Copy(&buf, pr)
-			err_pipe <- err
+			errPipe <- err
 		}()
 		main()
 		os.Stdout = oldOut
@@ -32,7 +32,7 @@ func TestDrvShow(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		err = <- err_pipe
+		err = <- errPipe
 		if err != nil {
 			panic(err)
 		}
