@@ -29,10 +29,12 @@ func (cmd *ShowCmd) Run(drvCmd *Cmd) error {
 	}
 
 	container := make(map[string]*derivation.Derivation)
+
 	drvPath, err := drv.DrvPath()
 	if err != nil {
 		return err
 	}
+
 	container[drvPath] = drv
 
 	switch cmd.Format {
