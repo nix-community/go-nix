@@ -7,13 +7,13 @@ import (
 
 // Signature represents a named ed25519 signature.
 type Signature struct {
-	name string
-	data []byte
+	Name string
+	Data []byte
 }
 
 // String returns the encoded <keyname>:<base64-signature-data>.
 func (s Signature) String() string {
-	return encode(s.name, s.data)
+	return encode(s.Name, s.Data)
 }
 
 // ParseSignature decodes a <keyname>:<base64-signature-data>
@@ -32,7 +32,7 @@ func ParseSignature(s string) (Signature, error) {
 func VerifyFirst(fingerprint string, signatures []Signature, pubKeys []PublicKey) bool {
 	for _, key := range pubKeys {
 		for _, sig := range signatures {
-			if key.name == sig.name {
+			if key.Name == sig.Name {
 				return key.Verify(fingerprint, sig)
 			}
 		}
