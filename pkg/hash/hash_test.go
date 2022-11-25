@@ -10,8 +10,9 @@ import (
 
 func TestDigest(t *testing.T) {
 	t.Run("valid sha256", func(t *testing.T) {
-		s := "sha256:1rjs6c23nyf8zkmf7yxglz2q2m7v5kp51nc2m0lk4h998d0qiixs"
-		h, err := hash.ParseNixBase32(s)
+		nixString := "sha256:1rjs6c23nyf8zkmf7yxglz2q2m7v5kp51nc2m0lk4h998d0qiixs"
+		sriString := "sha256-useIQUMpQTIpqILZUO4s+1SBxaev++Pq/Mh5OwQzWuY="
+		h, err := hash.ParseNixBase32(nixString)
 		if assert.NoError(t, err) {
 			assert.Equal(t, mh.SHA2_256, h.HashType)
 			assert.Equal(t, []byte{
@@ -20,7 +21,8 @@ func TestDigest(t *testing.T) {
 				0x54, 0x81, 0xc5, 0xa7, 0xaf, 0xfb, 0xe3, 0xea,
 				0xfc, 0xc8, 0x79, 0x3b, 0x04, 0x33, 0x5a, 0xe6,
 			}, h.Digest())
-			assert.Equal(t, s, h.NixString())
+			assert.Equal(t, nixString, h.NixString())
+			assert.Equal(t, sriString, h.SRIString())
 		}
 
 		_, err = h.Write([]byte{0x00})
@@ -28,8 +30,9 @@ func TestDigest(t *testing.T) {
 	})
 
 	t.Run("valid sha512", func(t *testing.T) {
-		s := "sha512:37iwwa5iw4m6pkd6qs2c5lw13q7y16hw2rv4i1cx6jax6yibhn6fgajbwc8p4j1fc6iicpy5r1vi7hpfq3n6z1ikhm5kcyz2b1frk80"
-		h, err := hash.ParseNixBase32(s)
+		nixString := "sha512:37iwwa5iw4m6pkd6qs2c5lw13q7y16hw2rv4i1cx6jax6yibhn6fgajbwc8p4j1fc6iicpy5r1vi7hpfq3n6z1ikhm5kcyz2b1frk80" //nolint:lll
+		sriString := "sha512-AM3swhLfs1kqnDF8Ywd2F564Qy7+shgNc0GSixhfUj1nLFzRm66k6SxEsrPg0AR/8AicFiY0Nm1eUwmPRXEezw=="
+		h, err := hash.ParseNixBase32(nixString)
 		if assert.NoError(t, err) {
 			assert.Equal(t, mh.SHA2_512, h.HashType)
 			assert.Equal(t, []byte{
@@ -42,7 +45,8 @@ func TestDigest(t *testing.T) {
 				0xf0, 0x08, 0x9c, 0x16, 0x26, 0x34, 0x36, 0x6d,
 				0x5e, 0x53, 0x09, 0x8f, 0x45, 0x71, 0x1e, 0xcf,
 			}, h.Digest())
-			assert.Equal(t, s, h.NixString())
+			assert.Equal(t, nixString, h.NixString())
+			assert.Equal(t, sriString, h.SRIString())
 		}
 	})
 
