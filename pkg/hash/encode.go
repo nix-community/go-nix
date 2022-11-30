@@ -1,6 +1,7 @@
 package hash
 
 import (
+	"encoding/base64"
 	"fmt"
 
 	"github.com/multiformats/go-multihash"
@@ -42,6 +43,21 @@ func (h *Hash) NixString() string {
 
 	if hashStr, ok := hashtypeToNixHashString[h.HashType]; ok {
 		return fmt.Sprintf("%v:%v", hashStr, nixbase32.EncodeToString(digest))
+	}
+
+	panic(fmt.Sprintf("unable to encode %v to nix string", h.HashType))
+}
+
+func (h *Hash) SRIString() string {
+	digest := h.Digest()
+
+	// This can only occur if the struct is filled manually
+	if h.hash.Size() != len(digest) {
+		panic("invalid digest length")
+	}
+
+	if hashStr, ok := hashtypeToNixHashString[h.HashType]; ok {
+		return fmt.Sprintf("%v-%v", hashStr, base64.StdEncoding.EncodeToString(digest))
 	}
 
 	panic(fmt.Sprintf("unable to encode %v to nix string", h.HashType))
