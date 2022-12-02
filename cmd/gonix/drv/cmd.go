@@ -28,14 +28,25 @@ func (cmd *ShowCmd) Run(drvCmd *Cmd) error {
 		return err
 	}
 
+	container := make(map[string]*derivation.Derivation)
+
+	drvPath, err := drv.DrvPath()
+	if err != nil {
+		return err
+	}
+
+	container[drvPath] = drv
+
 	switch cmd.Format {
 	case "json":
 		enc := json.NewEncoder(os.Stdout)
-		err = enc.Encode(drv)
+		enc.SetEscapeHTML(false)
+		err = enc.Encode(container)
 	case "json-pretty":
 		enc := json.NewEncoder(os.Stdout)
+		enc.SetEscapeHTML(false)
 		enc.SetIndent("", "  ")
-		err = enc.Encode(drv)
+		err = enc.Encode(container)
 	case "aterm":
 		err = drv.WriteDerivation(os.Stdout)
 	default:
