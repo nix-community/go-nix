@@ -32,3 +32,13 @@ func (h *Hash) Digest() []byte {
 
 	return h.hash.Sum(nil)
 }
+
+// HashTypeString returns a string representation of the HashType. For unknown
+// types, it will return an empty String.
+func (h *Hash) HashTypeString() string {
+	if str, ok := hashtypeToNixHashString[h.HashType]; ok {
+		return str
+	}
+
+	return ""
+}
