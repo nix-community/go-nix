@@ -57,6 +57,7 @@ func TestReaderOneByteRegular(t *testing.T) {
 	assert.Equal(t, &nar.Header{
 		Path:       "/",
 		Type:       nar.TypeRegular,
+		Offset:     96,
 		Size:       1,
 		Executable: false,
 	}, hdr)
@@ -153,6 +154,7 @@ func TestReaderSmoketest(t *testing.T) {
 			Type:       nar.TypeRegular,
 			Path:       "/bin/arp",
 			Executable: true,
+			Offset:     400,
 			Size:       55288,
 		},
 		{
@@ -169,24 +171,28 @@ func TestReaderSmoketest(t *testing.T) {
 			Type:       nar.TypeRegular,
 			Path:       "/bin/hostname",
 			Executable: true,
+			Offset:     56304,
 			Size:       17704,
 		},
 		{
 			Type:       nar.TypeRegular,
 			Path:       "/bin/ifconfig",
 			Executable: true,
+			Offset:     74224,
 			Size:       72576,
 		},
 		{
 			Type:       nar.TypeRegular,
 			Path:       "/bin/nameif",
 			Executable: true,
+			Offset:     147016,
 			Size:       18776,
 		},
 		{
 			Type:       nar.TypeRegular,
 			Path:       "/bin/netstat",
 			Executable: true,
+			Offset:     166008,
 			Size:       131784,
 		},
 		{
@@ -198,24 +204,28 @@ func TestReaderSmoketest(t *testing.T) {
 			Type:       nar.TypeRegular,
 			Path:       "/bin/plipconfig",
 			Executable: true,
+			Offset:     298216,
 			Size:       13160,
 		},
 		{
 			Type:       nar.TypeRegular,
 			Path:       "/bin/rarp",
 			Executable: true,
+			Offset:     311592,
 			Size:       30384,
 		},
 		{
 			Type:       nar.TypeRegular,
 			Path:       "/bin/route",
 			Executable: true,
+			Offset:     342192,
 			Size:       61928,
 		},
 		{
 			Type:       nar.TypeRegular,
 			Path:       "/bin/slattach",
 			Executable: true,
+			Offset:     404336,
 			Size:       35672,
 		},
 		{
@@ -241,82 +251,96 @@ func TestReaderSmoketest(t *testing.T) {
 			Path: "/share/man/man1",
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man1/dnsdomainname.1.gz",
-			Size: 40,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man1/dnsdomainname.1.gz",
+			Offset: 441040,
+			Size:   40,
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man1/domainname.1.gz",
-			Size: 40,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man1/domainname.1.gz",
+			Offset: 441272,
+			Size:   40,
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man1/hostname.1.gz",
-			Size: 1660,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man1/hostname.1.gz",
+			Offset: 441504,
+			Size:   1660,
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man1/nisdomainname.1.gz",
-			Size: 40,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man1/nisdomainname.1.gz",
+			Offset: 443368,
+			Size:   40,
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man1/ypdomainname.1.gz",
-			Size: 40,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man1/ypdomainname.1.gz",
+			Offset: 443608,
+			Size:   40,
 		},
 		{
 			Type: nar.TypeDirectory,
 			Path: "/share/man/man5",
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man5/ethers.5.gz",
-			Size: 563,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man5/ethers.5.gz",
+			Offset: 444008,
+			Size:   563,
 		},
 		{
 			Type: nar.TypeDirectory,
 			Path: "/share/man/man8",
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man8/arp.8.gz",
-			Size: 2464,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man8/arp.8.gz",
+			Offset: 444928,
+			Size:   2464,
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man8/ifconfig.8.gz",
-			Size: 3382,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man8/ifconfig.8.gz",
+			Offset: 447584,
+			Size:   3382,
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man8/nameif.8.gz",
-			Size: 523,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man8/nameif.8.gz",
+			Offset: 451160,
+			Size:   523,
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man8/netstat.8.gz",
-			Size: 4284,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man8/netstat.8.gz",
+			Offset: 451880,
+			Size:   4284,
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man8/plipconfig.8.gz",
-			Size: 889,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man8/plipconfig.8.gz",
+			Offset: 456360,
+			Size:   889,
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man8/rarp.8.gz",
-			Size: 1198,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man8/rarp.8.gz",
+			Offset: 457448,
+			Size:   1198,
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man8/route.8.gz",
-			Size: 3525,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man8/route.8.gz",
+			Offset: 458840,
+			Size:   3525,
 		},
 		{
-			Type: nar.TypeRegular,
-			Path: "/share/man/man8/slattach.8.gz",
-			Size: 1441,
+			Type:   nar.TypeRegular,
+			Path:   "/share/man/man8/slattach.8.gz",
+			Offset: 462560,
+			Size:   1441,
 		},
 	}
 
@@ -328,16 +352,35 @@ func TestReaderSmoketest(t *testing.T) {
 
 		// read one of the files
 		if hdr.Path == "/bin/arp" {
-			f, err := os.Open("../../test/testdata/nar_1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar_bin_arp")
-			assert.NoError(t, err)
-
-			defer f.Close()
-
-			expectedContents, err := io.ReadAll(f)
-			assert.NoError(t, err)
-
 			actualContents, err := io.ReadAll(nr)
-			if assert.NoError(t, err) {
+			assert.NoError(t, err)
+
+			// Compare to the on-disk fixture
+			{
+				f, err := os.Open("../../test/testdata/nar_1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar_bin_arp")
+				assert.NoError(t, err)
+
+				defer f.Close()
+
+				expectedContents, err := io.ReadAll(f)
+				assert.NoError(t, err)
+
+				assert.Equal(t, expectedContents, actualContents)
+			}
+
+			// Compare with the header offset
+			{
+				f, err := os.Open("../../test/testdata/nar_1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar")
+				assert.NoError(t, err)
+
+				defer f.Close()
+
+				f2, err := hdr.Contents(f)
+				assert.NoError(t, err)
+
+				expectedContents, err := io.ReadAll(f2)
+				assert.NoError(t, err)
+
 				assert.Equal(t, expectedContents, actualContents)
 			}
 		}
