@@ -1,17 +1,7 @@
 {
   "/nix/store/ss2p4wmxijn652haqyd7dckxwl4c7hxx-bar.drv": {
-    "outputs": {
-      "out": {
-        "path": "/nix/store/mp57d33657rf34lzvlbpfa1gjfv5gmpg-bar",
-        "hashAlgo": "r:sha1",
-        "hash": "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33"
-      }
-    },
-    "inputSrcs": [],
-    "inputDrvs": {},
-    "system": ":",
-    "builder": ":",
     "args": [],
+    "builder": ":",
     "env": {
       "builder": ":",
       "name": "bar",
@@ -20,6 +10,16 @@
       "outputHashAlgo": "sha1",
       "outputHashMode": "recursive",
       "system": ":"
-    }
+    },
+    "inputDrvs": {},
+    "inputSrcs": [],
+    "outputs": {
+      "out": {
+        "hash": "0beec7b5ea3f0fdbc95d0dd47f3c5bc275da8a33",
+        "hashAlgo": "r:sha1",
+        "path": "/nix/store/mp57d33657rf34lzvlbpfa1gjfv5gmpg-bar"
+      }
+    },
+    "system": ":"
   }
 }
