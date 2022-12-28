@@ -1,25 +1,25 @@
 {
   "/nix/store/4wvvbi4jwn0prsdxb7vs673qa5h9gr7x-foo.drv": {
-    "outputs": {
-      "out": {
-        "path": "/nix/store/5vyvcwah9l9kf07d52rcgdk70g2f4y13-foo"
-      }
-    },
-    "inputSrcs": [],
-    "inputDrvs": {
-      "/nix/store/0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv": [
-        "out"
-      ]
-    },
-    "system": ":",
-    "builder": ":",
     "args": [],
+    "builder": ":",
     "env": {
       "bar": "/nix/store/4q0pg5zpfmznxscq3avycvf9xdvx50n3-bar",
       "builder": ":",
       "name": "foo",
       "out": "/nix/store/5vyvcwah9l9kf07d52rcgdk70g2f4y13-foo",
       "system": ":"
-    }
+    },
+    "inputDrvs": {
+      "/nix/store/0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv": [
+        "out"
+      ]
+    },
+    "inputSrcs": [],
+    "outputs": {
+      "out": {
+        "path": "/nix/store/5vyvcwah9l9kf07d52rcgdk70g2f4y13-foo"
+      }
+    },
+    "system": ":"
   }
 }

@@ -28,6 +28,9 @@ func (cmd *ShowCmd) Run(drvCmd *Cmd) error {
 		return err
 	}
 
+	// Keep in mind `nix show-derivation` started sorting all of the JSON alphabetically,
+	// while this still preserves the previous order of keys, as  encoding/json
+	// preserves struct element definition order when serializing.
 	switch cmd.Format {
 	case "json":
 		enc := json.NewEncoder(os.Stdout)

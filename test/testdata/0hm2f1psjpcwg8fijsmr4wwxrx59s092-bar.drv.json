@@ -1,17 +1,7 @@
 {
   "/nix/store/0hm2f1psjpcwg8fijsmr4wwxrx59s092-bar.drv": {
-    "outputs": {
-      "out": {
-        "path": "/nix/store/4q0pg5zpfmznxscq3avycvf9xdvx50n3-bar",
-        "hashAlgo": "r:sha256",
-        "hash": "08813cbee9903c62be4c5027726a418a300da4500b2d369d3af9286f4815ceba"
-      }
-    },
-    "inputSrcs": [],
-    "inputDrvs": {},
-    "system": ":",
-    "builder": ":",
     "args": [],
+    "builder": ":",
     "env": {
       "builder": ":",
       "name": "bar",
@@ -20,6 +10,16 @@
       "outputHashAlgo": "sha256",
       "outputHashMode": "recursive",
       "system": ":"
-    }
+    },
+    "inputDrvs": {},
+    "inputSrcs": [],
+    "outputs": {
+      "out": {
+        "hash": "08813cbee9903c62be4c5027726a418a300da4500b2d369d3af9286f4815ceba",
+        "hashAlgo": "r:sha256",
+        "path": "/nix/store/4q0pg5zpfmznxscq3avycvf9xdvx50n3-bar"
+      }
+    },
+    "system": ":"
   }
 }
