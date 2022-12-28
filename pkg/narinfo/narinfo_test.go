@@ -53,6 +53,30 @@ Deriver: 5rwxzi7pal3qhpsyfc16gzkh939q1np6-curl-7.82.0.drv
 Sig: cache.nixos.org-1:TsTTb3WGTZKphvYdBHXwo6weVILmTytUjLB+vcX89fOjjRicCHmKA4RCPMVLkj6TMJ4GMX3HPVWRdD1hkeKZBQ==
 Sig: test1:519iiVLx/c4Rdt5DNt6Y2Jm6hcWE9+XY69ygiWSZCNGVcmOcyL64uVAJ3cV8vaTusIZdbTnYo9Y7vDNeTmmMBQ==
 `
+	strNarinfoSampleUncompressed = `
+StorePath: /nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432
+URL: nar/1ib8z69vkb32pl89mn2y8djvrykxy9sk35pr166zxa9pqpc636jr.nar
+Compression: none
+FileHash: sha256:1ib8z69vkb32pl89mn2y8djvrykxy9sk35pr166zxa9pqpc636jr
+FileSize: 464152
+NarHash: sha256:1ib8z69vkb32pl89mn2y8djvrykxy9sk35pr166zxa9pqpc636jr
+NarSize: 464152
+References: 7gx4kiv5m0i7d7qkixq2cwzbr10lvxwc-glibc-2.27
+Deriver: 10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv
+Sig: cache.nixos.org-1:sn5s/RrqEI+YG6/PjwdbPjcAC7rcta7sJU4mFOawGvJBLsWkyLtBrT2EuFt/LJjWkTZ+ZWOI9NTtjo/woMdvAg==
+Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7acJjLn3jofOtilAAwRILKIfVuyrbjAA==
+`
+	strNarinfoSampleUncompressedNoFileHashOrSize = `
+StorePath: /nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432
+URL: nar/1ib8z69vkb32pl89mn2y8djvrykxy9sk35pr166zxa9pqpc636jr.nar
+Compression: none
+NarHash: sha256:1ib8z69vkb32pl89mn2y8djvrykxy9sk35pr166zxa9pqpc636jr
+NarSize: 464152
+References: 7gx4kiv5m0i7d7qkixq2cwzbr10lvxwc-glibc-2.27
+Deriver: 10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv
+Sig: cache.nixos.org-1:sn5s/RrqEI+YG6/PjwdbPjcAC7rcta7sJU4mFOawGvJBLsWkyLtBrT2EuFt/LJjWkTZ+ZWOI9NTtjo/woMdvAg==
+Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7acJjLn3jofOtilAAwRILKIfVuyrbjAA==
+`
 
 	_NarHash = mustParseNixBase32("sha256:0lxjvvpr59c2mdram7ympy5ay741f180kv3349hvfc3f8nrmbqf6")
 
@@ -86,6 +110,30 @@ Sig: test1:519iiVLx/c4Rdt5DNt6Y2Jm6hcWE9+XY69ygiWSZCNGVcmOcyL64uVAJ3cV8vaTusIZdb
 		Deriver:     "10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv",
 		Signatures:  _SignaturesNarinfoSample,
 	}
+
+	narinfoSampleUncompressed = &narinfo.NarInfo{
+		StorePath:   "/nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432",
+		URL:         "nar/1ib8z69vkb32pl89mn2y8djvrykxy9sk35pr166zxa9pqpc636jr.nar",
+		Compression: "none",
+		FileHash:    mustParseNixBase32("sha256:1ib8z69vkb32pl89mn2y8djvrykxy9sk35pr166zxa9pqpc636jr"),
+		FileSize:    464152,
+		NarHash:     mustParseNixBase32("sha256:1ib8z69vkb32pl89mn2y8djvrykxy9sk35pr166zxa9pqpc636jr"),
+		NarSize:     464152,
+		References:  []string{"7gx4kiv5m0i7d7qkixq2cwzbr10lvxwc-glibc-2.27"},
+		Deriver:     "10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv",
+		Signatures:  _SignaturesNarinfoSample,
+	}
+
+	narinfoSampleUncompressedNoFileHashOrSize = &narinfo.NarInfo{
+		StorePath:   "/nix/store/00bgd045z0d4icpbc2yyz4gx48ak44la-net-tools-1.60_p20170221182432",
+		URL:         "nar/1ib8z69vkb32pl89mn2y8djvrykxy9sk35pr166zxa9pqpc636jr.nar",
+		Compression: "none",
+		NarHash:     mustParseNixBase32("sha256:1ib8z69vkb32pl89mn2y8djvrykxy9sk35pr166zxa9pqpc636jr"),
+		NarSize:     464152,
+		References:  []string{"7gx4kiv5m0i7d7qkixq2cwzbr10lvxwc-glibc-2.27"},
+		Deriver:     "10dx1q4ivjb115y3h90mipaaz533nr0d-net-tools-1.60_p20170221182432.drv",
+		Signatures:  _SignaturesNarinfoSample,
+	}
 )
 
 func mustParseNixBase32(s string) *hash.Hash {
@@ -107,6 +155,30 @@ func TestNarInfo(t *testing.T) {
 
 	// Test to string
 	assert.Equal(t, strNarinfoSample, "\n"+ni.String())
+}
+
+func TestNarInfoUncompressed(t *testing.T) {
+	ni, err := narinfo.Parse(strings.NewReader(strNarinfoSampleUncompressed))
+	assert.NoError(t, err)
+
+	// Test the parsing happy path
+	assert.Equal(t, narinfoSampleUncompressed, ni)
+	assert.NoError(t, ni.Check())
+
+	// Test to string
+	assert.Equal(t, strNarinfoSampleUncompressed, "\n"+ni.String())
+}
+
+func TestNarInfoUncompressedNoFileHashOrSize(t *testing.T) {
+	ni, err := narinfo.Parse(strings.NewReader(strNarinfoSampleUncompressedNoFileHashOrSize))
+	assert.NoError(t, err)
+
+	// Test the parsing happy path
+	assert.Equal(t, narinfoSampleUncompressedNoFileHashOrSize, ni)
+	assert.NoError(t, ni.Check())
+
+	// Test to string
+	assert.Equal(t, strNarinfoSampleUncompressedNoFileHashOrSize, "\n"+ni.String())
 }
 
 func TestFingerprint(t *testing.T) {

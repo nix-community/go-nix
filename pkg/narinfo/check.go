@@ -1,9 +1,9 @@
 package narinfo
 
 import (
+	"bytes"
 	"fmt"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/nix-community/go-nix/pkg/nixpath"
 )
 
@@ -35,14 +35,24 @@ func (n *NarInfo) Check() error {
 		return fmt.Errorf("invalid NixPath at Deriver: %v", n.Deriver)
 	}
 
-	if n.Compression == "none" {
-		if n.FileSize != n.NarSize {
-			return fmt.Errorf("compression is none, FileSize/NarSize differs: %d, %d", n.FileSize, n.NarSize)
-		}
+	if n.Compression != "none" {
+		return nil
+	}
 
-		if !cmp.Equal(n.FileHash, n.NarHash) {
-			return fmt.Errorf("compression is none, FileHash/NarHash differs: %v, %v", n.FileHash, n.NarHash)
-		}
+	if n.FileSize > 0 && n.FileSize != n.NarSize {
+		return fmt.Errorf("compression is none, FileSize/NarSize differs: %d, %d", n.FileSize, n.NarSize)
+	}
+
+	if n.FileHash == nil || n.NarHash == nil {
+		return nil
+	}
+
+	if n.FileHash.HashType != n.NarHash.HashType {
+		return fmt.Errorf("FileHash/NarHash type differ: %v, %v", n.FileHash.HashTypeString(), n.NarHash.HashTypeString())
+	}
+
+	if !bytes.Equal(n.FileHash.Digest(), n.NarHash.Digest()) {
+		return fmt.Errorf("compression is none, FileHash/NarHash differs: %v, %v", n.FileHash, n.NarHash)
 	}
 
 	return nil
