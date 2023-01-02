@@ -18,6 +18,21 @@ var (
 	dotDrv        = []byte(".drv")
 )
 
+// Returns the path of a Derivation struct, or an error.
+// The path is calculated like this:
+//   - Write the fingerprint of the Derivation to the sha256 hash function.
+//     This is: `text:`,
+//     all d.InputDerivations and d.InputSources (sorted, separated by a `:`),
+//     a `:`,
+//     a `sha256:`, followed by the sha256 digest of the ATerm representation (hex-encoded)
+//     a `:`,
+//     the storeDir, followed by a `:`,
+//     the name of a derivation,
+//     a `.drv`.
+//   - Write the .drv A-Term contents to a hash function
+//   - Take the digest, run hash.CompressHash(digest, 20) on it.
+//   - Encode it with nixbase32
+//   - Construct the full path $storeDir/$nixbase32EncodedCompressedHash-$name.drv
 func (d *Derivation) DrvPath() (string, error) {
 	// calculate the sha256 digest of the ATerm representation
 	h := sha256.New()
