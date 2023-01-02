@@ -87,7 +87,7 @@ func (d *Derivation) Validate() error {
 		}
 
 		for i, o := range outputNames {
-			if i > 1 && o < outputNames[i-1] {
+			if i > 0 && o < outputNames[i-1] {
 				return fmt.Errorf("invalid input derivation output order: %s < %s", o, outputNames[i-1])
 			}
 
