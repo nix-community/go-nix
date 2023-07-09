@@ -1,4 +1,7 @@
-# Mark everything inside test/testdata as binary,
-# so git won't replace \n with \r\n on windows.
-test/testdata/* binary
-test/testdata/*.go binary diff
+*.nar binary
+# Mark testdata directory contents as not text,
+# so Git won't replace \n with \r\n on Windows.
+# We make a few exceptions below.
+**/testdata/** -text
+/test/testdata/build-fixtures.go text
+/test/testdata/nar_1094wph9z4nwlgvsd53abfz8i117ykiv5dwnq9nnhz846s7xqd7d.nar_bin_arp binary
