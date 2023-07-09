@@ -14,17 +14,6 @@ const (
 	refLength         = len(nixbase32.Alphabet) // Store path hash prefix length
 )
 
-// This creates an array to check if a given byte is in the Nix base32 alphabet.
-//
-//nolint:gochecknoglobals
-var isNixBase32 = func() (arr [256]bool) {
-	for _, c := range nixbase32.Alphabet {
-		arr[c] = true
-	}
-
-	return
-}()
-
 // ReferenceScanner scans a stream of data for references to store paths to extract run time dependencies.
 type ReferenceScanner struct {
 	// Map of store path hashes to full store paths.
@@ -83,7 +72,7 @@ func (r *ReferenceScanner) References() []string {
 
 func (r *ReferenceScanner) Write(s []byte) (int, error) {
 	for _, c := range s {
-		if !isNixBase32[c] {
+		if !nixbase32.Is(c) {
 			r.n = 0
 
 			continue
