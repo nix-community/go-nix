@@ -61,7 +61,7 @@ func (ms *MapStore) Put(ctx context.Context, drv *derivation.Derivation) (string
 }
 
 // Get retrieves a Derivation by drv path from the Derivation Store.
-func (ms *MapStore) Get(ctx context.Context, derivationPath string) (*derivation.Derivation, error) {
+func (ms *MapStore) Get(_ context.Context, derivationPath string) (*derivation.Derivation, error) {
 	if drv, ok := ms.drvs[derivationPath]; ok {
 		return drv, nil
 	}
@@ -70,7 +70,7 @@ func (ms *MapStore) Get(ctx context.Context, derivationPath string) (*derivation
 }
 
 // Has returns whether the derivation (by drv path) exists.
-func (ms *MapStore) Has(ctx context.Context, derivationPath string) (bool, error) {
+func (ms *MapStore) Has(_ context.Context, derivationPath string) (bool, error) {
 	if _, ok := ms.drvs[derivationPath]; ok {
 		return true, nil
 	}

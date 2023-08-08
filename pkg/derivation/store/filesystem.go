@@ -40,7 +40,7 @@ type FSStore struct {
 }
 
 // Put is not implemented right now.
-func (fs *FSStore) Put(ctx context.Context, drv *derivation.Derivation) (string, error) {
+func (fs *FSStore) Put(_ context.Context, _ *derivation.Derivation) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
@@ -51,7 +51,7 @@ func (fs *FSStore) getFilepath(derivationPath string) string {
 }
 
 // Get retrieves a Derivation by drv path from the Derivation Store.
-func (fs *FSStore) Get(ctx context.Context, derivationPath string) (*derivation.Derivation, error) {
+func (fs *FSStore) Get(_ context.Context, derivationPath string) (*derivation.Derivation, error) {
 	path := fs.getFilepath(derivationPath)
 
 	f, err := os.Open(path)
@@ -70,7 +70,7 @@ func (fs *FSStore) Get(ctx context.Context, derivationPath string) (*derivation.
 // Has returns whether the derivation (by drv path) exists.
 // We only need pass this down to the cache, as everything
 // we did Get() is stored in there.
-func (fs *FSStore) Has(ctx context.Context, derivationPath string) (bool, error) {
+func (fs *FSStore) Has(_ context.Context, derivationPath string) (bool, error) {
 	path := fs.getFilepath(derivationPath)
 
 	// Stat the file. We do an lstat here, to not follow symlinks.
