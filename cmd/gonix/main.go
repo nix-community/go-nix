@@ -6,12 +6,14 @@ import (
 	"github.com/alecthomas/kong"
 	"github.com/nix-community/go-nix/cmd/gonix/drv"
 	"github.com/nix-community/go-nix/cmd/gonix/nar"
+	"github.com/nix-community/go-nix/cmd/gonix/narinfo"
 )
 
 //nolint:gochecknoglobals
 var cli struct {
-	Nar nar.Cmd `kong:"cmd,name='nar',help='Create or inspect NAR files'"`
-	Drv drv.Cmd `kong:"cmd,name='drv',help='Inspect NAR files'"`
+	Nar     nar.Cmd     `kong:"cmd,name='nar',help='Create or inspect NAR files'"`
+	Drv     drv.Cmd     `kong:"cmd,name='drv',help='Inspect NAR files'"`
+	NarInfo narinfo.Cmd `kong:"cmd,name='narinfo',help='Inspect narinfo files'"`
 }
 
 func main() {
