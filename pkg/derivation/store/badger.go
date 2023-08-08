@@ -137,7 +137,7 @@ func (bs *BadgerStore) Put(ctx context.Context, drv *derivation.Derivation) (str
 }
 
 // Get retrieves a Derivation by drv path from the Derivation Store.
-func (bs *BadgerStore) Get(ctx context.Context, derivationPath string) (*derivation.Derivation, error) {
+func (bs *BadgerStore) Get(_ context.Context, derivationPath string) (*derivation.Derivation, error) {
 	var drv *derivation.Derivation
 
 	err := bs.db.View(func(txn *badger.Txn) error {
@@ -169,7 +169,7 @@ func (bs *BadgerStore) Get(ctx context.Context, derivationPath string) (*derivat
 
 // Has returns whether the derivation (by drv path) exists.
 // This is done by using the Badger iterator with ValidForPrefix.
-func (bs *BadgerStore) Has(ctx context.Context, derivationPath string) (bool, error) {
+func (bs *BadgerStore) Has(_ context.Context, derivationPath string) (bool, error) {
 	found := false
 
 	err := bs.db.View(func(txn *badger.Txn) error {

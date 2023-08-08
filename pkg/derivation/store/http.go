@@ -36,7 +36,7 @@ type HTTPStore struct {
 }
 
 // Put is not implemented right now.
-func (hs *HTTPStore) Put(ctx context.Context, drv *derivation.Derivation) (string, error) {
+func (hs *HTTPStore) Put(_ context.Context, _ *derivation.Derivation) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }
 
