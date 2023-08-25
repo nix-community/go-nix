@@ -1,6 +1,6 @@
 module github.com/nix-community/go-nix
 
-go 1.17
+go 1.20
 
 require (
 	github.com/alecthomas/kong v0.5.0

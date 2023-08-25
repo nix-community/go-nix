@@ -85,7 +85,7 @@ func BenchmarkEncode(b *testing.B) {
 
 	for _, s := range sizes {
 		bytes := make([]byte, s)
-		rand.Read(bytes) //nolint:gosec
+		rand.Read(bytes) //nolint:gosec,staticcheck
 
 		b.Run(strconv.Itoa(s), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
@@ -100,7 +100,7 @@ func BenchmarkDecode(b *testing.B) {
 
 	for _, s := range sizes {
 		bytes := make([]byte, s)
-		rand.Read(bytes) //nolint:gosec
+		rand.Read(bytes) //nolint:gosec,staticcheck
 		input := nixbase32.EncodeToString(bytes)
 
 		b.Run(strconv.Itoa(s), func(b *testing.B) {
