@@ -115,7 +115,12 @@ func TestStores(t *testing.T) {
 						drvPath, err := store.Put(context.Background(), drv)
 
 						assert.NoError(t, err, "Put()'ing the derivation shouldn't cause an error")
-						assert.Equal(t, nixpath.Absolute(c.DerivationFile), drvPath)
+
+						npExpected, err := nixpath.FromString(c.DerivationFile)
+						if err != nil {
+							panic(err)
+						}
+						assert.Equal(t, npExpected.Absolute(), drvPath)
 					})
 				}
 			})

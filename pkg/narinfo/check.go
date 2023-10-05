@@ -14,23 +14,20 @@ import (
 //   - when no compression is present, ensuring File{Hash,Size} and
 //     Nar{Hash,Size} are equal
 func (n *NarInfo) Check() error {
-	_, err := nixpath.FromString(n.StorePath)
+	_, err := nixpath.FromAbsolutePath(n.StorePath)
 	if err != nil {
-		return fmt.Errorf("invalid NixPath at StorePath: %v", n.StorePath)
+		return fmt.Errorf("invalid NixPath at StorePath: %v: %s", n.StorePath, err)
 	}
 
 	for i, r := range n.References {
-		referenceAbsolute := nixpath.Absolute(r)
-		_, err = nixpath.FromString(referenceAbsolute)
+		_, err = nixpath.FromString(r)
 
 		if err != nil {
 			return fmt.Errorf("invalid NixPath at Reference[%d]: %v", i, r)
 		}
 	}
 
-	deriverAbsolute := nixpath.Absolute(n.Deriver)
-
-	_, err = nixpath.FromString(deriverAbsolute)
+	_, err = nixpath.FromString(n.Deriver)
 	if err != nil {
 		return fmt.Errorf("invalid NixPath at Deriver: %v", n.Deriver)
 	}

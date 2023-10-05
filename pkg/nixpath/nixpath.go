@@ -28,10 +28,10 @@ var (
 	// Length of the hash portion of the store path in base32.
 	encodedPathHashSize = nixbase32.EncodedLen(PathHashSize)
 
-	// Offset in path string to name.
-	nameOffset = len(StoreDir) + 1 + encodedPathHashSize + 1
-	// Offset in path string to hash.
+	// Offset in absolute string to hash.
 	hashOffset = len(StoreDir) + 1
+	// Offset in relative path string to name.
+	nameOffset = encodedPathHashSize + 1
 )
 
 // NixPath represents a bare nix store path, without any paths underneath `/nix/store/…-…`.
@@ -40,23 +40,34 @@ type NixPath struct {
 	Digest []byte
 }
 
+// String returns a NixPath without StoreDir.
+// It starts with a digest (20 bytes), nixbase32-encoded,
+// followed by a `-`, and ends with the name.
 func (n *NixPath) String() string {
-	return Absolute(nixbase32.EncodeToString(n.Digest) + "-" + n.Name)
+	return nixbase32.EncodeToString(n.Digest) + "-" + n.Name
 }
 
+// Absolute returns a NixPath with StoreDir and slash prepended.
+// We use forward slashes on all architectures (including Windows), to be
+// consistent in hashing contexts.
+func (n *NixPath) Absolute() string {
+	return path.Join(StoreDir, n.String())
+}
+
+// Validate validates a NixPath, verifying it's syntactically valid.
 func (n *NixPath) Validate() error {
-	return Validate(n.String())
+	return Validate(n.Absolute())
 }
 
-// FromString parses a path string into a nix path,
-// verifying it's syntactically valid
+// FromString parses a nixpath string (without store prefix) into a NixPath,
+// verifying it's syntactically valid.
 // It returns an error if it fails to parse.
 func FromString(s string) (*NixPath, error) {
-	if err := Validate(s); err != nil {
+	if err := Validate(path.Join(StoreDir, s)); err != nil {
 		return nil, err
 	}
 
-	digest, err := nixbase32.DecodeString(s[hashOffset : hashOffset+encodedPathHashSize])
+	digest, err := nixbase32.DecodeString(s[:nameOffset-1])
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode hash: %v", err)
 	}
@@ -67,19 +78,20 @@ func FromString(s string) (*NixPath, error) {
 	}, nil
 }
 
-// Absolute prefixes a nixpath name with StoreDir and a '/', and cleans the path.
-// It does not prevent from leaving StoreDir, so check if it still starts with StoreDir
-// if you accept untrusted input.
-// This should be used when assembling store paths in hashing contexts.
-// Even if this code is running on windows, we want to use forward
-// slashes to construct them.
-func Absolute(name string) string {
-	return path.Join(StoreDir, name)
+// FromAbsolutePath parses a nixpath String (including store prefix) into a
+// NixPath, verifying it's syntactically valid.
+// It returns an error if it fails to parse.
+func FromAbsolutePath(s string) (*NixPath, error) {
+	if len(s) < hashOffset+nameOffset+1 {
+		return nil, fmt.Errorf("unable to parse path: invalid path length %d for path %v", len(s), s)
+	}
+
+	return FromString(s[hashOffset:])
 }
 
-// Validate validates a path string, verifying it's syntactically valid.
+// Validate validates an absolute nixpath string, verifying it's syntactically valid.
 func Validate(s string) error {
-	if len(s) < nameOffset+1 {
+	if len(s) < hashOffset+encodedPathHashSize+1 {
 		return fmt.Errorf("unable to parse path: invalid path length %d for path %v", len(s), s)
 	}
 

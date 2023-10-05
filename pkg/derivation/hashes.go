@@ -7,7 +7,6 @@ import (
 	chash "hash"
 
 	"github.com/nix-community/go-nix/pkg/hash"
-	"github.com/nix-community/go-nix/pkg/nixbase32"
 	"github.com/nix-community/go-nix/pkg/nixpath"
 )
 
@@ -117,10 +116,12 @@ func (d *Derivation) CalculateOutputPaths(inputDrvReplacements map[string]string
 			)
 		}
 
-		calculatedPath := nixpath.Absolute(nixbase32.EncodeToString(hash.CompressHash(storeHash, 20)) +
-			"-" + outputPathName)
+		calculatedPath := nixpath.NixPath{
+			Name:   outputPathName,
+			Digest: hash.CompressHash(storeHash, 20),
+		}
 
-		outputPaths[outputName] = calculatedPath
+		outputPaths[outputName] = calculatedPath.Absolute()
 
 		h.Reset()
 	}

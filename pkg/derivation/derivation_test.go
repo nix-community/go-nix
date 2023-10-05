@@ -219,7 +219,13 @@ func TestWriter(t *testing.T) {
 
 				drvPath, err := drv.DrvPath()
 				assert.NoError(t, err, "calling DrvPath shouldn't error")
-				assert.Equal(t, nixpath.Absolute(c.DerivationFile), drvPath,
+
+				npExpected, err := nixpath.FromString(c.DerivationFile)
+				if err != nil {
+					panic(npExpected)
+				}
+
+				assert.Equal(t, npExpected.Absolute(), drvPath,
 					"drv path should be calculated correctly")
 			})
 		}
@@ -418,7 +424,12 @@ func TestDrvPath(t *testing.T) {
 				panic(err)
 			}
 
-			assert.Equal(t, nixpath.Absolute(c.DerivationFile), drvPath)
+			npExpected, err := nixpath.FromString(c.DerivationFile)
+			if err != nil {
+				panic(npExpected)
+			}
+
+			assert.Equal(t, npExpected.Absolute(), drvPath)
 		})
 	}
 }
