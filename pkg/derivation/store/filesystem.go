@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/nix-community/go-nix/pkg/derivation"
-	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
 // FSStore implements derivation.Store.
@@ -17,10 +17,10 @@ var _ derivation.Store = &FSStore{}
 
 // NewFSStore returns a store exposing all `.drv` files in the directory
 // specified by storageDir.
-// If storageDir is set to an empty string, nixpath.StoreDir is used as a directory.
+// If storageDir is set to an empty string, storepath.StoreDir is used as a directory.
 func NewFSStore(storageDir string) (*FSStore, error) {
 	if storageDir == "" {
-		storageDir = nixpath.StoreDir
+		storageDir = storepath.StoreDir
 	}
 
 	return &FSStore{

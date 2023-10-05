@@ -7,8 +7,7 @@ import (
 	chash "hash"
 
 	"github.com/nix-community/go-nix/pkg/hash"
-	"github.com/nix-community/go-nix/pkg/nixbase32"
-	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
 //nolint:gochecknoglobals
@@ -82,7 +81,7 @@ func (d *Derivation) CalculateOutputPaths(inputDrvReplacements map[string]string
 					"source",
 					"sha256",
 					o.Hash,
-					nixpath.StoreDir,
+					storepath.StoreDir,
 					derivationName,
 				)
 			} else {
@@ -96,7 +95,7 @@ func (d *Derivation) CalculateOutputPaths(inputDrvReplacements map[string]string
 					"out",
 					"sha256",
 					fixedHex,
-					nixpath.StoreDir,
+					storepath.StoreDir,
 					derivationName,
 				)
 			}
@@ -112,15 +111,17 @@ func (d *Derivation) CalculateOutputPaths(inputDrvReplacements map[string]string
 				outputName,
 				"sha256",
 				maskedATermHash,
-				nixpath.StoreDir,
+				storepath.StoreDir,
 				outputPathName,
 			)
 		}
 
-		calculatedPath := nixpath.Absolute(nixbase32.EncodeToString(hash.CompressHash(storeHash, 20)) +
-			"-" + outputPathName)
+		calculatedPath := storepath.StorePath{
+			Name:   outputPathName,
+			Digest: hash.CompressHash(storeHash, 20),
+		}
 
-		outputPaths[outputName] = calculatedPath
+		outputPaths[outputName] = calculatedPath.Absolute()
 
 		h.Reset()
 	}

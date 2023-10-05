@@ -3,7 +3,7 @@ package derivation
 import (
 	"fmt"
 
-	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
 // Derivation describes all data in a .drv, which canonically is expressed in ATerm format.
@@ -76,7 +76,7 @@ func (d *Derivation) Validate() error {
 	}
 
 	for inputDerivationPath := range d.InputDerivations {
-		err := nixpath.Validate(inputDerivationPath)
+		err := storepath.Validate(inputDerivationPath)
 		if err != nil {
 			return err
 		}
@@ -98,7 +98,7 @@ func (d *Derivation) Validate() error {
 	}
 
 	for i, is := range d.InputSources {
-		err := nixpath.Validate(is)
+		err := storepath.Validate(is)
 		if err != nil {
 			return fmt.Errorf("error validating input source '%s': %w", is, err)
 		}

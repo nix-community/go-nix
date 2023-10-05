@@ -43,7 +43,7 @@ func (hs *HTTPStore) Put(_ context.Context, _ *derivation.Derivation) (string, e
 // getURL returns the full url to a derivation path,
 // with respect to the configured BaseURL.
 // It constructs the URL by appending the derivation path,
-// cleaned by nixpath.StoreDir.
+// cleaned by storepath.StoreDir.
 func (hs *HTTPStore) getURL(derivationPath string) url.URL {
 	// copy the base url
 	url := *hs.BaseURL

@@ -3,7 +3,7 @@ package references_test
 import (
 	"testing"
 
-	"github.com/nix-community/go-nix/pkg/nixpath/references"
+	"github.com/nix-community/go-nix/pkg/storepath/references"
 	"github.com/stretchr/testify/assert"
 )
 

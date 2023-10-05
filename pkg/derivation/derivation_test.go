@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/derivation"
-	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/storepath"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -219,7 +219,13 @@ func TestWriter(t *testing.T) {
 
 				drvPath, err := drv.DrvPath()
 				assert.NoError(t, err, "calling DrvPath shouldn't error")
-				assert.Equal(t, nixpath.Absolute(c.DerivationFile), drvPath,
+
+				spExpected, err := storepath.FromString(c.DerivationFile)
+				if err != nil {
+					panic(spExpected)
+				}
+
+				assert.Equal(t, spExpected.Absolute(), drvPath,
 					"drv path should be calculated correctly")
 			})
 		}
@@ -418,7 +424,12 @@ func TestDrvPath(t *testing.T) {
 				panic(err)
 			}
 
-			assert.Equal(t, nixpath.Absolute(c.DerivationFile), drvPath)
+			spExpected, err := storepath.FromString(c.DerivationFile)
+			if err != nil {
+				panic(spExpected)
+			}
+
+			assert.Equal(t, spExpected.Absolute(), drvPath)
 		})
 	}
 }

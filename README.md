@@ -37,10 +37,10 @@ A parser and generator for `.narinfo` files.
 An implementation of the slightly odd "base32" encoding that's used in Nix,
 providing some of the functions in `encoding/base32.Encoding`.
 
-## `pkg/nixpath`
+## `pkg/storepath`
 A parser and regexes for Nix Store Paths.
 
-## `pkg/nixpath/references`
+## `pkg/storepath/references`
 A Nix Store path reference scanner.
 
 ## `pkg/wire`
