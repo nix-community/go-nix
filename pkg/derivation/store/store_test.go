@@ -8,7 +8,7 @@ import (
 
 	"github.com/nix-community/go-nix/pkg/derivation"
 	"github.com/nix-community/go-nix/pkg/derivation/store"
-	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/storepath"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -116,11 +116,11 @@ func TestStores(t *testing.T) {
 
 						assert.NoError(t, err, "Put()'ing the derivation shouldn't cause an error")
 
-						npExpected, err := nixpath.FromString(c.DerivationFile)
+						spExpected, err := storepath.FromString(c.DerivationFile)
 						if err != nil {
 							panic(err)
 						}
-						assert.Equal(t, npExpected.Absolute(), drvPath)
+						assert.Equal(t, spExpected.Absolute(), drvPath)
 					})
 				}
 			})

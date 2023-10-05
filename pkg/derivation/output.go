@@ -1,7 +1,7 @@
 package derivation
 
 import (
-	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
 type Output struct {
@@ -11,5 +11,5 @@ type Output struct {
 }
 
 func (o *Output) Validate() error {
-	return nixpath.Validate(o.Path)
+	return storepath.Validate(o.Path)
 }

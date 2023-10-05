@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/derivation/store"
-	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/storepath"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +33,7 @@ func TestFSStore(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Title, func(t *testing.T) {
-			drvPath, err := nixpath.FromString(c.DerivationFile)
+			drvPath, err := storepath.FromString(c.DerivationFile)
 			if err != nil {
 				panic(err)
 			}

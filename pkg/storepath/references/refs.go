@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/nix-community/go-nix/pkg/nixbase32"
-	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
 const (
-	storePrefixLength = len(nixpath.StoreDir) + 1
+	storePrefixLength = len(storepath.StoreDir) + 1
 	refLength         = len(nixbase32.Alphabet) // Store path hash prefix length
 )
 
@@ -35,12 +35,12 @@ func NewReferenceScanner(storePathCandidates []string) (*ReferenceScanner, error
 	hashes := make(map[string]string)
 
 	for _, storePath := range storePathCandidates {
-		if !strings.HasPrefix(storePath, nixpath.StoreDir) {
+		if !strings.HasPrefix(storePath, storepath.StoreDir) {
 			return nil, fmt.Errorf("missing store path prefix: %s", storePath)
 		}
 
 		// Check length is a valid store path length including dashes
-		if len(storePath) < len(nixpath.StoreDir)+refLength+3 {
+		if len(storePath) < len(storepath.StoreDir)+refLength+3 {
 			return nil, fmt.Errorf("invalid store path length: %d for store path '%s'", len(storePath), storePath)
 		}
 

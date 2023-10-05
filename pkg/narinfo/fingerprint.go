@@ -3,7 +3,7 @@ package narinfo
 import (
 	"strconv"
 
-	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
 // Fingerprint is the digest that will be used with a private key to generate
@@ -19,7 +19,7 @@ func (n NarInfo) Fingerprint() string {
 	}
 
 	for _, ref := range n.References {
-		f += nixpath.StoreDir + "/" + ref + ","
+		f += storepath.StoreDir + "/" + ref + ","
 	}
 
 	return f[:len(f)-1]

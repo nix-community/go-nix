@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
 // Check does some sanity checking on a NarInfo struct, such as:
@@ -14,22 +14,22 @@ import (
 //   - when no compression is present, ensuring File{Hash,Size} and
 //     Nar{Hash,Size} are equal
 func (n *NarInfo) Check() error {
-	_, err := nixpath.FromAbsolutePath(n.StorePath)
+	_, err := storepath.FromAbsolutePath(n.StorePath)
 	if err != nil {
-		return fmt.Errorf("invalid NixPath at StorePath: %v: %s", n.StorePath, err)
+		return fmt.Errorf("invalid StorePath: %v: %s", n.StorePath, err)
 	}
 
 	for i, r := range n.References {
-		_, err = nixpath.FromString(r)
+		_, err = storepath.FromString(r)
 
 		if err != nil {
-			return fmt.Errorf("invalid NixPath at Reference[%d]: %v", i, r)
+			return fmt.Errorf("invalid Reference[%d]: %v", i, r)
 		}
 	}
 
-	_, err = nixpath.FromString(n.Deriver)
+	_, err = storepath.FromString(n.Deriver)
 	if err != nil {
-		return fmt.Errorf("invalid NixPath at Deriver: %v", n.Deriver)
+		return fmt.Errorf("invalid Deriver: %v", n.Deriver)
 	}
 
 	if n.Compression != "none" {

@@ -6,14 +6,14 @@ import (
 	"sort"
 
 	"github.com/nix-community/go-nix/pkg/hash"
-	"github.com/nix-community/go-nix/pkg/nixpath"
+	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
 //nolint:gochecknoglobals
 var (
 	textColon     = []byte("text:")
 	sha256Colon   = []byte("sha256:")
-	storeDirColon = []byte(nixpath.StoreDir + ":")
+	storeDirColon = []byte(storepath.StoreDir + ":")
 	dotDrv        = []byte(".drv")
 )
 
@@ -94,7 +94,7 @@ func (d *Derivation) DrvPath() (string, error) {
 
 	atermDigest = h.Sum(nil)
 
-	np := nixpath.NixPath{
+	np := storepath.StorePath{
 		Name:   name + ".drv",
 		Digest: hash.CompressHash(atermDigest, 20),
 	}
