@@ -33,29 +33,12 @@ func ParseNixBase32(s string) (*Hash, error) {
 	}
 
 	// The digest afterwards is nixbase32-encoded.
-	// Calculate the length of that string, in nixbase32 encoding
-	h, err := mh.GetHasher(uint64(hashType))
-	if err != nil {
-		return nil, err
-	}
-
-	digestLenBytes := h.Size()
-	encodedDigestLen := nixbase32.EncodedLen(digestLenBytes)
-
 	encodedDigestStr := s[i+1:]
-	if len(encodedDigestStr) != encodedDigestLen {
-		return nil, fmt.Errorf("invalid length for encoded digest line %v", s)
-	}
 
 	digest, err := nixbase32.DecodeString(encodedDigestStr)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Hash{
-		HashType: hashType,
-		// even though the hash function is never written too, we still keep it around, for h.hash.Size() checks etc.
-		hash:   h,
-		digest: digest,
-	}, nil
+	return FromHashTypeAndDigest(hashType, digest)
 }
