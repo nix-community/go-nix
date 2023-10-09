@@ -32,11 +32,6 @@ func (h *Hash) Multihash() []byte {
 func (h *Hash) NixString() string {
 	digest := h.Digest()
 
-	// This can only occur if the struct is filled manually
-	if h.hash.Size() != len(digest) {
-		panic("invalid digest length")
-	}
-
 	if hashStr, ok := hashtypeToNixHashString[h.HashType]; ok {
 		return fmt.Sprintf("%v:%v", hashStr, nixbase32.EncodeToString(digest))
 	}
@@ -46,11 +41,6 @@ func (h *Hash) NixString() string {
 
 func (h *Hash) SRIString() string {
 	digest := h.Digest()
-
-	// This can only occur if the struct is filled manually
-	if h.hash.Size() != len(digest) {
-		panic("invalid digest length")
-	}
 
 	if hashStr, ok := hashtypeToNixHashString[h.HashType]; ok {
 		return fmt.Sprintf("%v-%v", hashStr, base64.StdEncoding.EncodeToString(digest))
