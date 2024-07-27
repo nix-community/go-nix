@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"sort"
 
-	"github.com/nix-community/go-nix/pkg/hash"
 	"github.com/nix-community/go-nix/pkg/nixbase32"
+	"github.com/nix-community/go-nix/pkg/nixhash"
 	"github.com/nix-community/go-nix/pkg/nixpath"
 )
 
@@ -80,5 +80,5 @@ func (d *Derivation) DrvPath() (string, error) {
 
 	atermDigest = h.Sum(nil)
 
-	return nixpath.Absolute(nixbase32.EncodeToString(hash.CompressHash(atermDigest, 20)) + "-" + name + ".drv"), nil
+	return nixpath.Absolute(nixbase32.EncodeToString(nixhash.CompressHash(atermDigest, 20)) + "-" + name + ".drv"), nil
 }
