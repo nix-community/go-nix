@@ -14,12 +14,12 @@ type NarInfo struct {
 	URL         string // The relative location to the .nar[.xz,…] file. Usually nar/$fileHash.nar[.xz]
 	Compression string // The compression method file at URL is compressed with (none,xz,…)
 
-	FileHash *nixhash.Hash // The hash of the file at URL
-	FileSize uint64        // The size of the file at URL, in bytes
+	FileHash *nixhash.HashWithEncoding // The hash of the file at URL
+	FileSize uint64                    // The size of the file at URL, in bytes
 
 	// The hash of the .nar file, after possible decompression
 	// Identical to FileHash if no compression is used.
-	NarHash *nixhash.Hash
+	NarHash *nixhash.HashWithEncoding
 	// The size of the .nar file, after possible decompression, in bytes.
 	// Identical to FileSize if no compression is used.
 	NarSize uint64
@@ -48,11 +48,11 @@ func (n *NarInfo) String() string {
 	fmt.Fprintf(&buf, "Compression: %v\n", n.Compression)
 
 	if n.FileHash != nil && n.FileSize != 0 {
-		fmt.Fprintf(&buf, "FileHash: %s\n", n.FileHash.Format(nixhash.NixBase32, true))
+		fmt.Fprintf(&buf, "FileHash: %s\n", n.FileHash.String())
 		fmt.Fprintf(&buf, "FileSize: %d\n", n.FileSize)
 	}
 
-	fmt.Fprintf(&buf, "NarHash: %s\n", n.NarHash.Format(nixhash.NixBase32, true))
+	fmt.Fprintf(&buf, "NarHash: %s\n", n.NarHash.String())
 
 	fmt.Fprintf(&buf, "NarSize: %d\n", n.NarSize)
 

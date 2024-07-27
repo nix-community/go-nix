@@ -45,7 +45,7 @@ func Parse(r io.Reader) (*NarInfo, error) {
 		case "Compression":
 			narInfo.Compression = v
 		case "FileHash":
-			narInfo.FileHash, err = nixhash.ParseNixBase32(v)
+			narInfo.FileHash, err = nixhash.ParseAny(v, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -55,7 +55,7 @@ func Parse(r io.Reader) (*NarInfo, error) {
 				return nil, err
 			}
 		case "NarHash":
-			narInfo.NarHash, err = nixhash.ParseNixBase32(v)
+			narInfo.NarHash, err = nixhash.ParseAny(v, nil)
 			if err != nil {
 				return nil, err
 			}
