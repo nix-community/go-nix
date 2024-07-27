@@ -25,6 +25,16 @@ func NewHashWithEncoding(
 	}, nil
 }
 
+func MustNewHashWithEncoding(algo Algorithm, digest []byte, encoding Encoding, includeAlgo bool) *HashWithEncoding {
+	h := MustNewHash(algo, digest)
+
+	return &HashWithEncoding{
+		Hash:        *h,
+		encoding:    encoding,
+		includeAlgo: includeAlgo,
+	}
+}
+
 // String return the previous representation of a given hash.
 func (h HashWithEncoding) String() string {
 	return h.Format(h.encoding, h.includeAlgo)
