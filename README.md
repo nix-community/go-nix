@@ -21,7 +21,7 @@ Functions to calculate derivation paths and output hashes.
 
 A Structure to hold derivation graphs.
 
-## `pkg/hash`
+## `pkg/nixhash`
 
 Methods to serialize and deserialize some of the hashes used in nix code and
 `.narinfo` files.

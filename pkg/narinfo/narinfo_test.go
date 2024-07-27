@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nix-community/go-nix/pkg/hash"
 	"github.com/nix-community/go-nix/pkg/narinfo"
 	"github.com/nix-community/go-nix/pkg/narinfo/signature"
+	"github.com/nix-community/go-nix/pkg/nixhash"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -161,8 +161,8 @@ Sig: hydra.other.net-1:JXQ3Z/PXf0EZSFkFioa4FbyYpbbTbHlFBtZf4VqU0tuMTWzhMD7p9Q7ac
 	}
 )
 
-func mustParseNixBase32(s string) *hash.Hash {
-	h, err := hash.ParseNixBase32(s)
+func mustParseNixBase32(s string) *nixhash.Hash {
+	h, err := nixhash.ParseNixBase32(s)
 	if err != nil {
 		panic(err)
 	}

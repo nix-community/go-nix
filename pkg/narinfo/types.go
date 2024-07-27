@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/nix-community/go-nix/pkg/hash"
 	"github.com/nix-community/go-nix/pkg/narinfo/signature"
+	"github.com/nix-community/go-nix/pkg/nixhash"
 )
 
 // NarInfo represents a parsed .narinfo file.
@@ -15,12 +15,12 @@ type NarInfo struct {
 	URL         string // The relative location to the .nar[.xz,…] file. Usually nar/$fileHash.nar[.xz]
 	Compression string // The compression method file at URL is compressed with (none,xz,…)
 
-	FileHash *hash.Hash // The hash of the file at URL
-	FileSize uint64     // The size of the file at URL, in bytes
+	FileHash *nixhash.Hash // The hash of the file at URL
+	FileSize uint64        // The size of the file at URL, in bytes
 
 	// The hash of the .nar file, after possible decompression
 	// Identical to FileHash if no compression is used.
-	NarHash *hash.Hash
+	NarHash *nixhash.Hash
 	// The size of the .nar file, after possible decompression, in bytes.
 	// Identical to FileSize if no compression is used.
 	NarSize uint64
@@ -49,11 +49,11 @@ func (n *NarInfo) String() string {
 	fmt.Fprintf(&buf, "Compression: %v\n", n.Compression)
 
 	if n.FileHash != nil && n.FileSize != 0 {
-		fmt.Fprintf(&buf, "FileHash: %v\n", n.FileHash.NixString())
+		fmt.Fprintf(&buf, "FileHash: %s\n", n.FileHash.Format(nixhash.NixBase32, true))
 		fmt.Fprintf(&buf, "FileSize: %d\n", n.FileSize)
 	}
 
-	fmt.Fprintf(&buf, "NarHash: %v\n", n.NarHash.NixString())
+	fmt.Fprintf(&buf, "NarHash: %s\n", n.NarHash.Format(nixhash.NixBase32, true))
 
 	fmt.Fprintf(&buf, "NarSize: %d\n", n.NarSize)
 

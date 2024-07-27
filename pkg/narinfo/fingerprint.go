@@ -3,6 +3,7 @@ package narinfo
 import (
 	"strconv"
 
+	"github.com/nix-community/go-nix/pkg/nixhash"
 	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
@@ -11,7 +12,7 @@ import (
 func (n NarInfo) Fingerprint() string {
 	f := "1;" +
 		n.StorePath + ";" +
-		n.NarHash.NixString() + ";" +
+		n.NarHash.Format(nixhash.NixBase32, true) + ";" +
 		strconv.FormatUint(n.NarSize, 10) + ";"
 
 	if len(n.References) == 0 {

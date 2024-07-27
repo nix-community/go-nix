@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/nix-community/go-nix/pkg/hash"
 	"github.com/nix-community/go-nix/pkg/narinfo/signature"
+	"github.com/nix-community/go-nix/pkg/nixhash"
 )
 
 // Parse reads a .narinfo file content
@@ -46,7 +46,7 @@ func Parse(r io.Reader) (*NarInfo, error) {
 		case "Compression":
 			narInfo.Compression = v
 		case "FileHash":
-			narInfo.FileHash, err = hash.ParseNixBase32(v)
+			narInfo.FileHash, err = nixhash.ParseNixBase32(v)
 			if err != nil {
 				return nil, err
 			}
@@ -56,7 +56,7 @@ func Parse(r io.Reader) (*NarInfo, error) {
 				return nil, err
 			}
 		case "NarHash":
-			narInfo.NarHash, err = hash.ParseNixBase32(v)
+			narInfo.NarHash, err = nixhash.ParseNixBase32(v)
 			if err != nil {
 				return nil, err
 			}

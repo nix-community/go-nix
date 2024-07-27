@@ -1,4 +1,4 @@
-package hash
+package nixhash
 
 // CompressHash takes an arbitrary long sequence of bytes (usually a hash digest),
 // and returns a sequence of bytes of length newSize.
