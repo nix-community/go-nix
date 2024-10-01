@@ -9,7 +9,7 @@ import (
 	"context"
 )
 
-const queryCache = `-- name: QueryCache :one
+const queryCache = `-- name: QueryCache :many
 select value, timestamp from Cache where domain = ? and key = ?
 `
 
@@ -23,11 +23,27 @@ type QueryCacheRow struct {
 	Timestamp int64
 }
 
-func (q *Queries) QueryCache(ctx context.Context, arg QueryCacheParams) (QueryCacheRow, error) {
-	row := q.db.QueryRowContext(ctx, queryCache, arg.Domain, arg.Key)
-	var i QueryCacheRow
-	err := row.Scan(&i.Value, &i.Timestamp)
-	return i, err
+func (q *Queries) QueryCache(ctx context.Context, arg QueryCacheParams) ([]QueryCacheRow, error) {
+	rows, err := q.db.QueryContext(ctx, queryCache, arg.Domain, arg.Key)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []QueryCacheRow
+	for rows.Next() {
+		var i QueryCacheRow
+		if err := rows.Scan(&i.Value, &i.Timestamp); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const upsertCache = `-- name: UpsertCache :exec

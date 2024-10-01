@@ -150,7 +150,7 @@ func (q *Queries) PurgeNars(ctx context.Context, arg PurgeNarsParams) error {
 	return err
 }
 
-const queryCache = `-- name: QueryCache :one
+const queryCache = `-- name: QueryCache :many
 select id, storeDir, wantMassQuery, priority from BinaryCaches where url = ? and timestamp > ?
 `
 
@@ -166,17 +166,32 @@ type QueryCacheRow struct {
 	Priority      int64
 }
 
-// todo should this be :many?
-func (q *Queries) QueryCache(ctx context.Context, arg QueryCacheParams) (QueryCacheRow, error) {
-	row := q.db.QueryRowContext(ctx, queryCache, arg.Url, arg.Timestamp)
-	var i QueryCacheRow
-	err := row.Scan(
-		&i.ID,
-		&i.Storedir,
-		&i.Wantmassquery,
-		&i.Priority,
-	)
-	return i, err
+func (q *Queries) QueryCache(ctx context.Context, arg QueryCacheParams) ([]QueryCacheRow, error) {
+	rows, err := q.db.QueryContext(ctx, queryCache, arg.Url, arg.Timestamp)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []QueryCacheRow
+	for rows.Next() {
+		var i QueryCacheRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Storedir,
+			&i.Wantmassquery,
+			&i.Priority,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const queryLastPurge = `-- name: QueryLastPurge :one
@@ -190,7 +205,7 @@ func (q *Queries) QueryLastPurge(ctx context.Context) (sql.NullInt64, error) {
 	return value, err
 }
 
-const queryNar = `-- name: QueryNar :one
+const queryNar = `-- name: QueryNar :many
 select present, namePart, url, compression, fileHash, fileSize, narHash, narSize, refs, deriver, sigs, ca from NARs
 where cache = ? and hashPart = ? and ((present = 0 and timestamp > ?) or (present = 1 and timestamp > ?))
 `
@@ -217,30 +232,45 @@ type QueryNarRow struct {
 	Ca          sql.NullString
 }
 
-// todo should this be :many?
-func (q *Queries) QueryNar(ctx context.Context, arg QueryNarParams) (QueryNarRow, error) {
-	row := q.db.QueryRowContext(ctx, queryNar,
+func (q *Queries) QueryNar(ctx context.Context, arg QueryNarParams) ([]QueryNarRow, error) {
+	rows, err := q.db.QueryContext(ctx, queryNar,
 		arg.Cache,
 		arg.Hashpart,
 		arg.Timestamp,
 		arg.Timestamp_2,
 	)
-	var i QueryNarRow
-	err := row.Scan(
-		&i.Present,
-		&i.Namepart,
-		&i.Url,
-		&i.Compression,
-		&i.Filehash,
-		&i.Filesize,
-		&i.Narhash,
-		&i.Narsize,
-		&i.Refs,
-		&i.Deriver,
-		&i.Sigs,
-		&i.Ca,
-	)
-	return i, err
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []QueryNarRow
+	for rows.Next() {
+		var i QueryNarRow
+		if err := rows.Scan(
+			&i.Present,
+			&i.Namepart,
+			&i.Url,
+			&i.Compression,
+			&i.Filehash,
+			&i.Filesize,
+			&i.Narhash,
+			&i.Narsize,
+			&i.Refs,
+			&i.Deriver,
+			&i.Sigs,
+			&i.Ca,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const queryRealisation = `-- name: QueryRealisation :many

@@ -5,8 +5,7 @@ on conflict (url)
 do update set timestamp = ?2, storeDir = ?3, wantMassQuery = ?4, priority = ?5
 returning id;
 
--- todo should this be :many?
--- name: QueryCache :one
+-- name: QueryCache :many
 select id, storeDir, wantMassQuery, priority from BinaryCaches where url = ? and timestamp > ?;
 
 -- name: InsertNar :exec
@@ -18,8 +17,7 @@ insert or replace into NARs(
 -- name: InsertMissingNAR :exec
 insert or replace into NARs(cache, hashPart, timestamp, present) values (?, ?, ?, 0);
 
--- todo should this be :many?
--- name: QueryNar :one
+-- name: QueryNar :many
 select present, namePart, url, compression, fileHash, fileSize, narHash, narSize, refs, deriver, sigs, ca from NARs
 where cache = ? and hashPart = ? and ((present = 0 and timestamp > ?) or (present = 1 and timestamp > ?));
 
