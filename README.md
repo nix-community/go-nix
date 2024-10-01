@@ -53,6 +53,28 @@ A parser and regexes for Nix Store Paths.
 
 A Nix Store path reference scanner.
 
+## `pkg/sqlite`
+
+A collection of interfaces and utilities for writing to and querying various `sqlite` databases that Nix uses.
+
+[sqlc]: https://github.com/sqlc-dev/sqlc
+
+## `pkg/sqlite/binary_cache_v6`
+
+[SQLC] generated code for querying the Nar Info Disk Cache, typically located at `$XDG_CACHE_HOME/nix/binary-cache-v6.sqlite`.
+
+## `pkg/sqlite/eval_cache_v5`
+
+[SQLC] generated code for querying an instance of the Eval Cache, typically located at `$XDG_CACHE_HOME/nix/eval-cache-v5/*.sqlite`.
+
+## `pkg/sqlite/fetcher_cache_v2`
+
+[SQLC] generated code for querying the fetcher cache, typically located in `$XDG_CACHE_HOME/nix/fetcher-cache-v2.sqlite`.
+
+## `pkg/sqlite/nix_v10`
+
+[SQLC] generated code for querying the main Nix database, typically located in `/nix/var/nix/db.sqlite`.
+
 ## `pkg/wire`
 
 Methods to parse and produce fields used in the low-level Nix wire protocol.
