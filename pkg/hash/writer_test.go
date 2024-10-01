@@ -31,6 +31,7 @@ func TestWriter(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
+
 		assert.Equal(t, expectedDigest, h.Multihash())
 	})
 
@@ -62,6 +63,7 @@ func TestWriter(t *testing.T) {
 	t.Run("reset", func(t *testing.T) {
 		h.Reset()
 		assert.Equal(t, uint64(0), h.BytesWritten())
+
 		if assert.NoError(t, err, "calling sum shouldn't error") {
 			assert.Equal(t, sha256DgstEmpty, h.Digest())
 			// calculate multihash

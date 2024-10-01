@@ -21,7 +21,7 @@ var stores = []struct {
 }{
 	{
 		Title: "MemoryStore",
-		NewStore: func(tmpDir string) derivation.Store {
+		NewStore: func(_ string) derivation.Store {
 			return store.NewMapStore()
 		},
 	}, {
@@ -120,6 +120,7 @@ func TestStores(t *testing.T) {
 						if err != nil {
 							panic(err)
 						}
+
 						assert.Equal(t, spExpected.Absolute(), drvPath)
 					})
 				}

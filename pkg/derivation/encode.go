@@ -106,10 +106,12 @@ func (d *Derivation) writeDerivation(
 	outputNames := make([]string, len(d.Outputs))
 	{
 		i := 0
+
 		for k := range d.Outputs {
 			outputNames[i] = k
 			i++
 		}
+
 		sort.Strings(outputNames)
 	}
 
@@ -129,6 +131,7 @@ func (d *Derivation) writeDerivation(
 			if !ok {
 				return fmt.Errorf("unable to find replacement for %s, but replacement requested", replacement)
 			}
+
 			inputDerivations[replacement] = outputNames
 		}
 	}
@@ -138,10 +141,12 @@ func (d *Derivation) writeDerivation(
 	inputDerivationPaths := make([]string, len(inputDerivations))
 	{
 		i := 0
+
 		for inputDerivationPath := range inputDerivations {
 			inputDerivationPaths[i] = inputDerivationPath
 			i++
 		}
+
 		sort.Strings(inputDerivationPaths)
 	}
 
@@ -150,10 +155,12 @@ func (d *Derivation) writeDerivation(
 	envKeys := make([]string, len(d.Env))
 	{
 		i := 0
+
 		for k := range d.Env {
 			envKeys[i] = k
 			i++
 		}
+
 		sort.Strings(envKeys)
 	}
 

@@ -18,7 +18,7 @@ var hashtypeToNixHashString = map[int]string{
 
 // Multihash returns the digest, in multihash format.
 func (h *Hash) Multihash() []byte {
-	d, _ := multihash.Encode(h.Digest(), uint64(h.HashType))
+	d, _ := multihash.Encode(h.Digest(), uint64(h.HashType)) //nolint:gosec
 	// "The error return is legacy; it is always nil."
 	return d
 }

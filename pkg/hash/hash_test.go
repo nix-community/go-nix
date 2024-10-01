@@ -12,6 +12,7 @@ func TestDigest(t *testing.T) {
 	t.Run("valid sha256", func(t *testing.T) {
 		nixString := "sha256:1rjs6c23nyf8zkmf7yxglz2q2m7v5kp51nc2m0lk4h998d0qiixs"
 		sriString := "sha256-useIQUMpQTIpqILZUO4s+1SBxaev++Pq/Mh5OwQzWuY="
+
 		h, err := hash.ParseNixBase32(nixString)
 		if assert.NoError(t, err) {
 			assert.Equal(t, mh.SHA2_256, h.HashType)
@@ -32,6 +33,7 @@ func TestDigest(t *testing.T) {
 	t.Run("valid sha512", func(t *testing.T) {
 		nixString := "sha512:37iwwa5iw4m6pkd6qs2c5lw13q7y16hw2rv4i1cx6jax6yibhn6fgajbwc8p4j1fc6iicpy5r1vi7hpfq3n6z1ikhm5kcyz2b1frk80" //nolint:lll
 		sriString := "sha512-AM3swhLfs1kqnDF8Ywd2F564Qy7+shgNc0GSixhfUj1nLFzRm66k6SxEsrPg0AR/8AicFiY0Nm1eUwmPRXEezw=="
+
 		h, err := hash.ParseNixBase32(nixString)
 		if assert.NoError(t, err) {
 			assert.Equal(t, mh.SHA2_512, h.HashType)

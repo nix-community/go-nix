@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	//nolint:revive
 	. "github.com/nix-community/go-nix/pkg/nixbase32"
 )
 
@@ -151,6 +152,7 @@ func BenchmarkEncode(b *testing.B) {
 		b.Run(strconv.Itoa(s), func(b *testing.B) {
 			b.ReportAllocs()
 			b.SetBytes(int64(len(bytes)))
+
 			for i := 0; i < b.N; i++ {
 				Encode(buf, bytes)
 			}
@@ -168,6 +170,7 @@ func BenchmarkEncodeToString(b *testing.B) {
 		b.Run(strconv.Itoa(s), func(b *testing.B) {
 			b.ReportAllocs()
 			b.SetBytes(int64(len(bytes)))
+
 			for i := 0; i < b.N; i++ {
 				EncodeToString(bytes)
 			}
@@ -189,6 +192,7 @@ func BenchmarkDecode(b *testing.B) {
 		b.Run(strconv.Itoa(s), func(b *testing.B) {
 			b.ReportAllocs()
 			b.SetBytes(int64(len(input)))
+
 			for i := 0; i < b.N; i++ {
 				if _, err := Decode(bytes, input); err != nil {
 					b.Fatal("error: %w", err)
@@ -209,6 +213,7 @@ func BenchmarkDecodeString(b *testing.B) {
 		b.Run(strconv.Itoa(s), func(b *testing.B) {
 			b.ReportAllocs()
 			b.SetBytes(int64(len(input)))
+
 			for i := 0; i < b.N; i++ {
 				_, err := DecodeString(input)
 				if err != nil {
@@ -230,6 +235,7 @@ func BenchmarkValidateString(b *testing.B) {
 		b.Run(strconv.Itoa(s), func(b *testing.B) {
 			b.ReportAllocs()
 			b.SetBytes(int64(len(input)))
+
 			for i := 0; i < b.N; i++ {
 				err := ValidateString(input)
 				if err != nil {

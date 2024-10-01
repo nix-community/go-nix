@@ -70,19 +70,21 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 			// keep track of the previous path read (if any), so we detect
 			// invalid encodings.
 			prevOutputName := ""
-			err = arrayEach(value, func(value []byte, index int) error {
+			err = arrayEach(value, func(value []byte, _ int) error {
 				output := &Output{}
 				outputName := ""
 
 				// Get every output field
 				err := arrayEach(value, func(value []byte, index int) error {
 					var err error
+
 					switch index {
 					case 0:
 						outputName, err = unquoteSlice(value)
 						if err != nil {
 							return err
 						}
+
 						if outputName <= prevOutputName {
 							return fmt.Errorf("invalid output order, %s <= %s", outputName, prevOutputName)
 						}
@@ -114,6 +116,7 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 				if outputName == "" {
 					return fmt.Errorf("output name for %s may not be empty", output.Path)
 				}
+
 				drv.Outputs[outputName] = output
 				prevOutputName = outputName
 
@@ -124,28 +127,31 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 			drv.InputDerivations = make(map[string][]string)
 			// InputDerivations are always lexicographically sorted by their path
 			prevInputDrvPath := ""
-			err = arrayEach(value, func(value []byte, index int) error {
+			err = arrayEach(value, func(value []byte, _ int) error {
 				inputDrvPath := ""
 				inputDrvNames := []string{}
 
 				err := arrayEach(value, func(value []byte, index int) error {
 					var err error
+
 					switch index {
 					case 0:
 						inputDrvPath, err = unquoteSlice(value)
 						if err != nil {
 							return err
 						}
+
 						if inputDrvPath <= prevInputDrvPath {
 							return fmt.Errorf("invalid input derivation order: %s <= %s", inputDrvPath, prevInputDrvPath)
 						}
 
 					case 1:
-						err := arrayEach(value, func(value []byte, index int) error {
+						err := arrayEach(value, func(value []byte, _ int) error {
 							unquoted, err := unquoteSlice(value)
 							if err != nil {
 								return err
 							}
+
 							inputDrvNames = append(inputDrvNames, unquoted)
 
 							return nil
@@ -171,11 +177,12 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 			})
 
 		case 2: // InputSources
-			err = arrayEach(value, func(value []byte, index int) error {
+			err = arrayEach(value, func(value []byte, _ int) error {
 				unquoted, err := unquoteSlice(value)
 				if err != nil {
 					return err
 				}
+
 				drv.InputSources = append(drv.InputSources, unquoted)
 
 				return nil
@@ -188,11 +195,12 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 			drv.Builder, err = unquoteSlice(value)
 
 		case 5: // Arguments
-			err = arrayEach(value, func(value []byte, index int) error {
+			err = arrayEach(value, func(value []byte, _ int) error {
 				unquoted, err := unquoteSlice(value)
 				if err != nil {
 					return err
 				}
+
 				drv.Arguments = append(drv.Arguments, unquoted)
 
 				return nil
@@ -201,19 +209,21 @@ func parseDerivation(derivationBytes []byte) (*Derivation, error) {
 		case 6: // Env
 			drv.Env = make(map[string]string)
 			prevEnvKey := ""
-			err = arrayEach(value, func(value []byte, index int) error {
+			err = arrayEach(value, func(value []byte, _ int) error {
 				envValue := ""
 				envKey := ""
 
 				// For every field
 				err := arrayEach(value, func(value []byte, index int) error {
 					var err error
+
 					switch index {
 					case 0:
 						envKey, err = unquoteSlice(value)
 						if err != nil {
 							return err
 						}
+
 						if envKey <= prevEnvKey {
 							return fmt.Errorf("invalid env var order: %s <= %s", envKey, prevEnvKey)
 						}

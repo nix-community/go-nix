@@ -129,7 +129,7 @@ func (nw *Writer) emitNode(currentHeader *Header) (*Header, error) {
 			return nil, err
 		}
 
-		nw.contentWriter, err = wire.NewBytesWriter(nw.w, uint64(currentHeader.Size))
+		nw.contentWriter, err = wire.NewBytesWriter(nw.w, uint64(currentHeader.Size)) //nolint:gosec
 		if err != nil {
 			return nil, err
 		}
