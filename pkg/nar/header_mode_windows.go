@@ -21,5 +21,5 @@ func (fi headerFileInfo) Mode() fs.FileMode {
 		mode = fs.ModeSymlink
 	}
 
-	return mode & ^fs.FileMode(0200)
+	return mode & ^fs.FileMode(0o200)
 }
