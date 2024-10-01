@@ -209,6 +209,7 @@ func TestWriter(t *testing.T) {
 				}
 
 				var sb strings.Builder
+
 				err = drv.WriteDerivation(&sb)
 				if err != nil {
 					panic(err)
@@ -312,9 +313,11 @@ func TestValidate(t *testing.T) {
 			// the first input derivation, and re-insert it with an empty key.
 			k := "/nix/store/073gancjdr3z1scm2p553v0k3cxj2cpy-fix-tests-when-building-without-regex-supports.patch.drv"
 			firstInputDrv, ok := drv.InputDerivations[k]
+
 			if !ok {
 				panic("missing key")
 			}
+
 			delete(drv.InputDerivations, k)
 			drv.InputDerivations[""] = firstInputDrv
 

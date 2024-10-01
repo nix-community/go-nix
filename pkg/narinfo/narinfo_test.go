@@ -230,6 +230,7 @@ func BenchmarkNarInfo(b *testing.B) {
 		defer f.Close()
 
 		var buf bytes.Buffer
+
 		_, err = io.ReadAll(&buf)
 		if err != nil {
 			panic(err)

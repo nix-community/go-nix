@@ -46,6 +46,7 @@ func TestDumpPathOneByteRegular(t *testing.T) {
 		if runtime.GOOS == "windows" {
 			return
 		}
+
 		tmpDir := t.TempDir()
 		p := filepath.Join(tmpDir, "a")
 
@@ -70,6 +71,7 @@ func TestDumpPathOneByteRegular(t *testing.T) {
 			if err != nil {
 				panic(err)
 			}
+
 			assert.True(t, hdr.Executable, "regular should be executable")
 		}
 	})
@@ -174,7 +176,7 @@ func TestDumpPathFilter(t *testing.T) {
 
 		var buf bytes.Buffer
 
-		err = nar.DumpPathFilter(&buf, tmpDir, func(name string, nodeType nar.NodeType) bool {
+		err = nar.DumpPathFilter(&buf, tmpDir, func(name string, _ nar.NodeType) bool {
 			return name != p
 		})
 		if assert.NoError(t, err) {

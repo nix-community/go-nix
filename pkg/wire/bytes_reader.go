@@ -22,7 +22,7 @@ type BytesReader struct {
 func NewBytesReader(r io.Reader, contentLength uint64) *BytesReader {
 	return &BytesReader{
 		contentLength: contentLength,
-		lr:            io.LimitReader(r, int64(contentLength)),
+		lr:            io.LimitReader(r, int64(contentLength)), //nolint:gosec
 		r:             r,
 	}
 }

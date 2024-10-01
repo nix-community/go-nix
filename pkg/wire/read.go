@@ -74,14 +74,14 @@ func ReadBytes(r io.Reader) (uint64, io.ReadCloser, error) {
 // A maximum number of bytes can be specified in max.
 // In the case of a packet exceeding the maximum number of bytes,
 // the reader won't seek to the end of the packet.
-func ReadBytesFull(r io.Reader, max uint64) ([]byte, error) {
+func ReadBytesFull(r io.Reader, maxBytes uint64) ([]byte, error) {
 	contentLength, rd, err := ReadBytes(r)
 	if err != nil {
 		return []byte{}, err
 	}
 
-	if contentLength > max {
-		return nil, fmt.Errorf("content length of %v bytes exceeds maximum of %v bytes", contentLength, max)
+	if contentLength > maxBytes {
+		return nil, fmt.Errorf("content length of %v bytes exceeds maximum of %v bytes", contentLength, maxBytes)
 	}
 
 	defer rd.Close()
@@ -96,8 +96,8 @@ func ReadBytesFull(r io.Reader, max uint64) ([]byte, error) {
 }
 
 // ReadString reads a bytes packet and converts it to string.
-func ReadString(r io.Reader, max uint64) (string, error) {
-	buf, err := ReadBytesFull(r, max)
+func ReadString(r io.Reader, maxBytes uint64) (string, error) {
+	buf, err := ReadBytesFull(r, maxBytes)
 
 	return string(buf), err
 }

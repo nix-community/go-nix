@@ -31,7 +31,6 @@ func decode(s string, dataSize int) (name string, data []byte, err error) {
 	}
 
 	data, err = base64.StdEncoding.DecodeString(dataStr)
-
 	if err != nil {
 		return "", nil, fmt.Errorf("data is corrupt: %w", err)
 	}

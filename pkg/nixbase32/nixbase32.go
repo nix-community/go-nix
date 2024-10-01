@@ -32,9 +32,9 @@ func Decode(dst, src []byte) (n int, err error) {
 	maxDstSize := DecodedLen(len(src))
 
 	for n := 0; n < len(src); n++ {
-		b := uint64(n) * 5
-		i := int(b / 8)
-		j := int(b % 8)
+		b := uint64(n) * 5 //nolint:gosec
+		i := int(b / 8)    //nolint:gosec
+		j := int(b % 8)    //nolint:gosec
 
 		c := src[len(src)-n-1]
 		digit := strings.IndexByte(Alphabet, c)
@@ -63,9 +63,9 @@ func ValidateString(src string) error {
 	maxDstSize := DecodedLen(len(src))
 
 	for n := 0; n < len(src); n++ {
-		b := uint64(n) * 5
-		i := int(b / 8)
-		j := int(b % 8)
+		b := uint64(n) * 5 //nolint:gosec
+		i := int(b / 8)    //nolint:gosec
+		j := int(b % 8)    //nolint:gosec
 
 		c := src[len(src)-n-1]
 		digit := strings.IndexByte(Alphabet, c)
@@ -107,8 +107,8 @@ func Encode(dst, src []byte) {
 
 	for n = n - 1; n >= 0; n-- {
 		b := uint64(n) * 5
-		i := int(b / 8)
-		j := int(b % 8)
+		i := int(b / 8) //nolint:gosec
+		j := int(b % 8) //nolint:gosec
 		c := src[i] >> j
 
 		if i+1 < len(src) {
@@ -129,8 +129,8 @@ func EncodeToString(src []byte) string {
 
 	for n = n - 1; n >= 0; n-- {
 		b := uint64(n) * 5
-		i := int(b / 8)
-		j := int(b % 8)
+		i := int(b / 8) //nolint:gosec
+		j := int(b % 8) //nolint:gosec
 		c := src[i] >> j
 
 		if i+1 < len(src) {

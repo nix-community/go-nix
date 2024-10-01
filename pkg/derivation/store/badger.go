@@ -107,6 +107,7 @@ func (bs *BadgerStore) Put(ctx context.Context, drv *derivation.Derivation) (str
 	err = bs.db.Update(func(txn *badger.Txn) error {
 		// store derivation itself
 		drvEntry := badger.NewEntry([]byte("drv:"+drvPath), buf.Bytes())
+
 		err := txn.SetEntry(drvEntry)
 		if err != nil {
 			return fmt.Errorf("unable to store derivation: %w", err)
@@ -120,15 +121,14 @@ func (bs *BadgerStore) Put(ctx context.Context, drv *derivation.Derivation) (str
 
 		// Store replacement string
 		replacementEntry := badger.NewEntry([]byte("replacement:"+drvPath), []byte(drvReplacement))
-		err = txn.SetEntry(replacementEntry)
 
+		err = txn.SetEntry(replacementEntry)
 		if err != nil {
 			return fmt.Errorf("unable to store replacement string: %w", err)
 		}
 
 		return nil
 	})
-
 	if err != nil {
 		return "", err
 	}
@@ -175,6 +175,7 @@ func (bs *BadgerStore) Has(_ context.Context, derivationPath string) (bool, erro
 	err := bs.db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
 		opts.PrefetchValues = false
+
 		it := txn.NewIterator(opts)
 		defer it.Close()
 
@@ -183,6 +184,7 @@ func (bs *BadgerStore) Has(_ context.Context, derivationPath string) (bool, erro
 		for it.Seek(key); it.Valid(); it.Next() {
 			item := it.Item()
 			k := item.Key()
+
 			if bytes.Equal(k, key) {
 				found = true
 

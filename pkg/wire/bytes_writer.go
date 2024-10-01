@@ -44,7 +44,7 @@ func (bw *BytesWriter) Write(p []byte) (n int, err error) {
 	}
 
 	bytesWritten, err := bw.w.Write(p)
-	bw.bytesWritten += uint64(bytesWritten)
+	bw.bytesWritten += uint64(bytesWritten) //nolint:gosec
 
 	return bytesWritten, err
 }

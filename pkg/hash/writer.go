@@ -8,7 +8,7 @@ import (
 )
 
 func New(hashType int) (*Hash, error) {
-	h, err := mh.GetHasher(uint64(hashType))
+	h, err := mh.GetHasher(uint64(hashType)) //nolint:gosec
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (h *Hash) Write(p []byte) (n int, err error) {
 		return 0, fmt.Errorf("unable to write to hash function: %w", err)
 	}
 
-	h.bytesWritten += uint64(n)
+	h.bytesWritten += uint64(n) //nolint:gosec
 
 	return n, nil
 }

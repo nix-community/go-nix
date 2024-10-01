@@ -21,7 +21,6 @@ func (n *NarInfo) Check() error {
 
 	for i, r := range n.References {
 		_, err = storepath.FromString(r)
-
 		if err != nil {
 			return fmt.Errorf("invalid Reference[%d]: %v", i, r)
 		}
