@@ -3,11 +3,13 @@ module github.com/nix-community/go-nix
 go 1.20
 
 require (
+	github.com/adrg/xdg v0.5.0
 	github.com/alecthomas/kong v0.5.0
 	github.com/dgraph-io/badger/v3 v3.2103.2
+	github.com/mattn/go-sqlite3 v1.14.23
 	github.com/multiformats/go-multihash v0.2.1
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.9.0
 )
 
 require (
@@ -33,7 +35,7 @@ require (
 	go.opencensus.io v0.22.5 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.1.6 // indirect
 )

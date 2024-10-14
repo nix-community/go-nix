@@ -1,0 +1,30 @@
+version: "2"
+sql:
+    - engine: "sqlite"
+      queries: "pkg/sqlite/binary_cache_v6/query.sql"
+      schema: "pkg/sqlite/binary_cache_v6/schema.sql"
+      gen:
+          go:
+              package: "binary_cache_v6"
+              out: "pkg/sqlite/binary_cache_v6"
+    - engine: "sqlite"
+      queries: "pkg/sqlite/eval_cache_v5/query.sql"
+      schema: "pkg/sqlite/eval_cache_v5/schema.sql"
+      gen:
+          go:
+              package: "eval_cache_v5"
+              out: "pkg/sqlite/eval_cache_v5"
+    - engine: "sqlite"
+      queries: "pkg/sqlite/fetcher_cache_v2/query.sql"
+      schema: "pkg/sqlite/fetcher_cache_v2/schema.sql"
+      gen:
+          go:
+              package: "fetcher_cache_v2"
+              out: "pkg/sqlite/fetcher_cache_v2"
+    - engine: "sqlite"
+      queries: "pkg/sqlite/nix_v10/query.sql"
+      schema: "pkg/sqlite/nix_v10/schema.sql"
+      gen:
+          go:
+              package: "nix_v10"
+              out: "pkg/sqlite/nix_v10"
