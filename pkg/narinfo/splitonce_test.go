@@ -15,8 +15,11 @@ func TestSplitOnce(t *testing.T) {
 		err  string
 	}{
 		{"hello:world", ":", "hello", "world", ""},
+		{":helloworld", ":", "", "helloworld", ""},
+		{"helloworld:", ":", "helloworld", "", ""},
 		{"helloworld", ":", "", "", "unable to find separator ':' in helloworld"},
 		{"hello:wo:rld", ":", "", "", "found separator ':' twice or more in hello:wo:rld"},
+		{"hello::world", ":", "", "", "found separator ':' twice or more in hello::world"},
 	}
 
 	for _, ltest := range tests {
