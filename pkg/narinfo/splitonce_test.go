@@ -19,8 +19,6 @@ func TestSplitOnce(t *testing.T) {
 		{"hello:wo:rld", ":", "", "", "found separator ':' twice or more in hello:wo:rld"},
 	}
 
-	t.Parallel()
-
 	for _, ltest := range tests {
 		// TODO: This is not necessary on Go >=1.23. Remove this assignment and use
 		// test instead of ltest above.
