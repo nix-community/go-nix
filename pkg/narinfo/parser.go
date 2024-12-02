@@ -112,7 +112,7 @@ func splitOnce(s string, sep string) (string, string, error) {
 		return "", "", fmt.Errorf("unable to find separator '%s' in %v", sep, s)
 	}
 
-	if strings.Contains(s[:idx], sep) {
+	if strings.Contains(s[idx+1:], sep) {
 		return "", "", fmt.Errorf("found separator '%s' twice or more in %v", sep, s)
 	}
 
