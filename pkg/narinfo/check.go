@@ -26,9 +26,11 @@ func (n *NarInfo) Check() error {
 		}
 	}
 
-	_, err = storepath.FromString(n.Deriver)
-	if err != nil {
-		return fmt.Errorf("invalid Deriver: %v", n.Deriver)
+	if n.Deriver != "" {
+		_, err = storepath.FromString(n.Deriver)
+		if err != nil {
+			return fmt.Errorf("invalid Deriver: %v", n.Deriver)
+		}
 	}
 
 	if n.Compression != "none" {
