@@ -9,9 +9,13 @@ doesn't use any padding), which makes adopting encoding/base32 hard.
 package nixbase32
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
+
+// ErrInvalidHash is returned if the hash is not valid.
+var ErrInvalidHash = errors.New("hash is not valid")
 
 // Alphabet contains the list of valid characters for the Nix base32 Alphabet.
 const Alphabet = "0123456789abcdfghijklmnpqrsvwxyz"
@@ -41,6 +45,10 @@ func Decode(dst, src []byte) (n int, err error) {
 
 		if digit == -1 {
 			return i, fmt.Errorf("decode base32: character %q not in Nix alphabet", c)
+		}
+
+		if i >= len(dst) {
+			return i, ErrInvalidHash
 		}
 
 		// OR the main pattern

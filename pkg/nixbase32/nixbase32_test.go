@@ -9,6 +9,7 @@ import (
 
 	//nolint:revive
 	. "github.com/nix-community/go-nix/pkg/nixbase32"
+	"github.com/stretchr/testify/assert"
 )
 
 //nolint:gochecknoglobals
@@ -244,4 +245,40 @@ func BenchmarkValidateString(b *testing.B) {
 			}
 		})
 	}
+}
+
+func FuzzDecodeString(f *testing.F) {
+	for _, test := range tests {
+		f.Add(test.enc)
+	}
+
+	f.Fuzz(func(t *testing.T, enc1 string) {
+		dec, err := DecodeString(enc1)
+		if err != nil {
+			t.Skip()
+		}
+
+		enc2 := EncodeToString(dec)
+
+		assert.Equal(t, enc1, enc2)
+	})
+}
+
+func FuzzEncodeToString(f *testing.F) {
+	for _, test := range tests {
+		f.Add(test.dec)
+	}
+
+	f.Fuzz(func(t *testing.T, dec1 []byte) {
+		enc1 := EncodeToString(dec1)
+
+		dec2, err := DecodeString(enc1)
+		if err != nil {
+			t.Skip()
+		}
+
+		enc2 := EncodeToString(dec2)
+
+		assert.Equal(t, enc1, enc2)
+	})
 }
