@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"sort"
 
-	"github.com/nix-community/go-nix/pkg/hash"
+	"github.com/nix-community/go-nix/pkg/nixhash"
 	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
@@ -96,7 +96,7 @@ func (d *Derivation) DrvPath() (string, error) {
 
 	np := storepath.StorePath{
 		Name:   name + ".drv",
-		Digest: hash.CompressHash(atermDigest, 20),
+		Digest: nixhash.CompressHash(atermDigest, 20),
 	}
 
 	return np.Absolute(), nil

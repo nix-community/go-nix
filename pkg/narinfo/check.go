@@ -45,8 +45,8 @@ func (n *NarInfo) Check() error {
 		return nil
 	}
 
-	if n.FileHash.HashType != n.NarHash.HashType {
-		return fmt.Errorf("FileHash/NarHash type differ: %v, %v", n.FileHash.HashTypeString(), n.NarHash.HashTypeString())
+	if n.FileHash.Algo() != n.NarHash.Algo() {
+		return fmt.Errorf("FileHash/NarHash type differ: %v, %v", n.FileHash.Algo().String(), n.NarHash.Algo().String())
 	}
 
 	if !bytes.Equal(n.FileHash.Digest(), n.NarHash.Digest()) {

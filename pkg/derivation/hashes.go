@@ -6,7 +6,7 @@ import (
 	"fmt"
 	chash "hash"
 
-	"github.com/nix-community/go-nix/pkg/hash"
+	"github.com/nix-community/go-nix/pkg/nixhash"
 	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
@@ -118,7 +118,7 @@ func (d *Derivation) CalculateOutputPaths(inputDrvReplacements map[string]string
 
 		calculatedPath := storepath.StorePath{
 			Name:   outputPathName,
-			Digest: hash.CompressHash(storeHash, 20),
+			Digest: nixhash.CompressHash(storeHash, 20),
 		}
 
 		outputPaths[outputName] = calculatedPath.Absolute()
