@@ -72,7 +72,9 @@ func Parse(r io.Reader) (*NarInfo, error) {
 
 			narInfo.References = append(narInfo.References, strings.Split(v, " ")...)
 		case "Deriver":
-			narInfo.Deriver = v
+			if v != "unknown-deriver" {
+				narInfo.Deriver = v
+			}
 		case "System":
 			narInfo.System = v
 		case "Sig":
