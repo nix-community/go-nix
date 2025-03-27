@@ -141,6 +141,17 @@ func (d *Derivation) CalculateOutputPaths(inputDrvReplacements map[string]string
 // We solve this having calculateDrvReplacement accept a map of
 // /its/ replacements, instead of recursing.
 func (d *Derivation) CalculateDrvReplacement(inputDrvReplacements map[string]string) (string, error) {
+	return d.CalculateDrvReplacementRecursive(func(drvPath string) (string, error) {
+		replacement, ok := inputDrvReplacements[drvPath]
+		if !ok {
+			return "", fmt.Errorf("unable to find replacement for %s", drvPath)
+		}
+
+		return replacement, nil
+	})
+}
+
+func (d *Derivation) CalculateDrvReplacementRecursive(lookupDrvReplacement func(drvPath string) (string, error)) (string, error) {
 	// Check if we're a fixed output
 	if len(d.Outputs) == 1 {
 		// Is it fixed output?
@@ -157,6 +168,16 @@ func (d *Derivation) CalculateDrvReplacement(inputDrvReplacements map[string]str
 	}
 
 	h := sha256.New()
+
+	// Create a map of replacements by calling the provided function
+	inputDrvReplacements := make(map[string]string)
+	for inputDrvPath := range d.InputDerivations {
+		replacement, err := lookupDrvReplacement(inputDrvPath)
+		if err != nil {
+			return "", fmt.Errorf("error getting replacement for %s: %w", inputDrvPath, err)
+		}
+		inputDrvReplacements[inputDrvPath] = replacement
+	}
 
 	err := d.writeDerivation(h, false, inputDrvReplacements)
 	if err != nil {
