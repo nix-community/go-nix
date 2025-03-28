@@ -17,6 +17,14 @@ import (
 	"golang.org/x/exp/slog"
 )
 
+const (
+	nixStorePrefix = "/nix/store/"
+	// omitted: E O U T
+	// https://github.com/NixOS/nix/blob/d12d69ea1a871d631d77c8ef5e8468b4a2bff80f/src/libutil/hash.cc#L73
+	nixHashChars     = "0123456789abcdfghijklmnpqrsvwxyz"
+	nixMaxHashLength = 32
+)
+
 // lookupDrvReplacementFromFileSystem remains largely the same, but ensure memoization is handled correctly.
 // It's crucial that the memoize map is shared across all recursive calls initiated
 // for a single top-level derivation's inputs.
@@ -91,9 +99,35 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	if !strings.HasPrefix(prefix, "/nix/store/") {
+
+	if !strings.HasPrefix(prefix, nixStorePrefix) {
 		slog.Error("Prefix does not start with /nix/store/", "prefix", prefix)
 		os.Exit(1)
+	}
+
+	// Extract the part after /nix/store/ which should be the hash prefix
+	hashPrefixPart := strings.TrimPrefix(prefix, nixStorePrefix)
+
+	if strings.Contains(hashPrefixPart, "-") {
+		slog.Error("Prefix should not contain '-'", "prefix", prefix)
+		slog.Info("The prefix should only contain the desired starting characters of the hash itself (e.g., /nix/store/abc).")
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	if len(hashPrefixPart) > nixMaxHashLength {
+		slog.Error(fmt.Sprintf("Prefix cannot be longer than %d characters", nixMaxHashLength), "prefix", prefix, "length", len(hashPrefixPart))
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	for _, r := range hashPrefixPart {
+		if !strings.ContainsRune(nixHashChars, r) {
+			slog.Error("Prefix contains invalid character", "char", string(r), "prefix", prefix)
+			slog.Info("Valid characters are: " + nixHashChars)
+			flag.Usage()
+			os.Exit(1)
+		}
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo})) // Use Info level for less noise
