@@ -62,7 +62,6 @@ func TestRecursiveLookup(t *testing.T) {
 			assert.NoError(t, err, "It should have found a replacement")
 		})
 	}
-
 }
 
 func TestCalculateOutputPathsRecursively(t *testing.T) {
