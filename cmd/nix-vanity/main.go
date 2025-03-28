@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/nix-community/go-nix/pkg/derivation"
+	"golang.org/x/exp/slog"
 )
 
 func lookupDrvReplacementFromFileSystem(memoize map[string]string) func(string) (string, error) {
@@ -37,9 +37,11 @@ func lookupDrvReplacementFromFileSystem(memoize map[string]string) func(string) 
 }
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	slog.SetDefault(logger)
 
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: nix-vanity <path-to-derivation>")
+		slog.Error("Usage: nix-vanity <path-to-derivation>")
 		os.Exit(1)
 	}
 
@@ -47,7 +49,7 @@ func main() {
 
 	derivationFile, err := os.Open(derivationPath)
 	if err != nil {
-		fmt.Printf("Error opening derivation file: %v\n", err)
+		slog.Error("Error opening derivation file", "error", err)
 		os.Exit(1)
 	}
 
@@ -56,18 +58,18 @@ func main() {
 	drv, err := derivation.ReadDerivation(derivationFile)
 
 	if err != nil {
-		fmt.Printf("Error reading derivation: %v\n", err)
+		slog.Error("Error reading derivation", "error", err)
 		os.Exit(1)
 	}
 
-	// drv.Env["VANITY_SEED"] = "1234"
+	drv.Env["VANITY_SEED"] = "1234"
 
 	drvReplacements := make(map[string]string, len(drv.InputDerivations))
 
 	for inputdDrvPath := range drv.InputDerivations {
 		inputDerivationFile, err := os.Open(inputdDrvPath)
 		if err != nil {
-			fmt.Printf("Error opening input derivation file %s: %v\n", inputdDrvPath, err)
+			slog.Error("Error opening input derivation file", "path", inputdDrvPath, "error", err)
 			os.Exit(1)
 		}
 
@@ -75,16 +77,14 @@ func main() {
 
 		inputDrv, err := derivation.ReadDerivation(inputDerivationFile)
 		if err != nil {
-			fmt.Printf("Error reading input derivation %s: %v\n", inputdDrvPath, err)
+			slog.Error("Error reading input derivation", "path", inputdDrvPath, "error", err)
 			os.Exit(1)
 		}
 
 		other := make(map[string]string, len(drv.InputDerivations))
-
-		drvReplacements := make(map[string]string, len(drv.InputDerivations))
 		drvReplacement, err := inputDrv.CalculateDrvReplacementRecursive(lookupDrvReplacementFromFileSystem(other))
 		if err != nil {
-			fmt.Println(err)
+			slog.Error("Error calculating replacement", "path", inputdDrvPath, "error", err)
 			os.Exit(1)
 		}
 		drvReplacements[inputdDrvPath] = drvReplacement
@@ -92,21 +92,21 @@ func main() {
 
 	outputs, err := drv.CalculateOutputPaths(drvReplacements)
 	if err != nil {
-		fmt.Println(err)
+		slog.Error("Error calculating output paths", "error", err)
 		os.Exit(1)
 	}
 
 	// replace output hashes in `Outputs` (`Output[$outputName]`),
 	// and `env[$outputName]` the new calculated outputs
 	for outputName, outputPath := range outputs {
-		fmt.Printf("Replacing output $%s with path %s\n", outputName, outputPath)
+		slog.Debug("Replacing output", outputName, outputPath)
 		drv.Outputs[outputName].Path = outputPath
 		drv.Env[outputName] = outputPath
 	}
 
-	// // Write out the modified derivation to stdout
-	// if err := drv.WriteDerivation(os.Stdout); err != nil {
-	// 	fmt.Printf("Error writing modified derivation: %v\n", err)
-	// 	os.Exit(1)
-	// }
+	// Write out the modified derivation to stdout
+	if err := drv.WriteDerivation(os.Stdout); err != nil {
+		slog.Error("Error writing modified derivation", "error", err)
+		os.Exit(1)
+	}
 }
