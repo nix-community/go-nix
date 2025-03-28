@@ -151,6 +151,7 @@ func (d *Derivation) CalculateDrvReplacement(inputDrvReplacements map[string]str
 	})
 }
 
+//nolint:lll
 func (d *Derivation) CalculateDrvReplacementRecursive(lookupDrvReplacement func(drvPath string) (string, error)) (string, error) {
 	// Check if we're a fixed output
 	if len(d.Outputs) == 1 {
@@ -171,11 +172,13 @@ func (d *Derivation) CalculateDrvReplacementRecursive(lookupDrvReplacement func(
 
 	// Create a map of replacements by calling the provided function
 	inputDrvReplacements := make(map[string]string)
+
 	for inputDrvPath := range d.InputDerivations {
 		replacement, err := lookupDrvReplacement(inputDrvPath)
 		if err != nil {
 			return "", fmt.Errorf("error getting replacement for %s: %w", inputDrvPath, err)
 		}
+
 		inputDrvReplacements[inputDrvPath] = replacement
 	}
 

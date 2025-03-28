@@ -69,11 +69,13 @@ func TestCalculateOutputPathsRecursively(t *testing.T) {
 
 	// iterate over all inputs and calculate the drvReplacements for them
 	drvReplacements := make(map[string]string, len(drv.InputDerivations))
+
 	for inputdDrvPath := range drv.InputDerivations {
 		testPath := inputdDrvPath[len("/nix/store/"):]
 		inputDrv := getDerivation(testPath)
 		replacement, err := inputDrv.CalculateDrvReplacementRecursive(lookupDrvReplacement)
 		assert.NoError(t, err, "It should have found a replacement")
+
 		drvReplacements[inputdDrvPath] = replacement
 	}
 
