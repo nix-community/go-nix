@@ -1,0 +1,1 @@
+Derive([("out","/nix/store/kbh84yclhgn33j34j9i4wxha04v79q5f-hello-world","","")],[],[],"x86_64-linux","/bin/sh",["-c","echo hello world > $out"],[("builder","/bin/sh"),("name","hello-world"),("out","/nix/store/kbh84yclhgn33j34j9i4wxha04v79q5f-hello-world"),("system","x86_64-linux")])
