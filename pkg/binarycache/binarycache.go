@@ -120,3 +120,42 @@ func (c *Client) fetchCacheInfo(ctx context.Context) (*CacheInfo, error) {
 
 	return info, scanner.Err()
 }
+
+// GetNarInfo fetches and parses the .narinfo for a store path hash.
+// The hash is the 32-char nixbase32 prefix from the store path.
+// If public keys are configured, the narinfo signature is verified.
+func (c *Client) GetNarInfo(ctx context.Context, hash string) (*narinfo.NarInfo, error) {
+	url := c.baseURL + "/" + hash + ".narinfo"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("GET %s.narinfo: %s", hash, resp.Status)
+	}
+
+	ni, err := narinfo.Parse(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("parse %s.narinfo: %w", hash, err)
+	}
+
+	if err := ni.Check(); err != nil {
+		return nil, fmt.Errorf("check %s.narinfo: %w", hash, err)
+	}
+
+	if len(c.publicKeys) > 0 {
+		if !signature.VerifyFirst(ni.Fingerprint(), ni.Signatures, c.publicKeys) {
+			return nil, fmt.Errorf("signature verification failed for %s", hash)
+		}
+	}
+
+	return ni, nil
+}
