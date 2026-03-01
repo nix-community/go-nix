@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/nix-community/go-nix/pkg/binarycache"
 	"github.com/nix-community/go-nix/pkg/daemon"
+	"github.com/nix-community/go-nix/pkg/nar"
 	"github.com/nix-community/go-nix/pkg/narinfo"
 	"github.com/nix-community/go-nix/pkg/narinfo/signature"
 	"github.com/nix-community/go-nix/pkg/storepath"
@@ -32,6 +34,8 @@ type Cmd struct {
 	Dot        DotCmd        `kong:"cmd,name='dot',help='Emit dependency graph in Graphviz DOT format'"`
 	Check      CheckCmd      `kong:"cmd,name='check',help='Check if store paths exist in a binary cache'"`
 	Fetch      FetchCmd      `kong:"cmd,name='fetch',help='Fetch store paths from a binary cache'"`
+	NarLs      NarLsCmd      `kong:"cmd,name='nar-ls',help='List files inside a NAR from a binary cache'"`
+	NarCat     NarCatCmd     `kong:"cmd,name='nar-cat',help='Print file contents from a NAR in a binary cache'"`
 }
 
 // extractHash extracts the 32-char hash from a store path or hash string.
@@ -676,4 +680,133 @@ func (cmd *FetchCmd) Run() error {
 	}
 
 	return cache.Substitute(ctx, hashes, filter, importer)
+}
+
+// headerLineString returns a one-line string describing a NAR header.
+func headerLineString(hdr *nar.Header) string {
+	var sb strings.Builder
+
+	sb.WriteString(hdr.FileInfo().Mode().String())
+	sb.WriteString(" ")
+	sb.WriteString(hdr.Path)
+
+	if hdr.Size > 0 {
+		sb.WriteString(fmt.Sprintf(" (%v bytes)", hdr.Size))
+	}
+
+	if hdr.LinkTarget != "" {
+		sb.WriteString(" -> ")
+		sb.WriteString(hdr.LinkTarget)
+	}
+
+	sb.WriteString("\n")
+
+	return sb.String()
+}
+
+// NarLsCmd lists files inside a NAR from a binary cache.
+type NarLsCmd struct {
+	URL       string `kong:"arg,required,help='Binary cache URL'"`
+	StorePath string `kong:"arg,required,help='Store path or hash'"`
+	Path      string `kong:"arg,optional,default='/',help='Path inside the NAR'"`
+	Recursive bool   `kong:"short='R',help='List recursively'"`
+}
+
+func (cmd *NarLsCmd) Run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	cache := binarycache.New(cmd.URL)
+
+	ni, err := cache.GetNarInfo(ctx, extractHash(cmd.StorePath))
+	if err != nil {
+		return err
+	}
+
+	rc, err := cache.GetNar(ctx, ni)
+	if err != nil {
+		return err
+	}
+	defer rc.Close()
+
+	nr, err := nar.NewReader(rc)
+	if err != nil {
+		return err
+	}
+
+	for {
+		hdr, err := nr.Next()
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+
+		if strings.HasPrefix(hdr.Path, cmd.Path) {
+			remainder := hdr.Path[len(cmd.Path):]
+			if cmd.Recursive || !strings.Contains(remainder, "/") {
+				print(headerLineString(hdr))
+			}
+		} else {
+			if hdr.Path > cmd.Path {
+				return nil
+			}
+		}
+	}
+}
+
+// NarCatCmd prints file contents from a NAR in a binary cache.
+type NarCatCmd struct {
+	URL       string `kong:"arg,required,help='Binary cache URL'"`
+	StorePath string `kong:"arg,required,help='Store path or hash'"`
+	Path      string `kong:"arg,required,help='Path inside the NAR'"`
+}
+
+func (cmd *NarCatCmd) Run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	cache := binarycache.New(cmd.URL)
+
+	ni, err := cache.GetNarInfo(ctx, extractHash(cmd.StorePath))
+	if err != nil {
+		return err
+	}
+
+	rc, err := cache.GetNar(ctx, ni)
+	if err != nil {
+		return err
+	}
+	defer rc.Close()
+
+	nr, err := nar.NewReader(rc)
+	if err != nil {
+		return err
+	}
+
+	for {
+		hdr, err := nr.Next()
+		if err != nil {
+			if err == io.EOF {
+				return fmt.Errorf("requested path not found")
+			}
+			return err
+		}
+
+		if hdr.Path == cmd.Path {
+			if hdr.Type != nar.TypeRegular {
+				return fmt.Errorf("unable to cat non-regular file")
+			}
+
+			w := bufio.NewWriter(os.Stdout)
+
+			_, err := io.Copy(w, nr)
+			if err != nil {
+				return err
+			}
+
+			return w.Flush()
+		}
+	}
 }
