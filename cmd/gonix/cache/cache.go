@@ -13,17 +13,21 @@ import (
 	"github.com/nix-community/go-nix/pkg/binarycache"
 	"github.com/nix-community/go-nix/pkg/daemon"
 	"github.com/nix-community/go-nix/pkg/narinfo"
+	"github.com/nix-community/go-nix/pkg/narinfo/signature"
 	"github.com/nix-community/go-nix/pkg/storepath"
 )
 
 // Cmd is the top-level cache command.
 type Cmd struct {
-	Info    InfoCmd    `kong:"cmd,name='info',help='Show binary cache info'"`
-	NarInfo NarInfoCmd `kong:"cmd,name='narinfo',help='Show narinfo for a store path'"`
-	Closure ClosureCmd `kong:"cmd,name='closure',help='Show the closure of a store path'"`
-	Tree    TreeCmd    `kong:"cmd,name='tree',help='Show the dependency tree of a store path'"`
-	Diff    DiffCmd    `kong:"cmd,name='diff',help='Compare closures of two store paths'"`
-	Fetch   FetchCmd   `kong:"cmd,name='fetch',help='Fetch store paths from a binary cache'"`
+	Info       InfoCmd       `kong:"cmd,name='info',help='Show binary cache info'"`
+	NarInfo    NarInfoCmd    `kong:"cmd,name='narinfo',help='Show narinfo for a store path'"`
+	Closure    ClosureCmd    `kong:"cmd,name='closure',help='Show the closure of a store path'"`
+	Tree       TreeCmd       `kong:"cmd,name='tree',help='Show the dependency tree of a store path'"`
+	Diff       DiffCmd       `kong:"cmd,name='diff',help='Compare closures of two store paths'"`
+	WhyDepends WhyDependsCmd `kong:"cmd,name='why-depends',help='Show why a store path depends on another'"`
+	Verify     VerifyCmd     `kong:"cmd,name='verify',help='Verify narinfo signatures in a closure'"`
+	Size       SizeCmd       `kong:"cmd,name='size',help='Show closure size breakdown'"`
+	Fetch      FetchCmd      `kong:"cmd,name='fetch',help='Fetch store paths from a binary cache'"`
 }
 
 // extractHash extracts the 32-char hash from a store path or hash string.
@@ -281,6 +285,210 @@ func (cmd *DiffCmd) Run() error {
 	}
 
 	fmt.Printf("In both (%d paths, %d bytes)\n", len(common), commonSize)
+
+	return nil
+}
+
+// WhyDependsCmd finds the shortest dependency chain between two store paths.
+type WhyDependsCmd struct {
+	URL       string `kong:"arg,required,help='Binary cache URL'"`
+	StorePath string `kong:"arg,required,help='Store path to inspect'"`
+	Dep       string `kong:"arg,required,help='Dependency to find'"`
+}
+
+func (cmd *WhyDependsCmd) Run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	closure, err := resolveFull(ctx, cmd.URL, []string{extractHash(cmd.StorePath)})
+	if err != nil {
+		return err
+	}
+
+	// Build reference graph and locate root + target.
+	refs := make(map[string][]string, len(closure))
+	inClosure := make(map[string]bool, len(closure))
+
+	for _, ni := range closure {
+		inClosure[ni.StorePath] = true
+	}
+
+	for _, ni := range closure {
+		var children []string
+		for _, ref := range ni.References {
+			abs := storepath.StoreDir + "/" + ref
+			if inClosure[abs] {
+				children = append(children, abs)
+			}
+		}
+		sort.Strings(children)
+		refs[ni.StorePath] = children
+	}
+
+	root := ""
+	target := ""
+	depHash := extractHash(cmd.Dep)
+
+	for _, ni := range closure {
+		h := extractHash(ni.StorePath)
+		if h == extractHash(cmd.StorePath) {
+			root = ni.StorePath
+		}
+		if h == depHash {
+			target = ni.StorePath
+		}
+	}
+
+	if root == "" {
+		return fmt.Errorf("root path not found in closure")
+	}
+
+	if target == "" {
+		return fmt.Errorf("%s is not in the closure of %s", cmd.Dep, cmd.StorePath)
+	}
+
+	// BFS to find shortest path from root to target.
+	parent := map[string]string{root: ""}
+	queue := []string{root}
+
+	for len(queue) > 0 {
+		cur := queue[0]
+		queue = queue[1:]
+
+		if cur == target {
+			break
+		}
+
+		for _, child := range refs[cur] {
+			if _, seen := parent[child]; !seen {
+				parent[child] = cur
+				queue = append(queue, child)
+			}
+		}
+	}
+
+	if _, reached := parent[target]; !reached {
+		return fmt.Errorf("%s is not reachable from %s", cmd.Dep, cmd.StorePath)
+	}
+
+	// Reconstruct path from root to target.
+	var chain []string
+	for cur := target; cur != ""; cur = parent[cur] {
+		chain = append(chain, cur)
+	}
+
+	// Reverse to get root → target order.
+	for i, j := 0, len(chain)-1; i < j; i, j = i+1, j-1 {
+		chain[i], chain[j] = chain[j], chain[i]
+	}
+
+	// Print the chain with box-drawing indentation.
+	for i, path := range chain {
+		if i == 0 {
+			fmt.Println(path)
+		} else {
+			indent := strings.Repeat("    ", i-1)
+			fmt.Printf("%s└── %s\n", indent, path)
+		}
+	}
+
+	return nil
+}
+
+// VerifyCmd verifies narinfo signatures in a closure.
+type VerifyCmd struct {
+	URL       string   `kong:"arg,required,help='Binary cache URL'"`
+	StorePath string   `kong:"arg,required,help='Store path to verify'"`
+	Keys      []string `kong:"required,name='key',short='k',help='Public keys (name:base64)'"`
+}
+
+func (cmd *VerifyCmd) Run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	pubKeys := make([]signature.PublicKey, len(cmd.Keys))
+	for i, k := range cmd.Keys {
+		pk, err := signature.ParsePublicKey(k)
+		if err != nil {
+			return fmt.Errorf("parsing public key %q: %w", k, err)
+		}
+		pubKeys[i] = pk
+	}
+
+	closure, err := resolveFull(ctx, cmd.URL, []string{extractHash(cmd.StorePath)})
+	if err != nil {
+		return err
+	}
+
+	passed := 0
+	failed := 0
+
+	for _, ni := range closure {
+		fp := ni.Fingerprint()
+		matched := ""
+
+		// Find which key name matched by checking individually.
+		for _, key := range pubKeys {
+			for _, sig := range ni.Signatures {
+				if key.Verify(fp, sig) {
+					matched = key.Name
+					break
+				}
+			}
+			if matched != "" {
+				break
+			}
+		}
+
+		if matched != "" {
+			fmt.Printf("PASS  %s  (%s)\n", ni.StorePath, matched)
+			passed++
+		} else {
+			fmt.Printf("FAIL  %s  (no matching signature)\n", ni.StorePath)
+			failed++
+		}
+	}
+
+	fmt.Printf("\n%d/%d passed\n", passed, passed+failed)
+
+	if failed > 0 {
+		return fmt.Errorf("%d paths failed signature verification", failed)
+	}
+
+	return nil
+}
+
+// SizeCmd shows closure size breakdown.
+type SizeCmd struct {
+	URL       string `kong:"arg,required,help='Binary cache URL'"`
+	StorePath string `kong:"arg,required,help='Store path to inspect'"`
+}
+
+func (cmd *SizeCmd) Run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	closure, err := resolveFull(ctx, cmd.URL, []string{extractHash(cmd.StorePath)})
+	if err != nil {
+		return err
+	}
+
+	var totalNar, totalFile uint64
+
+	for _, ni := range closure {
+		fmt.Printf("%s    nar:%d  download:%d  %s\n",
+			ni.StorePath, ni.NarSize, ni.FileSize, ni.Compression)
+		totalNar += ni.NarSize
+		totalFile += ni.FileSize
+	}
+
+	ratio := uint64(0)
+	if totalNar > 0 {
+		ratio = totalFile * 100 / totalNar
+	}
+
+	fmt.Printf("\ntotal: %d paths, nar:%d, download:%d (%d%% ratio)\n",
+		len(closure), totalNar, totalFile, ratio)
 
 	return nil
 }
