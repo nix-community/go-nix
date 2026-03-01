@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/signal"
 	"sort"
@@ -27,6 +28,9 @@ type Cmd struct {
 	WhyDepends WhyDependsCmd `kong:"cmd,name='why-depends',help='Show why a store path depends on another'"`
 	Verify     VerifyCmd     `kong:"cmd,name='verify',help='Verify narinfo signatures in a closure'"`
 	Size       SizeCmd       `kong:"cmd,name='size',help='Show closure size breakdown'"`
+	Log        LogCmd        `kong:"cmd,name='log',help='Fetch build log for a store path'"`
+	Dot        DotCmd        `kong:"cmd,name='dot',help='Emit dependency graph in Graphviz DOT format'"`
+	Check      CheckCmd      `kong:"cmd,name='check',help='Check if store paths exist in a binary cache'"`
 	Fetch      FetchCmd      `kong:"cmd,name='fetch',help='Fetch store paths from a binary cache'"`
 }
 
@@ -489,6 +493,127 @@ func (cmd *SizeCmd) Run() error {
 
 	fmt.Printf("\ntotal: %d paths, nar:%d, download:%d (%d%% ratio)\n",
 		len(closure), totalNar, totalFile, ratio)
+
+	return nil
+}
+
+// LogCmd fetches the build log for a store path from a binary cache.
+type LogCmd struct {
+	URL       string `kong:"arg,required,help='Binary cache URL'"`
+	StorePath string `kong:"arg,required,help='Store path to fetch build log for'"`
+}
+
+func (cmd *LogCmd) Run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	basename := strings.TrimPrefix(cmd.StorePath, storepath.StoreDir+"/")
+	u := cmd.URL + "/log/" + basename
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return fmt.Errorf("no build log available for %s", cmd.StorePath)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status %d fetching build log", resp.StatusCode)
+	}
+
+	_, err = io.Copy(os.Stdout, resp.Body)
+
+	return err
+}
+
+// DotCmd emits the dependency graph in Graphviz DOT format.
+type DotCmd struct {
+	URL       string `kong:"arg,required,help='Binary cache URL'"`
+	StorePath string `kong:"arg,required,help='Store path to inspect'"`
+}
+
+func (cmd *DotCmd) Run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	closure, err := resolveFull(ctx, cmd.URL, []string{extractHash(cmd.StorePath)})
+	if err != nil {
+		return err
+	}
+
+	// Build reference graph.
+	refs := make(map[string][]string, len(closure))
+	inClosure := make(map[string]bool, len(closure))
+
+	for _, ni := range closure {
+		inClosure[ni.StorePath] = true
+	}
+
+	for _, ni := range closure {
+		var children []string
+		for _, ref := range ni.References {
+			abs := storepath.StoreDir + "/" + ref
+			if inClosure[abs] {
+				children = append(children, abs)
+			}
+		}
+		sort.Strings(children)
+		refs[ni.StorePath] = children
+	}
+
+	fmt.Println("digraph closure {")
+	fmt.Println("    rankdir=LR;")
+
+	for _, ni := range closure {
+		from := strings.TrimPrefix(ni.StorePath, storepath.StoreDir+"/")
+		for _, child := range refs[ni.StorePath] {
+			to := strings.TrimPrefix(child, storepath.StoreDir+"/")
+			fmt.Printf("    %q -> %q;\n", from, to)
+		}
+	}
+
+	fmt.Println("}")
+
+	return nil
+}
+
+// CheckCmd tests whether store paths exist in a binary cache.
+type CheckCmd struct {
+	URL        string   `kong:"arg,required,help='Binary cache URL'"`
+	StorePaths []string `kong:"arg,required,help='Store paths to check'"`
+}
+
+func (cmd *CheckCmd) Run() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	cache := binarycache.New(cmd.URL)
+
+	hits := 0
+
+	for _, sp := range cmd.StorePaths {
+		_, err := cache.GetNarInfo(ctx, extractHash(sp))
+		if err != nil {
+			fmt.Printf("MISS  %s\n", sp)
+		} else {
+			fmt.Printf("HIT   %s\n", sp)
+			hits++
+		}
+	}
+
+	fmt.Printf("\n%d/%d available\n", hits, len(cmd.StorePaths))
+
+	if hits < len(cmd.StorePaths) {
+		return fmt.Errorf("%d paths not found in cache", len(cmd.StorePaths)-hits)
+	}
 
 	return nil
 }
