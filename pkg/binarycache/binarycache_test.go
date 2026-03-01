@@ -244,7 +244,7 @@ func TestSubstitute(t *testing.T) {
 	narData := []byte("fake-nar-for-substitute")
 
 	narinfos := map[string]string{
-		"/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.narinfo": `StorePath: /nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-a
+		"/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.narinfo": `StorePath: /nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-a
 URL: nar/aaa.nar
 Compression: none
 NarHash: sha256:0lxjvvpr59c2mdram7ympy5ay741f180kv3349hvfc3f8nrmbqf6
@@ -283,7 +283,7 @@ References:
 		return nil
 	})
 
-	err := c.Substitute(context.Background(), []string{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, allMissing, importer)
+	err := c.Substitute(context.Background(), []string{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, allMissing, importer)
 	require.NoError(t, err)
-	assert.Equal(t, []string{"/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-a"}, imported)
+	assert.Equal(t, []string{"/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-a"}, imported)
 }

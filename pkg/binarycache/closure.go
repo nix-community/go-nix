@@ -12,6 +12,10 @@ import (
 // path hashes. It walks References from each .narinfo, filtering out paths
 // that the PathFilter reports as already present. Returns narinfos for all
 // missing paths in dependency order (leaves first).
+//
+// When the filter reports a path as present, its entire sub-closure is
+// assumed to be present as well and is not traversed. This matches Nix's
+// behaviour: a valid store path implies its closure is complete.
 func (c *Client) ResolveClosure(
 	ctx context.Context,
 	hashes []string,

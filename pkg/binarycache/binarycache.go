@@ -36,9 +36,8 @@ type Client struct {
 	httpClient *http.Client
 	publicKeys []signature.PublicKey
 
-	infoOnce sync.Once
-	info     *CacheInfo
-	infoErr  error
+	infoMu sync.Mutex
+	info   *CacheInfo
 }
 
 // Option configures a Client.
@@ -69,13 +68,23 @@ func New(baseURL string, opts ...Option) *Client {
 }
 
 // GetCacheInfo fetches and parses /nix-cache-info from the binary cache.
-// The result is cached after the first successful call.
+// The result is cached after the first successful call. Transient errors
+// are not cached — a subsequent call will retry the fetch.
 func (c *Client) GetCacheInfo(ctx context.Context) (*CacheInfo, error) {
-	c.infoOnce.Do(func() {
-		c.info, c.infoErr = c.fetchCacheInfo(ctx)
-	})
+	c.infoMu.Lock()
+	defer c.infoMu.Unlock()
 
-	return c.info, c.infoErr
+	if c.info != nil {
+		return c.info, nil
+	}
+
+	info, err := c.fetchCacheInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	c.info = info
+	return c.info, nil
 }
 
 func (c *Client) fetchCacheInfo(ctx context.Context) (*CacheInfo, error) {
