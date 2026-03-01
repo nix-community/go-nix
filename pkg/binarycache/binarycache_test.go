@@ -239,3 +239,51 @@ References:
 	require.Len(t, result, 1)
 	assert.Equal(t, "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-a", result[0].StorePath)
 }
+
+func TestSubstitute(t *testing.T) {
+	narData := []byte("fake-nar-for-substitute")
+
+	narinfos := map[string]string{
+		"/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.narinfo": `StorePath: /nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-a
+URL: nar/aaa.nar
+Compression: none
+NarHash: sha256:0lxjvvpr59c2mdram7ympy5ay741f180kv3349hvfc3f8nrmbqf6
+NarSize: 100
+References: 
+`,
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if body, ok := narinfos[r.URL.Path]; ok {
+			w.Write([]byte(body))
+			return
+		}
+		if r.URL.Path == "/nar/aaa.nar" {
+			w.Write(narData)
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer srv.Close()
+
+	c := binarycache.New(srv.URL)
+
+	allMissing := func(_ context.Context, _ string) (bool, error) {
+		return true, nil
+	}
+
+	var imported []string
+	importer := binarycache.ImporterFunc(func(_ context.Context, info *narinfo.NarInfo, nar io.Reader) error {
+		data, err := io.ReadAll(nar)
+		if err != nil {
+			return err
+		}
+		assert.Equal(t, narData, data)
+		imported = append(imported, info.StorePath)
+		return nil
+	})
+
+	err := c.Substitute(context.Background(), []string{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, allMissing, importer)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-a"}, imported)
+}
