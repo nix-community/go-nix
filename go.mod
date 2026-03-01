@@ -6,9 +6,11 @@ require (
 	github.com/adrg/xdg v0.5.0
 	github.com/alecthomas/kong v0.5.0
 	github.com/dgraph-io/badger/v3 v3.2103.2
+	github.com/klauspost/compress v1.17.11
 	github.com/mattn/go-sqlite3 v1.14.23
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249
 	github.com/stretchr/testify v1.9.0
+	github.com/ulikunitz/xz v0.5.15
 )
 
 require (
@@ -23,7 +25,6 @@ require (
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/flatbuffers v1.12.1 // indirect
-	github.com/klauspost/compress v1.12.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.opencensus.io v0.22.5 // indirect

@@ -159,3 +159,52 @@ func (c *Client) GetNarInfo(ctx context.Context, hash string) (*narinfo.NarInfo,
 
 	return ni, nil
 }
+
+// GetNar downloads and decompresses a NAR archive. The returned ReadCloser
+// streams the uncompressed NAR data. The caller must close it when done.
+func (c *Client) GetNar(ctx context.Context, ni *narinfo.NarInfo) (io.ReadCloser, error) {
+	url := c.baseURL + "/" + ni.URL
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("GET %s: %s", ni.URL, resp.Status)
+	}
+
+	dr, err := decompress(resp.Body, ni.Compression)
+	if err != nil {
+		resp.Body.Close()
+		return nil, err
+	}
+
+	return &narReadCloser{decompressed: dr, body: resp.Body}, nil
+}
+
+type narReadCloser struct {
+	decompressed io.ReadCloser
+	body         io.ReadCloser
+}
+
+func (n *narReadCloser) Read(p []byte) (int, error) {
+	return n.decompressed.Read(p)
+}
+
+func (n *narReadCloser) Close() error {
+	err1 := n.decompressed.Close()
+	err2 := n.body.Close()
+
+	if err1 != nil {
+		return err1
+	}
+
+	return err2
+}

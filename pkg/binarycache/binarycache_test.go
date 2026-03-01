@@ -2,11 +2,13 @@ package binarycache_test
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/nix-community/go-nix/pkg/binarycache"
+	"github.com/nix-community/go-nix/pkg/narinfo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -105,4 +107,34 @@ func TestGetNarInfoNotFound(t *testing.T) {
 
 	_, err := c.GetNarInfo(context.Background(), "00000000000000000000000000000000")
 	assert.Error(t, err)
+}
+
+func TestGetNar(t *testing.T) {
+	narData := []byte("fake-nar-data-for-testing")
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/nar/fakehash.nar":
+			w.Header().Set("Content-Type", "application/x-nix-archive")
+			w.Write(narData)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+
+	c := binarycache.New(srv.URL)
+
+	ni := &narinfo.NarInfo{
+		URL:         "nar/fakehash.nar",
+		Compression: "none",
+	}
+
+	rc, err := c.GetNar(context.Background(), ni)
+	require.NoError(t, err)
+
+	got, err := io.ReadAll(rc)
+	require.NoError(t, err)
+	require.NoError(t, rc.Close())
+	assert.Equal(t, narData, got)
 }
