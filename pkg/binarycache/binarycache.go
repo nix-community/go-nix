@@ -1,9 +1,13 @@
 package binarycache
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/nix-community/go-nix/pkg/narinfo"
@@ -62,4 +66,57 @@ func New(baseURL string, opts ...Option) *Client {
 	}
 
 	return c
+}
+
+// GetCacheInfo fetches and parses /nix-cache-info from the binary cache.
+// The result is cached after the first successful call.
+func (c *Client) GetCacheInfo(ctx context.Context) (*CacheInfo, error) {
+	c.infoOnce.Do(func() {
+		c.info, c.infoErr = c.fetchCacheInfo(ctx)
+	})
+
+	return c.info, c.infoErr
+}
+
+func (c *Client) fetchCacheInfo(ctx context.Context) (*CacheInfo, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/nix-cache-info", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("GET /nix-cache-info: %s", resp.Status)
+	}
+
+	info := &CacheInfo{}
+	scanner := bufio.NewScanner(resp.Body)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			continue
+		}
+
+		k, v, ok := strings.Cut(line, ": ")
+		if !ok {
+			continue
+		}
+
+		switch k {
+		case "StoreDir":
+			info.StoreDir = v
+		case "WantMassQuery":
+			info.WantMassQuery = v == "1"
+		case "Priority":
+			info.Priority, _ = strconv.Atoi(v)
+		}
+	}
+
+	return info, scanner.Err()
 }
