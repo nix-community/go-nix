@@ -4,14 +4,16 @@ import (
 	"os"
 
 	"github.com/alecthomas/kong"
+	"github.com/nix-community/go-nix/cmd/gonix/cache"
 	"github.com/nix-community/go-nix/cmd/gonix/drv"
 	"github.com/nix-community/go-nix/cmd/gonix/nar"
 )
 
 //nolint:gochecknoglobals
 var cli struct {
-	Nar nar.Cmd `kong:"cmd,name='nar',help='Create or inspect NAR files'"`
-	Drv drv.Cmd `kong:"cmd,name='drv',help='Inspect NAR files'"`
+	Nar   nar.Cmd   `kong:"cmd,name='nar',help='Create or inspect NAR files'"`
+	Drv   drv.Cmd   `kong:"cmd,name='drv',help='Inspect NAR files'"`
+	Cache cache.Cmd `kong:"cmd,name='cache',help='Interact with binary caches'"`
 }
 
 func main() {
