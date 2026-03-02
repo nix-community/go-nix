@@ -34,8 +34,7 @@ type Cmd struct {
 	Dot        DotCmd        `kong:"cmd,name='dot',help='Emit dependency graph in Graphviz DOT format'"`
 	Check      CheckCmd      `kong:"cmd,name='check',help='Check if store paths exist in a binary cache'"`
 	Fetch      FetchCmd      `kong:"cmd,name='fetch',help='Fetch store paths from a binary cache'"`
-	NarLs      NarLsCmd      `kong:"cmd,name='nar-ls',help='List files inside a NAR from a binary cache'"`
-	NarCat     NarCatCmd     `kong:"cmd,name='nar-cat',help='Print file contents from a NAR in a binary cache'"`
+	Nar        CacheNarCmd   `kong:"cmd,name='nar',help='Inspect files inside a NAR from a binary cache'"`
 	Serve      ServeCmd      `kong:"cmd,name='serve',help='Serve the local Nix store as an HTTP binary cache'"`
 }
 
@@ -703,6 +702,12 @@ func headerLineString(hdr *nar.Header) string {
 	sb.WriteString("\n")
 
 	return sb.String()
+}
+
+// CacheNarCmd groups NAR inspection subcommands.
+type CacheNarCmd struct {
+	Ls  NarLsCmd  `kong:"cmd,name='ls',help='List files inside a NAR from a binary cache'"`
+	Cat NarCatCmd `kong:"cmd,name='cat',help='Print file contents from a NAR in a binary cache'"`
 }
 
 // NarLsCmd lists files inside a NAR from a binary cache.
