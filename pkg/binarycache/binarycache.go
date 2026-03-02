@@ -84,6 +84,7 @@ func (c *Client) GetCacheInfo(ctx context.Context) (*CacheInfo, error) {
 	}
 
 	c.info = info
+
 	return c.info, nil
 }
 
@@ -186,12 +187,14 @@ func (c *Client) GetNar(ctx context.Context, ni *narinfo.NarInfo) (io.ReadCloser
 
 	if resp.StatusCode != http.StatusOK {
 		resp.Body.Close()
+
 		return nil, fmt.Errorf("GET %s: %s", ni.URL, resp.Status)
 	}
 
 	dr, err := decompress(resp.Body, ni.Compression)
 	if err != nil {
 		resp.Body.Close()
+
 		return nil, err
 	}
 

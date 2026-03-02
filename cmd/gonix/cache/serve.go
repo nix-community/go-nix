@@ -39,16 +39,19 @@ func (cmd *ServeCmd) Run() error {
 	defer stop()
 
 	// Load signing keys.
-	var signKeys []signature.SecretKey
+	signKeys := make([]signature.SecretKey, 0, len(cmd.SignKeys))
+
 	for _, path := range cmd.SignKeys {
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("reading sign key %s: %w", path, err)
 		}
+
 		sk, err := signature.LoadSecretKey(strings.TrimSpace(string(data)))
 		if err != nil {
 			return fmt.Errorf("parsing sign key %s: %w", path, err)
 		}
+
 		signKeys = append(signKeys, sk)
 	}
 
@@ -138,6 +141,7 @@ func (cmd *ServeCmd) Run() error {
 		if err != nil {
 			return fmt.Errorf("registering cache: %w", err)
 		}
+
 		s.cacheID = cacheID
 
 		log.Printf("proxy mode: upstream %s, cache dir %s", cmd.Upstream, cmd.CacheDir)
@@ -149,17 +153,20 @@ func (cmd *ServeCmd) Run() error {
 	mux.HandleFunc("/{hash}.narinfo", s.handleNarInfo)
 	mux.HandleFunc("/nar/{narpath}", s.handleNar)
 
-	srv := &http.Server{Addr: cmd.Bind, Handler: mux}
+	srv := &http.Server{Addr: cmd.Bind, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 
 	go func() {
 		<-ctx.Done()
-		srv.Shutdown(context.Background())
+
+		_ = srv.Shutdown(context.Background())
 	}()
 
 	log.Printf("serving on %s", cmd.Bind)
+
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		return err
 	}
+
 	return nil
 }
 
@@ -174,12 +181,12 @@ type server struct {
 	cacheDir string
 }
 
-func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, "OK")
 }
 
-func (s *server) handleCacheInfo(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleCacheInfo(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/x-nix-cache-info")
 	fmt.Fprintf(w, "StoreDir: %s\n", storepath.StoreDir)
 	fmt.Fprintf(w, "WantMassQuery: 1\n")
@@ -190,6 +197,7 @@ func (s *server) handleNarInfo(w http.ResponseWriter, r *http.Request) {
 	hash := r.PathValue("hash")
 	if hash == "" {
 		http.NotFound(w, r)
+
 		return
 	}
 
@@ -197,14 +205,19 @@ func (s *server) handleNarInfo(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("QueryPathFromHashPart(%s): %v", hash, err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
+
 		return
 	}
+
 	if sp == "" {
 		if s.upstream != nil {
 			s.handleProxyNarInfo(w, r, hash)
+
 			return
 		}
+
 		http.NotFound(w, r)
+
 		return
 	}
 
@@ -212,6 +225,7 @@ func (s *server) handleNarInfo(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("QueryPathInfo(%s): %v", sp, err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -219,6 +233,7 @@ func (s *server) handleNarInfo(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("pathInfoToNarInfo(%s): %v", sp, err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -261,6 +276,7 @@ func pathInfoToNarInfo(info *daemon.PathInfo) (*narinfo.NarInfo, error) {
 		if err != nil {
 			continue
 		}
+
 		ni.Signatures = append(ni.Signatures, sig)
 	}
 
@@ -271,12 +287,15 @@ func signNarInfo(ni *narinfo.NarInfo, keys []signature.SecretKey) {
 	if len(keys) == 0 {
 		return
 	}
+
 	fp := ni.Fingerprint()
+
 	for _, sk := range keys {
 		sig, err := sk.Sign(nil, fp)
 		if err != nil {
 			continue
 		}
+
 		ni.Signatures = append(ni.Signatures, sig)
 	}
 }
@@ -287,24 +306,32 @@ func (s *server) handleNar(w http.ResponseWriter, r *http.Request) {
 	// Parse {outhash}-{narhash}.nar
 	narpath = strings.TrimSuffix(narpath, ".nar")
 	parts := strings.SplitN(narpath, "-", 2)
+
 	if len(parts) != 2 || !isValidNixBase32(parts[0]) || !isValidNixBase32(parts[1]) {
 		http.NotFound(w, r)
+
 		return
 	}
+
 	outhash := parts[0]
 
 	sp, err := s.daemon.QueryPathFromHashPart(r.Context(), outhash)
 	if err != nil {
 		log.Printf("QueryPathFromHashPart(%s): %v", outhash, err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
+
 		return
 	}
+
 	if sp == "" {
 		if s.upstream != nil {
 			s.handleProxyNar(w, r, outhash, parts[1])
+
 			return
 		}
+
 		http.NotFound(w, r)
+
 		return
 	}
 
@@ -312,11 +339,14 @@ func (s *server) handleNar(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("NarFromPath(%s): %v", sp, err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
+
 		return
 	}
+
 	defer rc.Close()
 
 	w.Header().Set("Content-Type", "application/x-nix-archive")
+
 	if _, err := io.Copy(w, rc); err != nil {
 		log.Printf("streaming NAR for %s: %v", sp, err)
 	}
@@ -328,12 +358,14 @@ func (s *server) handleProxyNarInfo(w http.ResponseWriter, r *http.Request, hash
 		signNarInfo(ni, s.signKeys)
 		w.Header().Set("Content-Type", ni.ContentType())
 		fmt.Fprint(w, ni.String())
+
 		return
 	}
 
 	ni, err := s.upstream.GetNarInfo(r.Context(), hash)
 	if err != nil {
 		http.NotFound(w, r)
+
 		return
 	}
 
@@ -360,7 +392,8 @@ func (s *server) cacheNarInfo(ctx context.Context, hash string, ni *narinfo.NarI
 		return
 	}
 
-	var sigs []string
+	sigs := make([]string, 0, len(ni.Signatures))
+
 	for _, sig := range ni.Signatures {
 		sigs = append(sigs, sig.String())
 	}
@@ -372,9 +405,9 @@ func (s *server) cacheNarInfo(ctx context.Context, hash string, ni *narinfo.NarI
 		Url:         toNullString(ni.URL),
 		Compression: toNullString(ni.Compression),
 		Filehash:    hashToNullString(ni.FileHash),
-		Filesize:    sql.NullInt64{Int64: int64(ni.FileSize), Valid: true},
+		Filesize:    sql.NullInt64{Int64: int64(ni.FileSize), Valid: true}, // #nosec G115
 		Narhash:     toNullString(ni.NarHash.String()),
-		Narsize:     sql.NullInt64{Int64: int64(ni.NarSize), Valid: true},
+		Narsize:     sql.NullInt64{Int64: int64(ni.NarSize), Valid: true}, // #nosec G115
 		Refs:        toNullString(strings.Join(ni.References, " ")),
 		Deriver:     toNullString(ni.Deriver),
 		Sigs:        toNullString(strings.Join(sigs, " ")),
@@ -389,6 +422,7 @@ func toNullString(s string) sql.NullString {
 	if s == "" {
 		return sql.NullString{}
 	}
+
 	return sql.NullString{String: s, Valid: true}
 }
 
@@ -396,6 +430,7 @@ func hashToNullString(h *nixhash.HashWithEncoding) sql.NullString {
 	if h == nil {
 		return sql.NullString{}
 	}
+
 	return sql.NullString{String: h.String(), Valid: true}
 }
 
@@ -403,6 +438,7 @@ func isValidNixBase32(s string) bool {
 	if len(s) == 0 {
 		return false
 	}
+
 	for _, c := range s {
 		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'd') ||
 			(c >= 'f' && c <= 'n') || (c >= 'p' && c <= 's') ||
@@ -410,6 +446,7 @@ func isValidNixBase32(s string) bool {
 			return false
 		}
 	}
+
 	return true
 }
 
@@ -427,7 +464,9 @@ func (s *server) cachedNarInfo(ctx context.Context, hash string) (*narinfo.NarIn
 	if err != nil || len(rows) == 0 {
 		return nil, false
 	}
+
 	row := rows[0]
+
 	if row.Present == 0 {
 		return nil, false
 	}
@@ -442,7 +481,7 @@ func (s *server) cachedNarInfo(ctx context.Context, hash string) (*narinfo.NarIn
 		URL:         row.Url.String,
 		Compression: row.Compression.String,
 		NarHash:     narHash,
-		NarSize:     uint64(row.Narsize.Int64),
+		NarSize:     uint64(row.Narsize.Int64), // #nosec G115
 		CA:          row.Ca.String,
 	}
 
@@ -452,22 +491,26 @@ func (s *server) cachedNarInfo(ctx context.Context, hash string) (*narinfo.NarIn
 			ni.FileHash = fh
 		}
 	}
+
 	if row.Filesize.Valid {
-		ni.FileSize = uint64(row.Filesize.Int64)
+		ni.FileSize = uint64(row.Filesize.Int64) // #nosec G115
 	}
 
 	if row.Refs.Valid && row.Refs.String != "" {
 		ni.References = strings.Split(row.Refs.String, " ")
 	}
+
 	if row.Deriver.Valid {
 		ni.Deriver = row.Deriver.String
 	}
+
 	if row.Sigs.Valid && row.Sigs.String != "" {
 		for _, s := range strings.Split(row.Sigs.String, " ") {
 			sig, err := signature.ParseSignature(s)
 			if err != nil {
 				continue
 			}
+
 			ni.Signatures = append(ni.Signatures, sig)
 		}
 	}
@@ -482,6 +525,7 @@ func (s *server) handleProxyNar(w http.ResponseWriter, r *http.Request, outhash,
 	if _, err := os.Stat(narFile); err == nil {
 		w.Header().Set("Content-Type", "application/x-nix-archive")
 		http.ServeFile(w, r, narFile)
+
 		return
 	}
 
@@ -489,6 +533,7 @@ func (s *server) handleProxyNar(w http.ResponseWriter, r *http.Request, outhash,
 	ni, err := s.upstream.GetNarInfo(r.Context(), outhash)
 	if err != nil {
 		http.NotFound(w, r)
+
 		return
 	}
 
@@ -496,8 +541,10 @@ func (s *server) handleProxyNar(w http.ResponseWriter, r *http.Request, outhash,
 	if err != nil {
 		log.Printf("GetNar(%s): %v", outhash, err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
+
 		return
 	}
+
 	defer rc.Close()
 
 	// Tee to disk and response.
@@ -505,18 +552,22 @@ func (s *server) handleProxyNar(w http.ResponseWriter, r *http.Request, outhash,
 	if err != nil {
 		log.Printf("creating temp file: %v", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
+
 		return
 	}
+
 	tmpPath := tmp.Name()
 
 	w.Header().Set("Content-Type", "application/x-nix-archive")
 	mw := io.MultiWriter(w, tmp)
 	_, copyErr := io.Copy(mw, rc)
+
 	tmp.Close()
 
 	if copyErr != nil {
 		log.Printf("streaming proxy NAR for %s: %v", outhash, copyErr)
 		os.Remove(tmpPath)
+
 		return
 	}
 

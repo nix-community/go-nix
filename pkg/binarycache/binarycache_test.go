@@ -16,9 +16,11 @@ import (
 func TestGetCacheInfo(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/nix-cache-info" {
-			w.Write([]byte("StoreDir: /nix/store\nWantMassQuery: 1\nPriority: 40\n"))
+			_, _ = w.Write([]byte("StoreDir: /nix/store\nWantMassQuery: 1\nPriority: 40\n"))
+
 			return
 		}
+
 		http.NotFound(w, r)
 	}))
 	defer srv.Close()
@@ -35,9 +37,11 @@ func TestGetCacheInfo(t *testing.T) {
 func TestGetCacheInfoDefault(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/nix-cache-info" {
-			w.Write([]byte("StoreDir: /nix/store\n"))
+			_, _ = w.Write([]byte("StoreDir: /nix/store\n"))
+
 			return
 		}
+
 		http.NotFound(w, r)
 	}))
 	defer srv.Close()
@@ -80,7 +84,7 @@ func TestGetNarInfo(t *testing.T) {
 		switch r.URL.Path {
 		case "/00bgd045z0d4icpbc2yyz4gx48ak44la.narinfo":
 			w.Header().Set("Content-Type", "text/x-nix-narinfo")
-			w.Write([]byte(testNarInfo))
+			_, _ = w.Write([]byte(testNarInfo))
 		default:
 			http.NotFound(w, r)
 		}
@@ -116,7 +120,7 @@ func TestGetNar(t *testing.T) {
 		switch r.URL.Path {
 		case "/nar/fakehash.nar":
 			w.Header().Set("Content-Type", "application/x-nix-archive")
-			w.Write(narData)
+			_, _ = w.Write(narData)
 		default:
 			http.NotFound(w, r)
 		}
@@ -168,9 +172,11 @@ References:
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, ok := narinfos[r.URL.Path]
 		if ok {
-			w.Write([]byte(body))
+			_, _ = w.Write([]byte(body))
+
 			return
 		}
+
 		http.NotFound(w, r)
 	}))
 	defer srv.Close()
@@ -192,6 +198,7 @@ References:
 	for i, ni := range result {
 		paths[i] = ni.StorePath
 	}
+
 	assert.Equal(t, "/nix/store/cccccccccccccccccccccccccccccccc-c", paths[0])
 	assert.Equal(t, "/nix/store/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb-b", paths[1])
 	assert.Equal(t, "/nix/store/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-a", paths[2])
@@ -218,9 +225,11 @@ References:
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, ok := narinfos[r.URL.Path]
 		if ok {
-			w.Write([]byte(body))
+			_, _ = w.Write([]byte(body))
+
 			return
 		}
+
 		http.NotFound(w, r)
 	}))
 	defer srv.Close()
@@ -255,13 +264,17 @@ References:
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if body, ok := narinfos[r.URL.Path]; ok {
-			w.Write([]byte(body))
+			_, _ = w.Write([]byte(body))
+
 			return
 		}
+
 		if r.URL.Path == "/nar/aaa.nar" {
-			w.Write(narData)
+			_, _ = w.Write(narData)
+
 			return
 		}
+
 		http.NotFound(w, r)
 	}))
 	defer srv.Close()
@@ -273,13 +286,17 @@ References:
 	}
 
 	var imported []string
+
 	importer := binarycache.ImporterFunc(func(_ context.Context, info *narinfo.NarInfo, nar io.Reader) error {
 		data, err := io.ReadAll(nar)
 		if err != nil {
 			return err
 		}
+
 		assert.Equal(t, narData, data)
+
 		imported = append(imported, info.StorePath)
+
 		return nil
 	})
 

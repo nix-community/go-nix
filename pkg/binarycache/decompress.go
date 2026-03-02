@@ -18,12 +18,14 @@ func decompress(r io.Reader, compression string) (io.ReadCloser, error) {
 		if err != nil {
 			return nil, fmt.Errorf("xz: %w", err)
 		}
+
 		return io.NopCloser(xr), nil
 	case "zstd":
 		zr, err := zstd.NewReader(r)
 		if err != nil {
 			return nil, fmt.Errorf("zstd: %w", err)
 		}
+
 		return zr.IOReadCloser(), nil
 	default:
 		return nil, fmt.Errorf("unsupported compression: %s", compression)

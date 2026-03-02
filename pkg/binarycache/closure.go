@@ -22,8 +22,8 @@ func (c *Client) ResolveClosure(
 	filter PathFilter,
 ) ([]*narinfo.NarInfo, error) {
 	fetched := make(map[string]*narinfo.NarInfo)
-	queue := make([]string, len(hashes))
-	copy(queue, hashes)
+	queue := make([]string, 0, len(hashes))
+	queue = append(queue, hashes...)
 	seen := make(map[string]bool)
 
 	for i := 0; i < len(queue); i++ {
@@ -58,10 +58,13 @@ func (c *Client) ResolveClosure(
 			if ref == "" {
 				continue
 			}
+
 			idx := strings.Index(ref, "-")
+
 			if idx <= 0 {
 				continue
 			}
+
 			refHash := ref[:idx]
 			queue = append(queue, refHash)
 		}
@@ -79,7 +82,9 @@ func topoSort(infos map[string]*narinfo.NarInfo) []*narinfo.NarInfo {
 			if ref == "" {
 				continue
 			}
+
 			absRef := storepath.StoreDir + "/" + ref
+
 			if _, ok := infos[absRef]; ok && absRef != path {
 				deps[path] = append(deps[path], absRef)
 			}
@@ -87,6 +92,7 @@ func topoSort(infos map[string]*narinfo.NarInfo) []*narinfo.NarInfo {
 	}
 
 	var result []*narinfo.NarInfo
+
 	visited := make(map[string]bool)
 
 	var visit func(path string)

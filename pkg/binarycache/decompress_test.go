@@ -1,4 +1,4 @@
-package binarycache
+package binarycache //nolint:testpackage // tests unexported decompress function
 
 import (
 	"bytes"
@@ -28,7 +28,8 @@ func TestDecompressXz(t *testing.T) {
 	var compressed bytes.Buffer
 	w, err := xz.NewWriter(&compressed)
 	require.NoError(t, err)
-	w.Write(original)
+
+	_, _ = w.Write(original)
 	w.Close()
 
 	rc, err := decompress(&compressed, "xz")
@@ -46,7 +47,8 @@ func TestDecompressZstd(t *testing.T) {
 	var compressed bytes.Buffer
 	w, err := zstd.NewWriter(&compressed)
 	require.NoError(t, err)
-	w.Write(original)
+
+	_, _ = w.Write(original)
 	w.Close()
 
 	rc, err := decompress(&compressed, "zstd")

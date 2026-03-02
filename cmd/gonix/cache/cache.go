@@ -34,7 +34,7 @@ type Cmd struct {
 	Dot        DotCmd        `kong:"cmd,name='dot',help='Emit dependency graph in Graphviz DOT format'"`
 	Check      CheckCmd      `kong:"cmd,name='check',help='Check if store paths exist in a binary cache'"`
 	Fetch      FetchCmd      `kong:"cmd,name='fetch',help='Fetch store paths from a binary cache'"`
-	Nar        CacheNarCmd   `kong:"cmd,name='nar',help='Inspect files inside a NAR from a binary cache'"`
+	Nar        NarCmd        `kong:"cmd,name='nar',help='Inspect files inside a NAR from a binary cache'"`
 	Serve      ServeCmd      `kong:"cmd,name='serve',help='Serve the local Nix store as an HTTP binary cache'"`
 }
 
@@ -45,6 +45,7 @@ func extractHash(s string) string {
 	if idx := strings.Index(h, "-"); idx > 0 {
 		h = h[:idx]
 	}
+
 	return h
 }
 
@@ -121,6 +122,7 @@ func (cmd *ClosureCmd) Run() error {
 	}
 
 	var total uint64
+
 	for _, ni := range closure {
 		fmt.Printf("%s\t%d\n", ni.StorePath, ni.NarSize)
 		total += ni.NarSize
@@ -156,21 +158,25 @@ func (cmd *TreeCmd) Run() error {
 
 	for _, ni := range closure {
 		var children []string
+
 		for _, ref := range ni.References {
 			abs := storepath.StoreDir + "/" + ref
 			if inClosure[abs] {
 				children = append(children, abs)
 			}
 		}
+
 		sort.Strings(children)
 		refs[ni.StorePath] = children
 	}
 
 	// Find the root store path.
 	root := ""
+
 	for _, ni := range closure {
 		if extractHash(ni.StorePath) == extractHash(cmd.StorePath) {
 			root = ni.StorePath
+
 			break
 		}
 	}
@@ -190,10 +196,12 @@ func (cmd *TreeCmd) Run() error {
 
 		if visited[path] {
 			fmt.Printf("%s%s%s [...]\n", prefix, connector, path)
+
 			return
 		}
 
 		fmt.Printf("%s%s%s\n", prefix, connector, path)
+
 		visited[path] = true
 
 		childPrefix := prefix
@@ -210,6 +218,7 @@ func (cmd *TreeCmd) Run() error {
 
 	// Print root separately, then recurse into its children.
 	fmt.Println(root)
+
 	visited[root] = true
 
 	children := refs[root]
@@ -273,17 +282,21 @@ func (cmd *DiffCmd) Run() error {
 
 	if len(onlyA) > 0 {
 		fmt.Printf("Only in %s:\n", cmd.PathA)
+
 		for _, p := range onlyA {
 			fmt.Printf("  %s\t%d\n", p, setA[p].NarSize)
 		}
+
 		fmt.Println()
 	}
 
 	if len(onlyB) > 0 {
 		fmt.Printf("Only in %s:\n", cmd.PathB)
+
 		for _, p := range onlyB {
 			fmt.Printf("  %s\t%d\n", p, setB[p].NarSize)
 		}
+
 		fmt.Println()
 	}
 
@@ -323,12 +336,14 @@ func (cmd *WhyDependsCmd) Run() error {
 
 	for _, ni := range closure {
 		var children []string
+
 		for _, ref := range ni.References {
 			abs := storepath.StoreDir + "/" + ref
 			if inClosure[abs] {
 				children = append(children, abs)
 			}
 		}
+
 		sort.Strings(children)
 		refs[ni.StorePath] = children
 	}
@@ -342,6 +357,7 @@ func (cmd *WhyDependsCmd) Run() error {
 		if h == extractHash(cmd.StorePath) {
 			root = ni.StorePath
 		}
+
 		if h == depHash {
 			target = ni.StorePath
 		}
@@ -370,6 +386,7 @@ func (cmd *WhyDependsCmd) Run() error {
 		for _, child := range refs[cur] {
 			if _, seen := parent[child]; !seen {
 				parent[child] = cur
+
 				queue = append(queue, child)
 			}
 		}
@@ -415,11 +432,13 @@ func (cmd *VerifyCmd) Run() error {
 	defer stop()
 
 	pubKeys := make([]signature.PublicKey, len(cmd.Keys))
+
 	for i, k := range cmd.Keys {
 		pk, err := signature.ParsePublicKey(k)
 		if err != nil {
 			return fmt.Errorf("parsing public key %q: %w", k, err)
 		}
+
 		pubKeys[i] = pk
 	}
 
@@ -440,9 +459,11 @@ func (cmd *VerifyCmd) Run() error {
 			for _, sig := range ni.Signatures {
 				if key.Verify(fp, sig) {
 					matched = key.Name
+
 					break
 				}
 			}
+
 			if matched != "" {
 				break
 			}
@@ -450,9 +471,11 @@ func (cmd *VerifyCmd) Run() error {
 
 		if matched != "" {
 			fmt.Printf("PASS  %s  (%s)\n", ni.StorePath, matched)
+
 			passed++
 		} else {
 			fmt.Printf("FAIL  %s  (no matching signature)\n", ni.StorePath)
+
 			failed++
 		}
 	}
@@ -486,6 +509,7 @@ func (cmd *SizeCmd) Run() error {
 	for _, ni := range closure {
 		fmt.Printf("%s    nar:%d  download:%d  %s\n",
 			ni.StorePath, ni.NarSize, ni.FileSize, ni.Compression)
+
 		totalNar += ni.NarSize
 		totalFile += ni.FileSize
 	}
@@ -563,12 +587,14 @@ func (cmd *DotCmd) Run() error {
 
 	for _, ni := range closure {
 		var children []string
+
 		for _, ref := range ni.References {
 			abs := storepath.StoreDir + "/" + ref
 			if inClosure[abs] {
 				children = append(children, abs)
 			}
 		}
+
 		sort.Strings(children)
 		refs[ni.StorePath] = children
 	}
@@ -578,6 +604,7 @@ func (cmd *DotCmd) Run() error {
 
 	for _, ni := range closure {
 		from := strings.TrimPrefix(ni.StorePath, storepath.StoreDir+"/")
+
 		for _, child := range refs[ni.StorePath] {
 			to := strings.TrimPrefix(child, storepath.StoreDir+"/")
 			fmt.Printf("    %q -> %q;\n", from, to)
@@ -609,6 +636,7 @@ func (cmd *CheckCmd) Run() error {
 			fmt.Printf("MISS  %s\n", sp)
 		} else {
 			fmt.Printf("HIT   %s\n", sp)
+
 			hits++
 		}
 	}
@@ -646,6 +674,7 @@ func (cmd *FetchCmd) Run() error {
 		if err != nil {
 			return false, err
 		}
+
 		return !valid, nil
 	}
 
@@ -671,6 +700,7 @@ func (cmd *FetchCmd) Run() error {
 		}
 
 		fmt.Printf("importing %s (%d bytes)\n", ni.StorePath, ni.NarSize)
+
 		return client.AddToStoreNar(ctx, info, nar, false, false)
 	})
 
@@ -704,8 +734,8 @@ func headerLineString(hdr *nar.Header) string {
 	return sb.String()
 }
 
-// CacheNarCmd groups NAR inspection subcommands.
-type CacheNarCmd struct {
+// NarCmd groups NAR inspection subcommands.
+type NarCmd struct {
 	Ls  NarLsCmd  `kong:"cmd,name='ls',help='List files inside a NAR from a binary cache'"`
 	Cat NarCatCmd `kong:"cmd,name='cat',help='Print file contents from a NAR in a binary cache'"`
 }
@@ -746,6 +776,7 @@ func (cmd *NarLsCmd) Run() error {
 			if err == io.EOF {
 				return nil
 			}
+
 			return err
 		}
 
@@ -797,6 +828,7 @@ func (cmd *NarCatCmd) Run() error {
 			if err == io.EOF {
 				return fmt.Errorf("requested path not found")
 			}
+
 			return err
 		}
 
