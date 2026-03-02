@@ -3,11 +3,13 @@ package daemon
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"sync"
 	"time"
 
+	"github.com/nix-community/go-nix/pkg/nar"
 	"github.com/nix-community/go-nix/pkg/wire"
 )
 
@@ -532,17 +534,46 @@ func (c *Client) NarFromPath(
 	}
 
 	// The daemon sends raw NAR data (self-delimiting format). Use io.Pipe
-	// with a goroutine running copyNAR to stream the data without buffering
-	// the entire NAR in memory.
+	// with io.TeeReader so that everything the NAR reader consumes from the
+	// connection is also written to the pipe for the caller to read.
 	pr, pw := io.Pipe()
+	tee := io.TeeReader(c.r, pw)
 
 	go func() {
-		err := copyNAR(pw, c.r)
+		err := drainNAR(tee)
 		c.release(cancel)
 		pw.CloseWithError(err)
 	}()
 
 	return pr, nil
+}
+
+// drainNAR reads one complete NAR archive from r using nar.Reader,
+// consuming all entries and file content until EOF.
+func drainNAR(r io.Reader) error {
+	nr, err := nar.NewReader(r)
+	if err != nil {
+		return fmt.Errorf("reading NAR: %w", err)
+	}
+	defer nr.Close()
+
+	for {
+		hdr, err := nr.Next()
+		if err == io.EOF {
+			return nil
+		}
+
+		if err != nil {
+			return fmt.Errorf("reading NAR: %w", err)
+		}
+
+		// Drain file content so the reader advances past this entry.
+		if hdr.Type == nar.TypeRegular && hdr.Size > 0 {
+			if _, err := io.Copy(io.Discard, nr); err != nil {
+				return fmt.Errorf("reading NAR content: %w", err)
+			}
+		}
+	}
 }
 
 // BuildPaths asks the daemon to build the given set of derivation paths or
