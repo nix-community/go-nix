@@ -36,6 +36,7 @@ type Cmd struct {
 	Fetch      FetchCmd      `kong:"cmd,name='fetch',help='Fetch store paths from a binary cache'"`
 	NarLs      NarLsCmd      `kong:"cmd,name='nar-ls',help='List files inside a NAR from a binary cache'"`
 	NarCat     NarCatCmd     `kong:"cmd,name='nar-cat',help='Print file contents from a NAR in a binary cache'"`
+	Serve      ServeCmd      `kong:"cmd,name='serve',help='Serve the local Nix store as an HTTP binary cache'"`
 }
 
 // extractHash extracts the 32-char hash from a store path or hash string.
