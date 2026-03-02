@@ -29,40 +29,40 @@ func newMockDaemon(t *testing.T) (*mockDaemon, net.Conn) {
 func (m *mockDaemon) handshake() {
 	var buf [8]byte
 
-	io.ReadFull(m.conn, buf[:])
+	_, _ = io.ReadFull(m.conn, buf[:])
 
 	binary.LittleEndian.PutUint64(buf[:], daemon.ServerMagic)
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
 	binary.LittleEndian.PutUint64(buf[:], daemon.ProtocolVersion)
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
-	io.ReadFull(m.conn, buf[:]) // negotiated version
-	io.ReadFull(m.conn, buf[:]) // cpu affinity
-	io.ReadFull(m.conn, buf[:]) // reserve space
+	_, _ = io.ReadFull(m.conn, buf[:]) // negotiated version
+	_, _ = io.ReadFull(m.conn, buf[:]) // cpu affinity
+	_, _ = io.ReadFull(m.conn, buf[:]) // reserve space
 
 	writeWireStringTo(m.conn, "nix (Nix) 2.24.0")
 
 	binary.LittleEndian.PutUint64(buf[:], 1) // TrustTrusted
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
 	// Post-handshake: daemon sends startWork/stopWork (STDERR_LAST).
 	binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 }
 
 func (m *mockDaemon) respondIsValidPath(valid bool) {
 	var buf [8]byte
 
-	io.ReadFull(m.conn, buf[:]) // read op code
+	_, _ = io.ReadFull(m.conn, buf[:]) // read op code
 	op := binary.LittleEndian.Uint64(buf[:])
 	assert.Equal(m.t, uint64(daemon.OpIsValidPath), op)
 
-	wire.ReadString(m.conn, 64*1024) // read path string
+	_, _ = wire.ReadString(m.conn, 64*1024) // read path string
 
 	// Send LogLast
 	binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
 	// Send bool result
 	if valid {
@@ -71,7 +71,7 @@ func (m *mockDaemon) respondIsValidPath(valid bool) {
 		binary.LittleEndian.PutUint64(buf[:], 0)
 	}
 
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 }
 
 func TestClientConnectWrongMagic(t *testing.T) {
@@ -81,9 +81,9 @@ func TestClientConnectWrongMagic(t *testing.T) {
 
 	go func() {
 		var buf [8]byte
-		io.ReadFull(server, buf[:]) // read client magic
+		_, _ = io.ReadFull(server, buf[:]) // read client magic
 		binary.LittleEndian.PutUint64(buf[:], 0xdeadbeef)
-		server.Write(buf[:])
+		_, _ = server.Write(buf[:])
 	}()
 
 	_, err := daemon.NewClientFromConn(clientConn)
@@ -177,19 +177,19 @@ func TestClientLogsNilByDefault(t *testing.T) {
 func (m *mockDaemon) respondQueryPathInfo(info *daemon.PathInfo) {
 	var buf [8]byte
 
-	io.ReadFull(m.conn, buf[:]) // read op code
+	_, _ = io.ReadFull(m.conn, buf[:]) // read op code
 	op := binary.LittleEndian.Uint64(buf[:])
 	assert.Equal(m.t, uint64(daemon.OpQueryPathInfo), op)
 
-	wire.ReadString(m.conn, 64*1024) // read path string
+	_, _ = wire.ReadString(m.conn, 64*1024) // read path string
 
 	// Send LogLast
 	binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
 	// found = true
 	binary.LittleEndian.PutUint64(buf[:], 1)
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
 	// PathInfo fields (UnkeyedValidPathInfo format)
 	writeWireStringTo(m.conn, info.Deriver)
@@ -197,17 +197,17 @@ func (m *mockDaemon) respondQueryPathInfo(info *daemon.PathInfo) {
 
 	// References
 	binary.LittleEndian.PutUint64(buf[:], uint64(len(info.References)))
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
 	for _, ref := range info.References {
 		writeWireStringTo(m.conn, ref)
 	}
 
 	binary.LittleEndian.PutUint64(buf[:], info.RegistrationTime)
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
 	binary.LittleEndian.PutUint64(buf[:], info.NarSize)
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
 	if info.Ultimate {
 		binary.LittleEndian.PutUint64(buf[:], 1)
@@ -215,11 +215,11 @@ func (m *mockDaemon) respondQueryPathInfo(info *daemon.PathInfo) {
 		binary.LittleEndian.PutUint64(buf[:], 0)
 	}
 
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
 	// Sigs
 	binary.LittleEndian.PutUint64(buf[:], uint64(len(info.Sigs)))
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
 	for _, sig := range info.Sigs {
 		writeWireStringTo(m.conn, sig)
@@ -231,19 +231,19 @@ func (m *mockDaemon) respondQueryPathInfo(info *daemon.PathInfo) {
 func (m *mockDaemon) respondQueryPathInfoNotFound() {
 	var buf [8]byte
 
-	io.ReadFull(m.conn, buf[:]) // read op code
+	_, _ = io.ReadFull(m.conn, buf[:]) // read op code
 	op := binary.LittleEndian.Uint64(buf[:])
 	assert.Equal(m.t, uint64(daemon.OpQueryPathInfo), op)
 
-	wire.ReadString(m.conn, 64*1024) // read path string
+	_, _ = wire.ReadString(m.conn, 64*1024) // read path string
 
 	// Send LogLast
 	binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 
 	// found = false
 	binary.LittleEndian.PutUint64(buf[:], 0)
-	m.conn.Write(buf[:])
+	_, _ = m.conn.Write(buf[:])
 }
 
 func TestClientQueryPathInfo(t *testing.T) {
@@ -258,8 +258,10 @@ func TestClientQueryPathInfo(t *testing.T) {
 		RegistrationTime: 1700000000,
 		NarSize:          123456,
 		Ultimate:         true,
-		Sigs:             []string{"cache.nixos.org-1:TsTTb3WGTZKphvYdBHXwo13XoOdFhL2sw/8d16Xzm5NeXp+SuJgMHV1+U+5JxVuf2HuLci2x3Sa+l3KhADoCDQ=="},
-		CA:               "",
+		Sigs: []string{
+			"cache.nixos.org-1:TsTTb3WGTZKphvYdBHXwo13XoOdFhL2sw/8d16Xzm5NeXp+SuJgMHV1+U+5JxVuf2HuLci2x3Sa+l3KhADoCDQ==",
+		},
+		CA: "",
 	}
 
 	go func() {
@@ -314,15 +316,15 @@ func TestClientNarFromPath(t *testing.T) {
 
 		var buf [8]byte
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpNarFromPath), op)
 
-		wire.ReadString(mock.conn, 64*1024) // path
+		_, _ = wire.ReadString(mock.conn, 64*1024) // path
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		// Send a valid NAR (raw format, not length-prefixed).
 		writeWireStringTo(mock.conn, "nix-archive-1")
@@ -361,24 +363,24 @@ func TestClientBuildPaths(t *testing.T) {
 
 		var buf [8]byte
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpBuildPaths), op)
 
 		// Read paths (count + strings)
-		io.ReadFull(mock.conn, buf[:])      // count = 1
-		wire.ReadString(mock.conn, 64*1024) // path
+		_, _ = io.ReadFull(mock.conn, buf[:])      // count = 1
+		_, _ = wire.ReadString(mock.conn, 64*1024) // path
 
 		// Read build mode
-		io.ReadFull(mock.conn, buf[:]) // mode
+		_, _ = io.ReadFull(mock.conn, buf[:]) // mode
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		// Response: uint64(1)
 		binary.LittleEndian.PutUint64(buf[:], 1)
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)
@@ -398,19 +400,19 @@ func TestClientEnsurePath(t *testing.T) {
 
 		var buf [8]byte
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpEnsurePath), op)
 
-		wire.ReadString(mock.conn, 64*1024) // path
+		_, _ = wire.ReadString(mock.conn, 64*1024) // path
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		// Response: uint64(1)
 		binary.LittleEndian.PutUint64(buf[:], 1)
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)
@@ -430,42 +432,42 @@ func TestClientBuildPathsWithResults(t *testing.T) {
 
 		var buf [8]byte
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpBuildPathsWithResults), op)
 
 		// Read paths (count + strings)
-		io.ReadFull(mock.conn, buf[:])      // count = 1
-		wire.ReadString(mock.conn, 64*1024) // path
+		_, _ = io.ReadFull(mock.conn, buf[:])      // count = 1
+		_, _ = wire.ReadString(mock.conn, 64*1024) // path
 
 		// Read build mode
-		io.ReadFull(mock.conn, buf[:]) // mode
+		_, _ = io.ReadFull(mock.conn, buf[:]) // mode
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		// Response: count of results = 1
 		binary.LittleEndian.PutUint64(buf[:], 1)
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		// DerivedPath string (ignored by client)
 		writeWireStringTo(mock.conn, "/nix/store/abc-test.drv!out")
 
 		// BuildResult fields
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.BuildStatusBuilt)) // status
-		mock.conn.Write(buf[:])
-		writeWireStringTo(mock.conn, "")                                       // errorMsg
-		binary.LittleEndian.PutUint64(buf[:], 1)                              // timesBuilt
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
+		writeWireStringTo(mock.conn, "")         // errorMsg
+		binary.LittleEndian.PutUint64(buf[:], 1) // timesBuilt
+		_, _ = mock.conn.Write(buf[:])
 		binary.LittleEndian.PutUint64(buf[:], 0) // isNonDeterministic
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 		binary.LittleEndian.PutUint64(buf[:], 1700000000) // startTime
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 		binary.LittleEndian.PutUint64(buf[:], 1700000060) // stopTime
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 		binary.LittleEndian.PutUint64(buf[:], 0) // builtOutputs count
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)
@@ -496,15 +498,15 @@ func TestClientAddTempRoot(t *testing.T) {
 
 		var buf [8]byte
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpAddTempRoot), op)
 
-		wire.ReadString(mock.conn, 64*1024) // path
+		_, _ = wire.ReadString(mock.conn, 64*1024) // path
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)
@@ -524,15 +526,15 @@ func TestClientAddIndirectRoot(t *testing.T) {
 
 		var buf [8]byte
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpAddIndirectRoot), op)
 
-		wire.ReadString(mock.conn, 64*1024) // path
+		_, _ = wire.ReadString(mock.conn, 64*1024) // path
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)
@@ -552,16 +554,16 @@ func TestClientAddPermRoot(t *testing.T) {
 
 		var buf [8]byte
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpAddPermRoot), op)
 
-		wire.ReadString(mock.conn, 64*1024) // storePath
-		wire.ReadString(mock.conn, 64*1024) // gcRoot
+		_, _ = wire.ReadString(mock.conn, 64*1024) // storePath
+		_, _ = wire.ReadString(mock.conn, 64*1024) // gcRoot
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		// Response: result path string
 		writeWireStringTo(mock.conn, "/nix/var/nix/gcroots/auto/abc")
@@ -585,22 +587,23 @@ func TestClientAddSignatures(t *testing.T) {
 
 		var buf [8]byte
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpAddSignatures), op)
 
-		wire.ReadString(mock.conn, 64*1024) // path
+		_, _ = wire.ReadString(mock.conn, 64*1024) // path
 
 		// Read sigs: count + strings
-		io.ReadFull(mock.conn, buf[:]) // count
+		_, _ = io.ReadFull(mock.conn, buf[:]) // count
 		count := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(2), count)
-		wire.ReadString(mock.conn, 64*1024) // sig 1
-		wire.ReadString(mock.conn, 64*1024) // sig 2
+
+		_, _ = wire.ReadString(mock.conn, 64*1024) // sig 1
+		_, _ = wire.ReadString(mock.conn, 64*1024) // sig 2
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)
@@ -620,15 +623,15 @@ func TestClientRegisterDrvOutput(t *testing.T) {
 
 		var buf [8]byte
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpRegisterDrvOutput), op)
 
-		wire.ReadString(mock.conn, 64*1024) // realisation
+		_, _ = wire.ReadString(mock.conn, 64*1024) // realisation
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)
@@ -659,33 +662,33 @@ func TestClientAddToStoreNar(t *testing.T) {
 
 		mock.handshake()
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpAddToStoreNar), op)
 
 		// Read PathInfo: storePath, deriver, narHash, refs, regTime, narSize, ultimate, sigs, ca
-		wire.ReadString(mock.conn, 64*1024) // storePath
-		wire.ReadString(mock.conn, 64*1024) // deriver
-		wire.ReadString(mock.conn, 64*1024) // narHash
+		_, _ = wire.ReadString(mock.conn, 64*1024) // storePath
+		_, _ = wire.ReadString(mock.conn, 64*1024) // deriver
+		_, _ = wire.ReadString(mock.conn, 64*1024) // narHash
 
-		io.ReadFull(mock.conn, buf[:]) // refs count = 0
+		_, _ = io.ReadFull(mock.conn, buf[:]) // refs count = 0
 
-		io.ReadFull(mock.conn, buf[:]) // registrationTime
-		io.ReadFull(mock.conn, buf[:]) // narSize
-		io.ReadFull(mock.conn, buf[:]) // ultimate
+		_, _ = io.ReadFull(mock.conn, buf[:]) // registrationTime
+		_, _ = io.ReadFull(mock.conn, buf[:]) // narSize
+		_, _ = io.ReadFull(mock.conn, buf[:]) // ultimate
 
-		io.ReadFull(mock.conn, buf[:]) // sigs count = 0
+		_, _ = io.ReadFull(mock.conn, buf[:]) // sigs count = 0
 
-		wire.ReadString(mock.conn, 64*1024) // ca
+		_, _ = wire.ReadString(mock.conn, 64*1024) // ca
 
-		io.ReadFull(mock.conn, buf[:]) // repair
-		io.ReadFull(mock.conn, buf[:]) // dontCheckSigs
+		_, _ = io.ReadFull(mock.conn, buf[:]) // repair
+		_, _ = io.ReadFull(mock.conn, buf[:]) // dontCheckSigs
 
 		// Read framed NAR data
 		var received bytes.Buffer
 
 		for {
-			io.ReadFull(mock.conn, buf[:])
+			_, _ = io.ReadFull(mock.conn, buf[:])
 			frameLen := binary.LittleEndian.Uint64(buf[:])
 
 			if frameLen == 0 {
@@ -693,13 +696,13 @@ func TestClientAddToStoreNar(t *testing.T) {
 			}
 
 			data := make([]byte, frameLen)
-			io.ReadFull(mock.conn, data)
-			received.Write(data)
+			_, _ = io.ReadFull(mock.conn, data)
+			_, _ = received.Write(data)
 
 			// Skip padding
 			pad := (8 - (frameLen % 8)) % 8
 			if pad > 0 {
-				io.ReadFull(mock.conn, make([]byte, pad))
+				_, _ = io.ReadFull(mock.conn, make([]byte, pad))
 			}
 		}
 
@@ -707,7 +710,7 @@ func TestClientAddToStoreNar(t *testing.T) {
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)
@@ -727,15 +730,15 @@ func TestClientFindRoots(t *testing.T) {
 
 		var buf [8]byte
 
-		io.ReadFull(mock.conn, buf[:]) // op code
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op code
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		// Map: count=1
 		binary.LittleEndian.PutUint64(buf[:], 1)
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 		writeWireStringTo(mock.conn, "/proc/1/root")
 		writeWireStringTo(mock.conn, "/nix/store/abc-test")
 	}()
@@ -769,70 +772,70 @@ func TestClientBuildDerivation(t *testing.T) {
 
 		var buf [8]byte
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpBuildDerivation), op)
 
 		// Read drvPath
-		wire.ReadString(mock.conn, 64*1024)
+		_, _ = wire.ReadString(mock.conn, 64*1024)
 
 		// Read outputs count
-		io.ReadFull(mock.conn, buf[:])
+		_, _ = io.ReadFull(mock.conn, buf[:])
 		count := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(1), count)
 
 		// Read output: name, path, hashAlgo, hash
-		wire.ReadString(mock.conn, 64*1024)
-		wire.ReadString(mock.conn, 64*1024)
-		wire.ReadString(mock.conn, 64*1024)
-		wire.ReadString(mock.conn, 64*1024)
+		_, _ = wire.ReadString(mock.conn, 64*1024)
+		_, _ = wire.ReadString(mock.conn, 64*1024)
+		_, _ = wire.ReadString(mock.conn, 64*1024)
+		_, _ = wire.ReadString(mock.conn, 64*1024)
 
 		// Read inputs count + paths
-		io.ReadFull(mock.conn, buf[:])
-		wire.ReadString(mock.conn, 64*1024)
+		_, _ = io.ReadFull(mock.conn, buf[:])
+		_, _ = wire.ReadString(mock.conn, 64*1024)
 
 		// Read platform, builder
-		wire.ReadString(mock.conn, 64*1024)
-		wire.ReadString(mock.conn, 64*1024)
+		_, _ = wire.ReadString(mock.conn, 64*1024)
+		_, _ = wire.ReadString(mock.conn, 64*1024)
 
 		// Read args count + args
-		io.ReadFull(mock.conn, buf[:])
-		wire.ReadString(mock.conn, 64*1024)
-		wire.ReadString(mock.conn, 64*1024)
+		_, _ = io.ReadFull(mock.conn, buf[:])
+		_, _ = wire.ReadString(mock.conn, 64*1024)
+		_, _ = wire.ReadString(mock.conn, 64*1024)
 
 		// Read env count + entries
-		io.ReadFull(mock.conn, buf[:])
-		wire.ReadString(mock.conn, 64*1024)
-		wire.ReadString(mock.conn, 64*1024)
+		_, _ = io.ReadFull(mock.conn, buf[:])
+		_, _ = wire.ReadString(mock.conn, 64*1024)
+		_, _ = wire.ReadString(mock.conn, 64*1024)
 
 		// Read build mode
-		io.ReadFull(mock.conn, buf[:])
+		_, _ = io.ReadFull(mock.conn, buf[:])
 
 		// Send LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		// Send BuildResult: status=Built(0), errorMsg="", timesBuilt=1,
 		// isNonDeterministic=false, startTime=100, stopTime=200, builtOutputs count=0
 		binary.LittleEndian.PutUint64(buf[:], 0) // Built
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		writeWireStringTo(mock.conn, "") // errorMsg
 
 		binary.LittleEndian.PutUint64(buf[:], 1) // timesBuilt
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		binary.LittleEndian.PutUint64(buf[:], 0) // isNonDeterministic
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		binary.LittleEndian.PutUint64(buf[:], 100) // startTime
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		binary.LittleEndian.PutUint64(buf[:], 200) // stopTime
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 
 		binary.LittleEndian.PutUint64(buf[:], 0) // builtOutputs count
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)
@@ -858,17 +861,17 @@ func TestClientAddBuildLog(t *testing.T) {
 
 		mock.handshake()
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpAddBuildLog), op)
 
-		wire.ReadString(mock.conn, 64*1024) // drvPath
+		_, _ = wire.ReadString(mock.conn, 64*1024) // drvPath
 
 		// Read framed log data
 		var received bytes.Buffer
 
 		for {
-			io.ReadFull(mock.conn, buf[:])
+			_, _ = io.ReadFull(mock.conn, buf[:])
 			frameLen := binary.LittleEndian.Uint64(buf[:])
 
 			if frameLen == 0 {
@@ -876,13 +879,13 @@ func TestClientAddBuildLog(t *testing.T) {
 			}
 
 			data := make([]byte, frameLen)
-			io.ReadFull(mock.conn, data)
-			received.Write(data)
+			_, _ = io.ReadFull(mock.conn, data)
+			_, _ = received.Write(data)
 
 			// Skip padding
 			pad := (8 - (frameLen % 8)) % 8
 			if pad > 0 {
-				io.ReadFull(mock.conn, make([]byte, pad))
+				_, _ = io.ReadFull(mock.conn, make([]byte, pad))
 			}
 		}
 
@@ -890,7 +893,7 @@ func TestClientAddBuildLog(t *testing.T) {
 
 		// LogLast
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)
@@ -938,14 +941,14 @@ func TestClientAddMultipleToStore(t *testing.T) {
 
 		mock.handshake()
 
-		io.ReadFull(mock.conn, buf[:]) // op
+		_, _ = io.ReadFull(mock.conn, buf[:]) // op
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpAddMultipleToStore), op)
 
-		io.ReadFull(mock.conn, buf[:]) // repair
+		_, _ = io.ReadFull(mock.conn, buf[:]) // repair
 		assert.Equal(t, uint64(1), binary.LittleEndian.Uint64(buf[:]))
 
-		io.ReadFull(mock.conn, buf[:]) // dontCheckSigs
+		_, _ = io.ReadFull(mock.conn, buf[:]) // dontCheckSigs
 		assert.Equal(t, uint64(0), binary.LittleEndian.Uint64(buf[:]))
 
 		// Read all framed data into a buffer.
@@ -964,42 +967,45 @@ func TestClientAddMultipleToStore(t *testing.T) {
 		// Item 1: PathInfo fields.
 		s, _ := wire.ReadString(r, 64*1024) // storePath
 		assert.Equal(t, "/nix/store/aaa-one", s)
-		wire.ReadString(r, 64*1024) // deriver
-		wire.ReadString(r, 64*1024) // narHash
-		wire.ReadUint64(r)          // refs count (0)
-		wire.ReadUint64(r)          // registrationTime
-		wire.ReadUint64(r)          // narSize
-		wire.ReadUint64(r)          // ultimate
-		wire.ReadUint64(r)          // sigs count (0)
-		wire.ReadString(r, 64*1024) // ca
+
+		_, _ = wire.ReadString(r, 64*1024) // deriver
+		_, _ = wire.ReadString(r, 64*1024) // narHash
+		_, _ = wire.ReadUint64(r)          // refs count (0)
+		_, _ = wire.ReadUint64(r)          // registrationTime
+		_, _ = wire.ReadUint64(r)          // narSize
+		_, _ = wire.ReadUint64(r)          // ultimate
+		_, _ = wire.ReadUint64(r)          // sigs count (0)
+		_, _ = wire.ReadString(r, 64*1024) // ca
 
 		// Item 1: NAR data.
 		nar1 := make([]byte, len(narData1))
-		io.ReadFull(r, nar1)
+		_, _ = io.ReadFull(r, nar1)
 		assert.Equal(t, narData1, nar1)
 
 		// Item 2: PathInfo fields.
 		s, _ = wire.ReadString(r, 64*1024) // storePath
 		assert.Equal(t, "/nix/store/bbb-two", s)
-		wire.ReadString(r, 64*1024)        // deriver
-		wire.ReadString(r, 64*1024)        // narHash
+
+		_, _ = wire.ReadString(r, 64*1024) // deriver
+		_, _ = wire.ReadString(r, 64*1024) // narHash
 		refsCount, _ := wire.ReadUint64(r) // refs count (1)
 		assert.Equal(t, uint64(1), refsCount)
-		wire.ReadString(r, 64*1024) // ref
-		wire.ReadUint64(r)          // registrationTime
-		wire.ReadUint64(r)          // narSize
-		wire.ReadUint64(r)          // ultimate
-		wire.ReadUint64(r)          // sigs count (0)
-		wire.ReadString(r, 64*1024) // ca
+
+		_, _ = wire.ReadString(r, 64*1024) // ref
+		_, _ = wire.ReadUint64(r)          // registrationTime
+		_, _ = wire.ReadUint64(r)          // narSize
+		_, _ = wire.ReadUint64(r)          // ultimate
+		_, _ = wire.ReadUint64(r)          // sigs count (0)
+		_, _ = wire.ReadString(r, 64*1024) // ca
 
 		// Item 2: NAR data.
 		nar2 := make([]byte, len(narData2))
-		io.ReadFull(r, nar2)
+		_, _ = io.ReadFull(r, nar2)
 		assert.Equal(t, narData2, nar2)
 
 		// LogLast.
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)
@@ -1020,15 +1026,15 @@ func TestClientAddMultipleToStoreEmpty(t *testing.T) {
 		mock.handshake()
 
 		// Read op code.
-		io.ReadFull(mock.conn, buf[:])
+		_, _ = io.ReadFull(mock.conn, buf[:])
 		op := binary.LittleEndian.Uint64(buf[:])
 		assert.Equal(t, uint64(daemon.OpAddMultipleToStore), op)
 
 		// Read repair.
-		io.ReadFull(mock.conn, buf[:])
+		_, _ = io.ReadFull(mock.conn, buf[:])
 
 		// Read dontCheckSigs.
-		io.ReadFull(mock.conn, buf[:])
+		_, _ = io.ReadFull(mock.conn, buf[:])
 
 		// Read all framed data into a buffer.
 		fr := daemon.NewFramedReader(mock.conn)
@@ -1045,7 +1051,7 @@ func TestClientAddMultipleToStoreEmpty(t *testing.T) {
 
 		// Send LogLast.
 		binary.LittleEndian.PutUint64(buf[:], uint64(daemon.LogLast))
-		mock.conn.Write(buf[:])
+		_, _ = mock.conn.Write(buf[:])
 	}()
 
 	client, err := daemon.NewClientFromConn(clientConn)

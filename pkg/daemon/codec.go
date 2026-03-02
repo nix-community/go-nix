@@ -30,6 +30,7 @@ func ReadStrings(r io.Reader, maxBytes uint64) ([]string, error) {
 	}
 
 	ss := make([]string, count)
+
 	for i := uint64(0); i < count; i++ {
 		s, err := wire.ReadString(r, maxBytes)
 		if err != nil {
@@ -76,6 +77,7 @@ func ReadStringMap(r io.Reader, maxBytes uint64) (map[string]string, error) {
 	}
 
 	m := make(map[string]string, count)
+
 	for i := uint64(0); i < count; i++ {
 		key, err := wire.ReadString(r, maxBytes)
 		if err != nil {
@@ -283,6 +285,7 @@ func ReadBuildResult(r io.Reader) (*BuildResult, error) {
 	}
 
 	builtOutputs := make(map[string]Realisation, nrOutputs)
+
 	for i := uint64(0); i < nrOutputs; i++ {
 		name, err := wire.ReadString(r, MaxStringSize)
 		if err != nil {

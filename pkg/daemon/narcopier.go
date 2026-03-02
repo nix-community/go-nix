@@ -238,7 +238,7 @@ func copyWireData(dst io.Writer, src io.Reader) error {
 
 	length := binary.LittleEndian.Uint64(lenBuf[:])
 
-	if _, err := io.CopyN(dst, src, int64(length)); err != nil {
+	if _, err := io.CopyN(dst, src, int64(length)); err != nil { //nolint:gosec // G115: NAR entry lengths are bounded
 		return err
 	}
 

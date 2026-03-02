@@ -2,22 +2,22 @@ package daemon
 
 import "fmt"
 
-// DaemonError is returned when the Nix daemon reports an error.
-type DaemonError struct {
+// Error is returned when the Nix daemon reports an error.
+type Error struct {
 	Type    string
 	Level   uint64
 	Name    string
 	Message string
-	Traces  []DaemonErrorTrace
+	Traces  []ErrorTrace
 }
 
-// DaemonErrorTrace represents a single trace entry in a daemon error.
-type DaemonErrorTrace struct {
+// ErrorTrace represents a single trace entry in a daemon error.
+type ErrorTrace struct {
 	HavePos uint64
 	Message string
 }
 
-func (e *DaemonError) Error() string {
+func (e *Error) Error() string {
 	return fmt.Sprintf("daemon: %s", e.Message)
 }
 

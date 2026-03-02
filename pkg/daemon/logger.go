@@ -17,7 +17,7 @@ const MaxStringSize = 64 * 1024 * 1024 // 64 MiB
 // point the caller can proceed to read the response.
 //
 // Log messages (other than errors) are sent to the provided channel. If a
-// LogError message is received, the parsed DaemonError is returned. If the
+// LogError message is received, the parsed Error is returned. If the
 // channel is nil, non-error messages are silently discarded.
 func ProcessStderr(r io.Reader, logs chan<- LogMessage) error {
 	for {
@@ -33,7 +33,7 @@ func ProcessStderr(r io.Reader, logs chan<- LogMessage) error {
 			return nil
 
 		case LogError:
-			return readDaemonError(r)
+			return readError(r)
 
 		case LogNext:
 			text, err := wire.ReadString(r, MaxStringSize)
@@ -90,8 +90,8 @@ func ProcessStderr(r io.Reader, logs chan<- LogMessage) error {
 	}
 }
 
-// readDaemonError parses a DaemonError from the daemon's stderr channel.
-func readDaemonError(r io.Reader) error {
+// readError parses an Error from the daemon's stderr channel.
+func readError(r io.Reader) error {
 	errType, err := wire.ReadString(r, MaxStringSize)
 	if err != nil {
 		return &ProtocolError{Op: "read error type", Err: err}
@@ -122,7 +122,8 @@ func readDaemonError(r io.Reader) error {
 		return &ProtocolError{Op: "read error nrTraces", Err: err}
 	}
 
-	traces := make([]DaemonErrorTrace, nrTraces)
+	traces := make([]ErrorTrace, nrTraces)
+
 	for i := uint64(0); i < nrTraces; i++ {
 		havePos, err := wire.ReadUint64(r)
 		if err != nil {
@@ -134,13 +135,13 @@ func readDaemonError(r io.Reader) error {
 			return &ProtocolError{Op: "read trace message", Err: err}
 		}
 
-		traces[i] = DaemonErrorTrace{
+		traces[i] = ErrorTrace{
 			HavePos: havePos,
 			Message: traceMsg,
 		}
 	}
 
-	return &DaemonError{
+	return &Error{
 		Type:    errType,
 		Level:   level,
 		Name:    name,

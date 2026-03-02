@@ -56,11 +56,11 @@ func writePadding(w io.Writer, contentLen uint64) error {
 // followed by padding to the next 8-byte boundary. A zero-length frame
 // signals end-of-stream.
 type FramedReader struct {
-	r             io.Reader
-	remaining     uint64 // bytes remaining in current frame
-	prevFrameLen  uint64 // length of the previous frame (for padding calculation)
-	needHeader    bool   // true when we need to read the next frame header
-	done          bool   // true after we read a zero-length terminator frame
+	r            io.Reader
+	remaining    uint64 // bytes remaining in current frame
+	prevFrameLen uint64 // length of the previous frame (for padding calculation)
+	needHeader   bool   // true when we need to read the next frame header
+	done         bool   // true after we read a zero-length terminator frame
 }
 
 // NewFramedReader creates a FramedReader that reads framed data from r.
@@ -96,7 +96,7 @@ func (fr *FramedReader) Read(p []byte) (int, error) {
 	}
 
 	n, err := fr.r.Read(p[:toRead])
-	fr.remaining -= uint64(n)
+	fr.remaining -= uint64(n) //nolint:gosec // G115: n is always non-negative from a Read call
 
 	if fr.remaining == 0 {
 		fr.needHeader = true

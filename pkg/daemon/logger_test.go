@@ -28,6 +28,7 @@ func writeTestString(buf *bytes.Buffer, s string) {
 
 func TestProcessStderrLast(t *testing.T) {
 	var buf bytes.Buffer
+
 	writeTestUint64(&buf, uint64(daemon.LogLast))
 
 	logs := make(chan daemon.LogMessage, 10)
@@ -38,6 +39,7 @@ func TestProcessStderrLast(t *testing.T) {
 
 func TestProcessStderrNext(t *testing.T) {
 	var buf bytes.Buffer
+
 	writeTestUint64(&buf, uint64(daemon.LogNext))
 	writeTestString(&buf, "building /nix/store/xxx")
 	writeTestUint64(&buf, uint64(daemon.LogLast))
@@ -54,6 +56,7 @@ func TestProcessStderrNext(t *testing.T) {
 
 func TestProcessStderrError(t *testing.T) {
 	var buf bytes.Buffer
+
 	writeTestUint64(&buf, uint64(daemon.LogError))
 	writeTestString(&buf, "Error")          // type
 	writeTestUint64(&buf, 0)                // level
@@ -67,7 +70,8 @@ func TestProcessStderrError(t *testing.T) {
 
 	assert.Error(t, err)
 
-	var de *daemon.DaemonError
+	var de *daemon.Error
+
 	assert.ErrorAs(t, err, &de)
 	assert.Equal(t, "path not found", de.Message)
 	assert.Equal(t, "SomeError", de.Name)
@@ -109,6 +113,7 @@ func TestProcessStderrStartStopActivity(t *testing.T) {
 
 func TestProcessStderrResult(t *testing.T) {
 	var buf bytes.Buffer
+
 	writeTestUint64(&buf, uint64(daemon.LogResult))
 	writeTestUint64(&buf, 7)   // id
 	writeTestUint64(&buf, 101) // resType (ResBuildLogLine)
@@ -152,6 +157,7 @@ func TestProcessStderrReadWrite(t *testing.T) {
 
 func TestProcessStderrUnknownType(t *testing.T) {
 	var buf bytes.Buffer
+
 	writeTestUint64(&buf, 0xDEADBEEF)
 
 	logs := make(chan daemon.LogMessage, 10)
@@ -160,23 +166,25 @@ func TestProcessStderrUnknownType(t *testing.T) {
 	assert.Error(t, err)
 
 	var pe *daemon.ProtocolError
+
 	assert.ErrorAs(t, err, &pe)
 }
 
 func TestProcessStderrErrorWithTraces(t *testing.T) {
 	var buf bytes.Buffer
+
 	writeTestUint64(&buf, uint64(daemon.LogError))
-	writeTestString(&buf, "Error")            // type
-	writeTestUint64(&buf, 0)                  // level
-	writeTestString(&buf, "EvalError")        // name
+	writeTestString(&buf, "Error")              // type
+	writeTestUint64(&buf, 0)                    // level
+	writeTestString(&buf, "EvalError")          // name
 	writeTestString(&buf, "undefined variable") // message
-	writeTestUint64(&buf, 0)                  // havePos
-	writeTestUint64(&buf, 2)                  // nrTraces
+	writeTestUint64(&buf, 0)                    // havePos
+	writeTestUint64(&buf, 2)                    // nrTraces
 	// trace 1
 	writeTestUint64(&buf, 1)                  // traceHavePos
 	writeTestString(&buf, "while evaluating") // traceMsg
 	// trace 2
-	writeTestUint64(&buf, 0)                    // traceHavePos
+	writeTestUint64(&buf, 0)                     // traceHavePos
 	writeTestString(&buf, "in file default.nix") // traceMsg
 
 	logs := make(chan daemon.LogMessage, 10)
@@ -184,7 +192,8 @@ func TestProcessStderrErrorWithTraces(t *testing.T) {
 
 	assert.Error(t, err)
 
-	var de *daemon.DaemonError
+	var de *daemon.Error
+
 	assert.ErrorAs(t, err, &de)
 	assert.Equal(t, "undefined variable", de.Message)
 	assert.Equal(t, "EvalError", de.Name)
@@ -196,6 +205,7 @@ func TestProcessStderrErrorWithTraces(t *testing.T) {
 
 func TestProcessStderrActivityWithFields(t *testing.T) {
 	var buf bytes.Buffer
+
 	writeTestUint64(&buf, uint64(daemon.LogStartActivity))
 	writeTestUint64(&buf, 99)  // id
 	writeTestUint64(&buf, 3)   // level (Info)

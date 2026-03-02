@@ -12,7 +12,8 @@ import (
 func TestFramedReaderSingleFrame(t *testing.T) {
 	// Frame: length=5, data="hello", padding to 8 bytes, then terminator frame (length=0)
 	var buf bytes.Buffer
-	buf.Write([]byte{5, 0, 0, 0, 0, 0, 0, 0})          // frame length
+
+	buf.Write([]byte{5, 0, 0, 0, 0, 0, 0, 0})           // frame length
 	buf.Write([]byte{'h', 'e', 'l', 'l', 'o', 0, 0, 0}) // data + 3 padding
 	buf.Write([]byte{0, 0, 0, 0, 0, 0, 0, 0})           // terminator
 
@@ -24,6 +25,7 @@ func TestFramedReaderSingleFrame(t *testing.T) {
 
 func TestFramedReaderMultipleFrames(t *testing.T) {
 	var buf bytes.Buffer
+
 	buf.Write([]byte{3, 0, 0, 0, 0, 0, 0, 0})       // frame 1: length 3
 	buf.Write([]byte{'a', 'b', 'c', 0, 0, 0, 0, 0}) // "abc" + 5 padding
 	buf.Write([]byte{2, 0, 0, 0, 0, 0, 0, 0})       // frame 2: length 2
@@ -38,6 +40,7 @@ func TestFramedReaderMultipleFrames(t *testing.T) {
 
 func TestFramedReaderEmptyStream(t *testing.T) {
 	var buf bytes.Buffer
+
 	buf.Write([]byte{0, 0, 0, 0, 0, 0, 0, 0}) // just terminator
 
 	fr := daemon.NewFramedReader(&buf)
@@ -76,6 +79,7 @@ func TestFramedWriterEmpty(t *testing.T) {
 func TestFramedReaderAlignedFrame(t *testing.T) {
 	// Frame with exactly 8 bytes (no padding needed)
 	var buf bytes.Buffer
+
 	buf.Write([]byte{8, 0, 0, 0, 0, 0, 0, 0}) // length 8
 	buf.Write([]byte{1, 2, 3, 4, 5, 6, 7, 8}) // data (no padding)
 	buf.Write([]byte{0, 0, 0, 0, 0, 0, 0, 0}) // terminator

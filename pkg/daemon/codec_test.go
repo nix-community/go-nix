@@ -29,6 +29,7 @@ func TestWriteReadStringsEmpty(t *testing.T) {
 
 func TestWriteReadStringMap(t *testing.T) {
 	var buf bytes.Buffer
+
 	m := map[string]string{"a": "1", "b": "2"}
 	err := daemon.WriteStringMap(&buf, m)
 	assert.NoError(t, err)
@@ -39,16 +40,17 @@ func TestWriteReadStringMap(t *testing.T) {
 
 func TestReadPathInfo(t *testing.T) {
 	var buf bytes.Buffer
-	writeTestString(&buf, "/nix/store/abc-foo.drv")       // deriver
+
+	writeTestString(&buf, "/nix/store/abc-foo.drv")        // deriver
 	writeTestString(&buf, "sha256:abcdef1234567890")       // narHash
-	writeTestUint64(&buf, 1)                                // references count
+	writeTestUint64(&buf, 1)                               // references count
 	writeTestString(&buf, "/nix/store/def-bar")            // reference
 	writeTestUint64(&buf, 1700000000)                      // registrationTime
-	writeTestUint64(&buf, 12345)                            // narSize
-	writeTestUint64(&buf, 1)                                // ultimate = true
-	writeTestUint64(&buf, 1)                                // sigs count
+	writeTestUint64(&buf, 12345)                           // narSize
+	writeTestUint64(&buf, 1)                               // ultimate = true
+	writeTestUint64(&buf, 1)                               // sigs count
 	writeTestString(&buf, "cache.example.com-1:abc123sig") // signature
-	writeTestString(&buf, "")                               // contentAddress
+	writeTestString(&buf, "")                              // contentAddress
 
 	info, err := daemon.ReadPathInfo(&buf, "/nix/store/xyz-test")
 	assert.NoError(t, err)
@@ -254,14 +256,15 @@ func TestWriteBasicDerivationEmpty(t *testing.T) {
 
 func TestReadBuildResult(t *testing.T) {
 	var buf bytes.Buffer
-	writeTestUint64(&buf, 0)              // status = Built
-	writeTestString(&buf, "")             // errorMsg
-	writeTestUint64(&buf, 1)              // timesBuilt
-	writeTestUint64(&buf, 0)              // isNonDeterministic = false
-	writeTestUint64(&buf, 1700000000)     // startTime
-	writeTestUint64(&buf, 1700000060)     // stopTime
-	writeTestUint64(&buf, 1)              // builtOutputs count
-	writeTestString(&buf, "out")          // output name
+
+	writeTestUint64(&buf, 0)               // status = Built
+	writeTestString(&buf, "")              // errorMsg
+	writeTestUint64(&buf, 1)               // timesBuilt
+	writeTestUint64(&buf, 0)               // isNonDeterministic = false
+	writeTestUint64(&buf, 1700000000)      // startTime
+	writeTestUint64(&buf, 1700000060)      // stopTime
+	writeTestUint64(&buf, 1)               // builtOutputs count
+	writeTestString(&buf, "out")           // output name
 	writeTestString(&buf, `{"id":"test"}`) // realisation JSON
 
 	result, err := daemon.ReadBuildResult(&buf)
@@ -278,13 +281,14 @@ func TestReadBuildResult(t *testing.T) {
 
 func TestReadBuildResultNoOutputs(t *testing.T) {
 	var buf bytes.Buffer
-	writeTestUint64(&buf, 3)          // status = PermanentFailure
+
+	writeTestUint64(&buf, 3)              // status = PermanentFailure
 	writeTestString(&buf, "build failed") // errorMsg
-	writeTestUint64(&buf, 0)          // timesBuilt
-	writeTestUint64(&buf, 0)          // isNonDeterministic = false
-	writeTestUint64(&buf, 1700000000) // startTime
-	writeTestUint64(&buf, 1700000010) // stopTime
-	writeTestUint64(&buf, 0)          // builtOutputs count
+	writeTestUint64(&buf, 0)              // timesBuilt
+	writeTestUint64(&buf, 0)              // isNonDeterministic = false
+	writeTestUint64(&buf, 1700000000)     // startTime
+	writeTestUint64(&buf, 1700000010)     // stopTime
+	writeTestUint64(&buf, 0)              // builtOutputs count
 
 	result, err := daemon.ReadBuildResult(&buf)
 	assert.NoError(t, err)

@@ -19,6 +19,7 @@ func TestDefaultClientSettings(t *testing.T) {
 
 func TestWriteClientSettings(t *testing.T) {
 	var buf bytes.Buffer
+
 	settings := daemon.DefaultClientSettings()
 	err := daemon.WriteClientSettings(&buf, settings)
 	assert.NoError(t, err)
@@ -85,6 +86,7 @@ func TestWriteClientSettings(t *testing.T) {
 
 func TestWriteClientSettingsWithOverrides(t *testing.T) {
 	var buf bytes.Buffer
+
 	settings := daemon.DefaultClientSettings()
 	settings.KeepFailed = true
 	settings.KeepGoing = true
@@ -92,8 +94,8 @@ func TestWriteClientSettingsWithOverrides(t *testing.T) {
 	settings.MaxBuildJobs = 4
 	settings.BuildCores = 8
 	settings.Overrides = map[string]string{
-		"sandbox":          "true",
-		"allowed-uris":     "https://example.com",
+		"sandbox":      "true",
+		"allowed-uris": "https://example.com",
 	}
 
 	err := daemon.WriteClientSettings(&buf, settings)

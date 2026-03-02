@@ -22,36 +22,36 @@ type Operation uint64
 
 // Daemon operation codes.
 const (
-	OpIsValidPath             Operation = 1
-	OpQueryReferrers          Operation = 6
-	OpAddToStore              Operation = 7
-	OpBuildPaths              Operation = 9
-	OpEnsurePath              Operation = 10
-	OpAddTempRoot             Operation = 11
-	OpAddIndirectRoot         Operation = 12
-	OpFindRoots               Operation = 14
-	OpSetOptions              Operation = 19
-	OpCollectGarbage          Operation = 20
-	OpQueryAllValidPaths      Operation = 23
-	OpQueryPathInfo           Operation = 26
-	OpQueryPathFromHashPart   Operation = 29
-	OpQueryValidPaths         Operation = 31
-	OpQuerySubstitutablePaths Operation = 32
-	OpQueryValidDerivers      Operation = 33
-	OpOptimiseStore           Operation = 34
-	OpVerifyStore             Operation = 35
-	OpBuildDerivation         Operation = 36
-	OpAddSignatures           Operation = 37
-	OpNarFromPath             Operation = 38
-	OpAddToStoreNar           Operation = 39
-	OpQueryMissing            Operation = 40
+	OpIsValidPath              Operation = 1
+	OpQueryReferrers           Operation = 6
+	OpAddToStore               Operation = 7
+	OpBuildPaths               Operation = 9
+	OpEnsurePath               Operation = 10
+	OpAddTempRoot              Operation = 11
+	OpAddIndirectRoot          Operation = 12
+	OpFindRoots                Operation = 14
+	OpSetOptions               Operation = 19
+	OpCollectGarbage           Operation = 20
+	OpQueryAllValidPaths       Operation = 23
+	OpQueryPathInfo            Operation = 26
+	OpQueryPathFromHashPart    Operation = 29
+	OpQueryValidPaths          Operation = 31
+	OpQuerySubstitutablePaths  Operation = 32
+	OpQueryValidDerivers       Operation = 33
+	OpOptimiseStore            Operation = 34
+	OpVerifyStore              Operation = 35
+	OpBuildDerivation          Operation = 36
+	OpAddSignatures            Operation = 37
+	OpNarFromPath              Operation = 38
+	OpAddToStoreNar            Operation = 39
+	OpQueryMissing             Operation = 40
 	OpQueryDerivationOutputMap Operation = 41
-	OpRegisterDrvOutput       Operation = 42
-	OpQueryRealisation        Operation = 43
-	OpAddMultipleToStore      Operation = 44
-	OpAddBuildLog             Operation = 45
-	OpBuildPathsWithResults   Operation = 46
-	OpAddPermRoot             Operation = 47
+	OpRegisterDrvOutput        Operation = 42
+	OpQueryRealisation         Operation = 43
+	OpAddMultipleToStore       Operation = 44
+	OpAddBuildLog              Operation = 45
+	OpBuildPathsWithResults    Operation = 46
+	OpAddPermRoot              Operation = 47
 )
 
 //nolint:gochecknoglobals
@@ -181,21 +181,21 @@ const (
 type BuildStatus uint64
 
 const (
-	BuildStatusBuilt                 BuildStatus = 0
-	BuildStatusSubstituted           BuildStatus = 1
-	BuildStatusAlreadyValid          BuildStatus = 2
-	BuildStatusPermanentFailure      BuildStatus = 3
-	BuildStatusInputRejected         BuildStatus = 4
-	BuildStatusOutputRejected        BuildStatus = 5
-	BuildStatusTransientFailure      BuildStatus = 6
-	BuildStatusCachedFailure         BuildStatus = 7
-	BuildStatusTimedOut              BuildStatus = 8
-	BuildStatusMiscFailure           BuildStatus = 9
-	BuildStatusDependencyFailed      BuildStatus = 10
-	BuildStatusLogLimitExceeded      BuildStatus = 11
-	BuildStatusNotDeterministic      BuildStatus = 12
+	BuildStatusBuilt                  BuildStatus = 0
+	BuildStatusSubstituted            BuildStatus = 1
+	BuildStatusAlreadyValid           BuildStatus = 2
+	BuildStatusPermanentFailure       BuildStatus = 3
+	BuildStatusInputRejected          BuildStatus = 4
+	BuildStatusOutputRejected         BuildStatus = 5
+	BuildStatusTransientFailure       BuildStatus = 6
+	BuildStatusCachedFailure          BuildStatus = 7
+	BuildStatusTimedOut               BuildStatus = 8
+	BuildStatusMiscFailure            BuildStatus = 9
+	BuildStatusDependencyFailed       BuildStatus = 10
+	BuildStatusLogLimitExceeded       BuildStatus = 11
+	BuildStatusNotDeterministic       BuildStatus = 12
 	BuildStatusResolvesToAlreadyValid BuildStatus = 13
-	BuildStatusNoSubstituters        BuildStatus = 14
+	BuildStatusNoSubstituters         BuildStatus = 14
 )
 
 //nolint:gochecknoglobals
@@ -230,9 +230,9 @@ func (s BuildStatus) String() string {
 type GCAction uint64
 
 const (
-	GCReturnLive    GCAction = 0
-	GCReturnDead    GCAction = 1
-	GCDeleteDead    GCAction = 2
+	GCReturnLive     GCAction = 0
+	GCReturnDead     GCAction = 1
+	GCDeleteDead     GCAction = 2
 	GCDeleteSpecific GCAction = 3
 )
 

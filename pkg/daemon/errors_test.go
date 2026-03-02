@@ -9,7 +9,7 @@ import (
 )
 
 func TestDaemonError(t *testing.T) {
-	e := &daemon.DaemonError{
+	e := &daemon.Error{
 		Message: "path '/nix/store/xxx' is not valid",
 	}
 	assert.Equal(t, "daemon: path '/nix/store/xxx' is not valid", e.Error())
